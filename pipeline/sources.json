@@ -1,0 +1,35 @@
+{
+  "_说明": "观澜 Horizon 免费信源配置。type: rss / gnews（Google News 关键词 RSS）/ gdelt / portwatch。filter 为可选的关键词正则，只保留标题或摘要命中的条目，减少噪音。layer 对应航运八层信源。新增信源只需在这里加一行。",
+  "sources": [
+    {"id": "gn-cl-cge", "name": "Google News · 智利 CGE", "sector": "energy", "country": "智利", "type": "gnews", "lang": "es", "q": "\"CGE\" (electricidad OR luz OR multa OR corte OR SEC)"},
+    {"id": "gn-cl-sec", "name": "Google News · 智利电力监管", "sector": "energy", "country": "智利", "type": "gnews", "lang": "es", "q": "(\"Superintendencia de Electricidad\" OR \"Coordinador Eléctrico Nacional\" OR \"Comisión Nacional de Energía\")"},
+    {"id": "gn-br-cpfl", "name": "Google News · 巴西 CPFL", "sector": "energy", "country": "巴西", "type": "gnews", "lang": "pt", "q": "CPFL"},
+    {"id": "gn-br-aneel", "name": "Google News · 巴西 ANEEL", "sector": "energy", "country": "巴西", "type": "gnews", "lang": "pt", "q": "ANEEL (tarifa OR leilão OR multa OR distribuidora OR consulta)"},
+    {"id": "rss-br-aneel", "name": "ANEEL 官网新闻", "sector": "energy", "country": "巴西", "type": "rss", "url": "https://www.gov.br/aneel/pt-br/assuntos/noticias/RSS", "official": true},
+    {"id": "rss-br-mme", "name": "巴西矿产能源部 MME", "sector": "energy", "country": "巴西", "type": "rss", "url": "https://www.gov.br/mme/pt-br/assuntos/noticias/RSS", "official": true, "filter": "(energia|elétric|leilão|tarifa|transmiss|distribui)"},
+    {"id": "gn-ph-ngcp", "name": "Google News · 菲律宾 NGCP", "sector": "energy", "country": "菲律宾", "type": "gnews", "lang": "en-PH", "q": "NGCP OR \"National Grid Corporation of the Philippines\""},
+    {"id": "gn-ph-erc", "name": "Google News · 菲律宾 ERC / DOE", "sector": "energy", "country": "菲律宾", "type": "gnews", "lang": "en-PH", "q": "(\"Energy Regulatory Commission\" OR \"Department of Energy\") Philippines power"},
+    {"id": "rss-ph-philstar", "name": "Philstar 头条", "sector": "energy", "country": "菲律宾", "type": "rss", "url": "https://www.philstar.com/rss/headlines", "filter": "(NGCP|power|grid|electric|ERC|DOE|blackout|brownout|franchise)"},
+    {"id": "rss-ph-inquirer", "name": "Inquirer 商业", "sector": "energy", "country": "菲律宾", "type": "rss", "url": "https://business.inquirer.net/feed", "filter": "(NGCP|power|grid|electric|ERC|DOE|energy)"},
+    {"id": "gdelt-energy", "name": "GDELT · 三国电力", "sector": "energy", "type": "gdelt", "q": "(NGCP OR CPFL OR \"CGE Chile\" OR ANEEL)"},
+
+    {"id": "gn-en-dry", "name": "Google News · 干散货 / 海岬型", "sector": "shipping", "persona": "dry", "layer": 6, "type": "gnews", "lang": "en", "q": "capesize OR \"dry bulk\" OR \"Baltic Dry\""},
+    {"id": "gn-en-redsea", "name": "Google News · 红海与胡塞", "sector": "shipping", "persona": "box", "layer": 1, "type": "gnews", "lang": "en", "q": "\"Red Sea\" (shipping OR vessel OR Houthi OR Suez)"},
+    {"id": "gn-en-hormuz", "name": "Google News · 霍尔木兹与油轮", "sector": "shipping", "persona": "tank", "layer": 1, "type": "gnews", "lang": "en", "q": "\"Strait of Hormuz\" OR (tanker (attack OR seized OR rates))"},
+    {"id": "gn-en-sanctions", "name": "Google News · 制裁与影子船队", "sector": "shipping", "persona": "tank", "layer": 3, "type": "gnews", "lang": "en", "q": "(OFAC OR sanctions) (vessels OR tankers OR \"shadow fleet\")"},
+    {"id": "gn-en-ustr", "name": "Google News · 美国港口费", "sector": "shipping", "layer": 4, "type": "gnews", "lang": "en", "q": "USTR \"port fees\" Chinese ships"},
+    {"id": "gn-en-panama", "name": "Google News · 巴拿马与苏伊士运河", "sector": "shipping", "persona": "box", "layer": 2, "type": "gnews", "lang": "en", "q": "(\"Panama Canal\" OR \"Suez Canal\") (transits OR draft OR traffic)"},
+    {"id": "gn-en-finance", "name": "Google News · 船舶融资", "sector": "shipping", "persona": "dry", "layer": 6, "type": "gnews", "lang": "en", "q": "(\"ship finance\" OR \"shipping finance\" OR \"sale and leaseback\") (Hong Kong OR Singapore OR Chinese)"},
+    {"id": "gn-en-ukmto", "name": "Google News · UKMTO 安全通告", "sector": "shipping", "layer": 1, "type": "gnews", "lang": "en", "q": "UKMTO incident vessel"},
+    {"id": "gn-zh-ship", "name": "Google News · 中文航运", "sector": "shipping", "layer": 6, "type": "gnews", "lang": "zh", "q": "航运 (散货船 OR 好望角型 OR 油轮 OR 集运 OR 船东)"},
+    {"id": "gn-ko-ship", "name": "Google News · 韩国海运", "sector": "shipping", "layer": 6, "type": "gnews", "lang": "ko", "q": "해운 (벌크선 OR 케이프사이즈 OR 팬오션 OR HMM OR 운임)"},
+    {"id": "gn-ko-yard", "name": "Google News · 韩国造船接单", "sector": "shipping", "layer": 6, "type": "gnews", "lang": "ko", "q": "조선 수주 (HD현대중공업 OR 한화오션 OR 삼성중공업)"},
+    {"id": "gn-ko-kobc", "name": "Google News · 韩国海洋振兴公社", "sector": "shipping", "layer": 6, "type": "gnews", "lang": "ko", "q": "해양진흥공사 OR 선박금융"},
+    {"id": "rss-gcaptain", "name": "gCaptain", "sector": "shipping", "layer": 6, "type": "rss", "url": "https://gcaptain.com/feed/"},
+    {"id": "rss-splash", "name": "Splash247", "sector": "shipping", "layer": 6, "type": "rss", "url": "https://splash247.com/feed/"},
+    {"id": "rss-hellenic", "name": "Hellenic Shipping News", "sector": "shipping", "layer": 7, "type": "rss", "url": "https://www.hellenicshippingnews.com/feed/"},
+    {"id": "rss-marex", "name": "The Maritime Executive", "sector": "shipping", "layer": 6, "type": "rss", "url": "https://maritime-executive.com/articles.rss"},
+    {"id": "gdelt-ship", "name": "GDELT · 航运要道", "sector": "shipping", "layer": 1, "type": "gdelt", "q": "(\"Red Sea\" OR Hormuz OR \"Bab el-Mandeb\") (shipping OR tanker OR vessel)"},
+    {"id": "portwatch", "name": "IMF PortWatch · 要道通航量", "sector": "shipping", "layer": 2, "type": "portwatch", "official": true}
+  ]
+}
