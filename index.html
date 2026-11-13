@@ -321,6 +321,50 @@ table.ledger .st.open{background:var(--yellow-bg);color:var(--yellow)}
 table.ledger .st.hit{background:var(--green-bg);color:var(--green)}
 table.ledger .st.miss{background:var(--red-bg);color:var(--red)}
 table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
+/* ===== 子目录（四行业）===== */
+.sector-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.sector-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px;text-align:left;cursor:default}
+.sector-card .ic{font-size:26px;line-height:1}
+.sector-card h3{margin:8px 0 4px;font-size:16px;color:var(--ink)}
+.sector-card p{margin:0 0 10px;font-size:13px;color:var(--muted);min-height:40px}
+.sector-card .items{display:flex;flex-wrap:wrap;gap:6px}
+.sector-card .it{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--text);background:var(--bg)}
+.sector-card.gold{border-color:var(--gold-line);background:var(--gold-soft)}
+/* ===== 问雷达 ===== */
+.ask-wrap{display:grid;grid-template-columns:1fr;gap:14px}
+.ask-box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.ask-input{display:flex;gap:10px}
+.ask-input input{flex:1;font:inherit;font-size:14.5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:10px 18px}
+.ask-input input:focus{outline:2px solid var(--brand-2);outline-offset:2px;border-color:var(--brand-2)}
+.ask-input button{font:inherit;font-size:14.5px;border:none;background:var(--brand-2);color:#fff;border-radius:999px;padding:10px 22px;cursor:pointer;white-space:nowrap}
+.ask-input button:hover{filter:brightness(1.08)}
+.ask-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ask-chips button{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:999px;padding:4px 12px;cursor:pointer}
+.ask-chips button:hover{background:var(--tint)}
+.ask-ans{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
+.ask-ans .concl{background:var(--tint);border-radius:8px;padding:10px 14px;font-size:14.5px;color:var(--ink);margin:0 0 10px}
+.ask-ans h4{margin:10px 0 4px;font-size:12.5px;letter-spacing:.06em;color:var(--muted);font-weight:500}
+.ask-ans p{margin:0;font-size:13.5px}
+.ask-ans ol{margin:0;padding-left:18px;font-size:13.5px}
+.ask-ans .src a{color:var(--brand-2);font-size:13px}
+.ask-note{font-size:12.5px;color:var(--muted)}
+/* ===== 产品线 ===== */
+.pline{display:flex;flex-direction:column;gap:12px}
+.pline-row{display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start}
+.pline-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;border-left:4px solid var(--brand-2)}
+.pline-card.gold{border-left-color:var(--gold)}
+.pline-card h3{margin:0 0 4px;font-size:16px;color:var(--ink)}
+.pline-card .q{font-size:13px;color:var(--gold);margin:0 0 8px;font-weight:600}
+.pline-card p{margin:0;font-size:13.5px}
+.pline-arrow{align-self:center;color:var(--muted);font-size:22px;text-align:center}
+/* ===== 案例库 ===== */
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.case-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.case-card .tag{display:inline-block;font-size:11.5px;border-radius:999px;padding:1px 10px;font-weight:600;background:var(--red-bg);color:var(--red);margin-bottom:8px}
+.case-card h3{margin:0 0 6px;font-size:15.5px;color:var(--ink)}
+.case-card .fact{font-size:12.5px;color:var(--text);margin:0 0 8px}
+.case-card .chain{font-size:12.5px;color:var(--muted);margin:0 0 8px}
+.case-card .verify{font-size:12px;color:var(--gold);margin:0;font-weight:600}
 #totop{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.12);opacity:0;pointer-events:none;transition:opacity .2s}
 #totop.show{opacity:1;pointer-events:auto}
 #totop:hover{background:var(--tint)}
@@ -335,7 +379,7 @@ table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
   .metrics{grid-template-columns:repeat(2,1fr)}
   .toolbar{flex-direction:column;align-items:flex-start}
 }
-@media (max-width:820px){ .funnel{grid-template-columns:repeat(2,1fr)} .two,.projects,.method,.body{grid-template-columns:1fr} .kpis,.attr,.cmp-grid,.scen-grid,.spov-grid,.expo-grid{grid-template-columns:1fr} .rank-item{grid-template-columns:44px 1fr;grid-auto-rows:auto} .rank-score{grid-column:2;text-align:left} }
+@media (max-width:820px){ .funnel{grid-template-columns:repeat(2,1fr)} .two,.projects,.method,.body{grid-template-columns:1fr} .kpis,.attr,.cmp-grid,.scen-grid,.spov-grid,.expo-grid,.sector-grid,.case-grid{grid-template-columns:1fr} .rank-item{grid-template-columns:44px 1fr;grid-auto-rows:auto} .rank-score{grid-column:2;text-align:left} .pline-row{grid-template-columns:1fr} }
 @media print{
   body{background:#fff;color:#222;font-size:12px}
   header{background:#fff;color:#111;border-bottom:2px solid #111}
@@ -359,8 +403,8 @@ table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
 <header><div class="wrap">
   <div class="eyebrow">锋睿 FRONTWISE · 观澜 Horizon</div>
   <h1>观澜 Horizon<span style="font-family:var(--sans);font-size:.55em;color:var(--on-brand-2);margin-left:12px;font-weight:400">锋睿 · 全球舆情雷达</span></h1>
-  <div class="sub">每天自动汇总境外项目所在国的政策、监管与舆论动态，分级初判，每条可回到原文。</div>
-  <div class="tags"><span class="tag hl">仅基于公开信息</span><span class="tag">智利 · 巴西 · 菲律宾</span><span class="tag">数据日 2026-11-10 · 历史回放</span><span class="tag">风险等级为 AI 初判</span></div>
+  <div class="sub">全球重大事件发生后，看清它往哪传导、影响哪些标的、盯哪些信号；每个判断追到原文，每次推演到期对账。</div>
+  <div class="tags"><span class="tag hl">仅基于公开信息</span><span class="tag">券商 · 海外能源 · 航运 · 大宗商品</span><span class="tag">数据日 2026-11-13 · 演示版</span><span class="tag">风险等级为 AI 初判</span></div>
   <div class="toolbar" role="group" aria-label="页面工具">
     <div class="tgroup" id="themeGroup" aria-label="主题切换">
       <button type="button" data-theme="auto" aria-pressed="true">跟随系统</button>
@@ -377,6 +421,13 @@ table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
 <nav class="side" aria-label="功能菜单" id="side">
   <div class="grp">今日</div>
   <button data-go="overview">今日总览</button>
+  <div class="grp">问雷达</div>
+  <button data-go="ask">对话问雷达</button>
+  <div class="grp">子目录</div>
+  <button data-go="sector-securities">券商</button>
+  <button data-go="sector-energy">海外能源</button>
+  <button data-go="sector-shipping">航运</button>
+  <button data-go="sector-commodity">大宗商品</button>
   <div class="grp">专题</div>
   <button data-go="special-overview">专题总览</button>
   <button data-go="special">专题 · CGE 监管处罚</button>
@@ -393,7 +444,10 @@ table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
   <button data-go="foresight">局势推演</button>
   <button data-go="trend">趋势对比</button>
   <button data-go="backtest">历史回测</button>
+  <div class="grp">案例</div>
+  <button data-go="cases">案例库</button>
   <div class="grp">体系</div>
+  <button data-go="productline">产品线</button>
   <button data-go="arch">体系架构</button>
   <button data-go="sources">信源覆盖</button>
   <button data-go="method">方法与规则</button>
@@ -635,6 +689,104 @@ table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
     <p class="srcnote">以上为示意；正式版会列出“发现率、提前量、分级准确度、误报量”四类指标，并与事件实际结果逐条对照，漏报补信源、误报调规则。</p>
   </div>
 </section>
+
+<!-- ===== 问雷达 ===== -->
+<section data-view="ask" aria-labelledby="h-ask">
+  <h2 id="h-ask">对话问雷达 <small>自然语言追问，回答只基于已采集、已分级的数据，每句带来源和事实分级</small></h2>
+  <div class="ask-box">
+    <div class="ask-input">
+      <input type="text" id="askInput" placeholder="例如：黄仁勋辞职对我的持仓有什么影响？" aria-label="问雷达输入">
+      <button type="button" id="askSend">提问</button>
+    </div>
+    <div class="ask-chips" id="askChips">
+      <button type="button" data-q="SK 海力士上周为什么跌了 10%？">SK 海力士为什么跌？</button>
+      <button type="button" data-q="黄仁勋辞职对我的持仓有什么影响？">黄仁勋辞职影响谁？</button>
+      <button type="button" data-q="网上说英伟达要停止对华供货，是真的吗？">英伟达停供是真的吗？</button>
+      <button type="button" data-q="如果布伦特油价涨到 120 美元会怎样？">油价到 120 会怎样？</button>
+      <button type="button" data-q="韩国和美国媒体怎么看这次大跌？">韩美媒体怎么看大跌？</button>
+    </div>
+    <div class="ask-ans" id="askAns" hidden></div>
+  </div>
+  <div class="ask-box" style="margin-top:14px">
+    <h2 style="margin:0 0 8px">回答的固定结构 <small>五段式</small></h2>
+    <p style="font-size:13.5px;color:var(--text)">① 一句结论 → ② 事实分级 → ③ 传导链条 → ④ 待验证节点 → ⑤ 原文来源链接。</p>
+    <p class="ask-note" style="margin-top:8px">边界：不回答"该买还是该卖"；没有来源支撑的问题直接说"雷达暂无数据"，不猜；所有对话留痕可审计。</p>
+  </div>
+</section>
+
+<!-- ===== 子目录：四行业 ===== -->
+<section data-view="sector-securities" aria-labelledby="h-ssec">
+  <h2 id="h-ssec">子目录 · 券商 <small>面向研究所 / 自营 / 资管 / 财富管理</small></h2>
+  <div class="sector-grid">
+    <div class="sector-card gold"><div class="ic">📊</div><h3>券商</h3><p>监控上市公司、行业、宏观、关键人物，事件传导到标的与资金流。</p><div class="items"><span class="it">高管人事</span><span class="it">业绩爆雷</span><span class="it">监管处罚</span><span class="it">资金流</span><span class="it">产业链传导</span></div></div>
+    <div class="sector-card"><div class="ic">⚡</div><h3>海外能源</h3><p>境外能源资产的政策、监管、舆情，数据不出域。</p><div class="items"><span class="it">CGE</span><span class="it">CPFL</span><span class="it">NGCP</span><span class="it">特许权</span><span class="it">监管处罚</span></div></div>
+    <div class="sector-card"><div class="ic">🚢</div><h3>航运</h3><p>地缘、航道、船型、运价，事件 → 通道 → 船型 → 运价与股价。</p><div class="items"><span class="it">霍尔木兹</span><span class="it">红海</span><span class="it">BDI/BCI</span><span class="it">油轮运价</span><span class="it">船东信用</span></div></div>
+    <div class="sector-card"><div class="ic">🛢</div><h3>大宗商品</h3><p>原油、黄金、白银敞口，实线/虚线传导提醒。</p><div class="items"><span class="it">原油</span><span class="it">黄金</span><span class="it">白银</span><span class="it">铜</span><span class="it">LNG</span></div></div>
+  </div>
+  <p class="srcnote" style="margin-top:12px">四个子目录共用同一套底座引擎（采集→归并→分级→传导→推演→复盘），差异只在监控对象、数据源、事件模板与关系图谱。当前演示数据为海外能源（智利/巴西/菲律宾），其余子目录为能力示意。</p>
+</section>
+
+<section data-view="sector-energy" aria-labelledby="h-sen">
+  <h2 id="h-sen">子目录 · 海外能源 <small>国网海投境外能源资产（当前演示数据）</small></h2>
+  <div class="banner">这是当前演示版的主数据：智利 CGE、巴西 CPFL、菲律宾 NGCP 三个海外能源项目。相关事件、专题、榜单、传导图均基于此数据。</div>
+  <div class="projects" id="projects2"></div>
+</section>
+
+<section data-view="sector-shipping" aria-labelledby="h-sship">
+  <h2 id="h-sship">子目录 · 航运 <small>事件 → 通道 → 船型 → 运价与股价</small></h2>
+  <div class="case-grid">
+    <div class="case-card"><span class="tag">油轮</span><h3>霍尔木兹局势紧张</h3><p class="fact">中东原油与 LNG 出口受阻</p><p class="chain">传导链：油轮绕行 → 油轮运价上涨 → 中远海能、招商轮船</p><p class="verify">验证节点：次周油轮运价</p></div>
+    <div class="case-card"><span class="tag">集运</span><h3>红海袭船</h3><p class="fact">苏伊士运河 → 绕行好望角</p><p class="chain">传导链：航程拉长 → 有效运力收紧 → SCFI 上行 → 中远海控、HMM</p><p class="verify">验证节点：SCFI 周度指数</p></div>
+    <div class="case-card"><span class="tag">干散货</span><h3>几内亚西芒杜铁矿出货</h3><p class="fact">大西洋 → 中国长航线</p><p class="chain">传导链：海岬型需求 → BCI 上行 → Pan Ocean、太平洋航运</p><p class="verify">验证节点：BCI 指数、铁矿石期货</p></div>
+  </div>
+  <p class="srcnote" style="margin-top:12px">航运版复用同一底座，加运价指数插件（BDI/BCI/SCFI/油轮运价）与八层信源（地缘/航道/制裁/政策/货物/船市/经纪行/天气）。韩国信源为锋睿独家优势。</p>
+</section>
+
+<section data-view="sector-commodity" aria-labelledby="h-scom">
+  <h2 id="h-scom">子目录 · 大宗商品 <small>原油 / 黄金 / 白银 / 铜 / LNG 敞口</small></h2>
+  <div class="expo-grid">
+    <div class="expo"><h3>🛢 原油</h3><div class="main">传导主线：OPEC+ 产量 · 地缘（霍尔木兹）· 库存 · 全球需求 · 美元</div><div class="chain">数据源：OPEC 公告、EIA 库存、路透/半岛地缘、CFTC 持仓</div></div>
+    <div class="expo"><h3>🥇 黄金</h3><div class="main">传导主线：实际利率 · 美元（反向）· 避险 · 央行购金 · 通胀预期</div><div class="chain">数据源：美联储声明、世界黄金协会、央行购金数据、CFTC 持仓</div></div>
+    <div class="expo"><h3>🥈 白银</h3><div class="main">传导主线：黄金五条 + 工业需求（光伏、电子、汽车）</div><div class="chain">数据源：COMEX 白银、光伏装机（IEA）、半导体出货、CFTC 持仓</div></div>
+  </div>
+  <p class="srcnote" style="margin-top:12px">大宗商品敞口独立成子目录，针对"不交易、只想知道哪几条事件影响我的敞口"的客户（套保、资产配置、司库、实物贸易）。详见「敞口监控」页。</p>
+</section>
+
+<!-- ===== 产品线 ===== -->
+<section data-view="productline" aria-labelledby="h-pline">
+  <h2 id="h-pline">产品线 <small>一套底座，三个产品，一条闭环</small></h2>
+  <p class="banner">三个产品不是并列工具，而是投资研究闭环上的三个环节：<b>雷达感知 → Agenta 评估 → Quant72 验证与执行</b>。共用同一套多模型 Agent 底座。</p>
+  <div class="pline" style="margin-top:14px">
+    <div class="pline-row">
+      <div class="pline-card gold"><h3>舆情雷达（观澜）</h3><p class="q">外部发生了什么、会传导到哪里</p><p>事件分级、传导图、局势推演、复盘对账。环节：感知。</p></div>
+      <div class="pline-arrow">↓</div>
+    </div>
+    <div class="pline-row">
+      <div class="pline-card"><h3>Agenta</h3><p class="q">这家公司值多少钱、判断是否成立</p><p>三表/DCF 建模、基本面知识图谱、组合管理、研究复盘。环节：评估。</p></div>
+      <div class="pline-arrow">↓</div>
+    </div>
+    <div class="pline-row">
+      <div class="pline-card"><h3>Quant72</h3><p class="q">用数据验证、策略怎么执行</p><p>自然语言驱动研究、回测、样本内外分离、代码可追溯。环节：验证与执行。</p></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2 style="margin:0 0 8px">闭环怎么转</h2>
+    <p style="font-size:14px">雷达发现事件、推演传导 → 红色事件推送进 Agenta 知识图谱 → Agenta 重新建模、调估值 → Quant72 回测验证 → 复盘回写，累积为机构研究资产 + 命中率。</p>
+  </div>
+  <p class="srcnote" style="margin-top:12px">落地顺序：先用"看得见、能演示"的雷达进门，再用"事件→估值→验证"的链条往纵深带。三个一起讲，才是"从感知到执行的完整投研操作系统"。</p>
+</section>
+
+<!-- ===== 案例库 ===== -->
+<section data-view="cases" aria-labelledby="h-cases">
+  <h2 id="h-cases">案例库 <small>传导链清晰、有行情可验证的重大事件</small></h2>
+  <div class="case-grid">
+    <div class="case-card"><span class="tag">推荐首个演示</span><h3>韩股崩盘</h3><p class="fact">11-06 KOSPI 盘中跌 8.8% 触发熔断；SK 海力士跌 10.44%；外资净卖 2.77 万亿韩元</p><p class="chain">美股芯片跌 → AI 资本开支疑虑 → HBM 订单 → 外资抛售 → A 股存储映射</p><p class="verify">验证节点：韩国两融政策效果；英伟达财报（11-17）</p></div>
+    <div class="case-card"><span class="tag">深度传导</span><h3>黄仁勋辞去英伟达 CEO</h3><p class="fact">11-12 辞职即时生效；FBI/国会/公司三方调查；股价收跌超 4%</p><p class="chain">治理丑闻 + 国家安全 + 出口管制叠加 → 算力链、HBM、国产替代、中东主权 AI</p><p class="verify">验证节点：财报（11-17）、正式 CEO 任命、国会听证</p></div>
+    <div class="case-card"><span class="tag">大宗商品</span><h3>伊朗战争与油价</h3><p class="fact">布伦特 73→100 美元；海湾出口 60–80%；OPEC+ 产量少约 500 万桶/日</p><p class="chain">油价 → 通胀利率 → 航空化工成本 → 中东主权基金节奏 → 霍尔木兹航运</p><p class="verify">验证节点：OPEC+ 2027 配额评估（11 月中旬）</p></div>
+  </div>
+  <p class="srcnote" style="margin-top:12px">演示分工：黄仁勋讲"深度传导"，韩股讲"可对账"（熔断、资金流、政府应对三样已兑现）。四个事件都指向同一条主线——AI 资本开支能否持续。</p>
+</section>
+
 
 <section data-view="special-overview" aria-labelledby="h-spov">
   <h2 id="h-spov">专题总览 <small>红色事件或事件线连续升级时，系统自动生成重大事件专题</small></h2>
@@ -1204,8 +1356,10 @@ const RN={r:"红",y:"黄",g:"绿"};
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 const pill=(cls,txt,dot)=>`<span class="pill ${cls}">${dot?'<span class="dot"></span>':''}${esc(txt)}</span>`;
 document.getElementById("n-y").textContent=E.filter(e=>e.r==="y").length;
-document.getElementById("projects").innerHTML=P.map(p=>{const ev=E.filter(e=>e.c===p.c),y=ev.filter(e=>e.r==="y").length,g=ev.filter(e=>e.r==="g").length,r=ev.filter(e=>e.r==="r").length;
- return `<div class="card proj"><h3>${p.c}<span class="co">${esc(p.co)}</span></h3><div class="cnt">${pill("r","红 "+r,1)}${pill("y","黄 "+y,1)}${pill("g","绿 "+g,1)}</div><p>${esc(p.focus)}</p><div class="hist">${esc(p.hist)}</div><details><summary>项目档案</summary><dl><dt>监控主体</dt><dd>${esc(p.ent)}</dd><dt>主要监管机构</dt><dd>${esc(p.reg)}</dd><dt>语言与时区</dt><dd>${esc(p.lang)}</dd><dt>股权与特许权</dt><dd>待客户确认后填入</dd><dt>本批次事件</dt><dd>${ev.map(e=>esc(e.t)).join("；")}</dd></dl></details></div>`}).join("");
+function renderProjects(elId){const el=document.getElementById(elId);if(!el)return;
+ el.innerHTML=P.map(p=>{const ev=E.filter(e=>e.c===p.c),y=ev.filter(e=>e.r==="y").length,g=ev.filter(e=>e.r==="g").length,r=ev.filter(e=>e.r==="r").length;
+  return `<div class="card proj"><h3>${p.c}<span class="co">${esc(p.co)}</span></h3><div class="cnt">${pill("r","红 "+r,1)}${pill("y","黄 "+y,1)}${pill("g","绿 "+g,1)}</div><p>${esc(p.focus)}</p><div class="hist">${esc(p.hist)}</div><details><summary>项目档案</summary><dl><dt>监控主体</dt><dd>${esc(p.ent)}</dd><dt>主要监管机构</dt><dd>${esc(p.reg)}</dd><dt>语言与时区</dt><dd>${esc(p.lang)}</dd><dt>股权与特许权</dt><dd>待客户确认后填入</dd><dt>本批次事件</dt><dd>${ev.map(e=>esc(e.t)).join("；")}</dd></dl></details></div>`}).join("");}
+renderProjects("projects");renderProjects("projects2");
 let fc="全部",fr="全部";
 function renderFilters(){const cs=["全部","智利","巴西","菲律宾"],rs=["全部","r","y","g"];
  document.getElementById("filters").innerHTML=cs.map(c=>{const n=c==="全部"?E.length:E.filter(e=>e.c===c).length;return `<button type="button" data-c="${c}" aria-pressed="${fc===c}">${c==="全部"?"全部国家":c}<span class="cnt"> ${n}</span></button>`}).join("")+'<span class="sep"></span>'+rs.map(r=>{const n=r==="全部"?E.length:E.filter(e=>e.r===r).length;return `<button type="button" data-r="${r}" aria-pressed="${fr===r}">${r==="全部"?"全部级别":RN[r]+"色初判"}<span class="cnt"> ${n}</span></button>`}).join("");}
@@ -1241,6 +1395,52 @@ document.getElementById('events').addEventListener('click',ev=>{const b=ev.targe
 /* 专题总览卡 → 专题跳转 */
 document.querySelectorAll('.spov-card').forEach(c=>c.addEventListener('click',()=>{go(c.dataset.jump);window.scrollTo({top:0})}));
 renderFilters();renderEvents();sortEvents();
+
+/* ---- 问雷达：可交互对话演示 ---- */
+var ASK_DB = {
+  "sk 海力士": {concl:"SK 海力士下跌主因是 AI 资本开支疑虑传导到 HBM 订单预期，叠加外资集中抛售。",
+    fact:[["已确认","11-06 KOSPI 盘中跌 8.8% 触发熔断，SK 海力士跌 10.44%（行情）"],["已确认","外资当日净卖约 2.77 万亿韩元（交易所数据）"],["待验证","英伟达财报（11-17）是否印证 HBM 需求"]],
+    chain:"美股芯片指数大跌 → AI 资本开支疑虑 → HBM 订单预期 → 外资抛售 → A 股存储/设备映射",
+    node:"英伟达财报（11-17）、韩国两融政策效果",
+    src:"Korea JoongAng Daily · 交易所行情"},
+  "黄仁勋": {concl:"黄仁勋辞职事件沿「治理 + 国家安全 + 出口管制」三条链传导，短期冲击算力链与国产替代预期。",
+    fact:[["已确认","11-12 辞去 CEO，即时生效；FBI/国会/公司三方调查（公告）"],["媒体报道","与 Megaspeed 前高管婚外关系（纽约时报、路透）"],["未证实","Alice Huang 为中国情报人员（中方否认）"]],
+    chain:"直接冲击英伟达估值 → 上游（HBM/光模块/代工）→ 下游（云厂商/中东主权 AI）→ 竞争替代（AMD/国产算力）→ 政策通道（出口管制）",
+    node:"财报（11-17）、正式 CEO 任命、国会听证",
+    src:"英伟达公告 · 路透 · 纽约时报"},
+  "停供|断供|对华": {concl:"「英伟达将停止对华供货」目前为未证实传闻，无官方公告支持。",
+    fact:[["未证实","停止对华供货的传闻，来源为单一社交平台"],["已确认","美国国会就芯片销售启动调查（官方表态）"],["已辟谣","部分『立即断供』表述已被澄清"]],
+    chain:"（暂无实线传导）一旦证实，将传导至国产算力替代、A 股算力链、英伟达中国收入",
+    node:"美国国会调查进展、官方出口管制清单更新",
+    src:"雷达暂无官方原文，标记待核实"},
+  "布伦特|油价|120": {concl:"若布伦特升至 120 美元，将沿「通胀 → 利率预期 → 成本」传导，利多油运、利空航空化工。",
+    fact:[["已确认","当前布伦特已从战前约 73 美元升至 100 美元以上"],["已确认","海湾出口仅为正常 60–80%（OPEC 数据）"]],
+    chain:"油价上行 → 通胀与利率预期 → 航空/化工成本上升 → 油轮运价上行 → 中远海能/招商轮船",
+    node:"OPEC+ 2027 配额评估（11 月中旬）",
+    src:"Al Jazeera · OPEC 月报"},
+  "韩美|韩国|美国媒体": {concl:"韩美媒体对大跌的解读出现跨语言情绪差：韩文媒体重 HBM 订单，英文媒体重治理与国安。",
+    fact:[["已确认","英文媒体聚焦治理丑闻与国家安全（主流媒体）"],["已确认","韩文媒体聚焦 HBM 订单与出口（韩媒）"],["分析","中文媒体聚焦出口管制与国产替代"]],
+    chain:"跨语言情绪差越大，越可能存在定价分歧——这是观澜特有的信号维度",
+    node:"后续各语言媒体情绪差变化",
+    src:"观澜多语言采集框架（上线后自动计算）"}
+};
+function askAnswer(q){
+  q=(q||'').toLowerCase();
+  var key=null;
+  for(var k in ASK_DB){ if(q.indexOf(k)>=0){ key=k; break; } }
+  var box=document.getElementById('askAns');
+  if(!key){ box.hidden=false; box.innerHTML='<p class="concl">雷达暂无数据，无法回答这个问题（演示版仅覆盖已采集事件）。</p>'; return; }
+  var d=ASK_DB[key];
+  box.hidden=false;
+  box.innerHTML = '<p class="concl">'+esc(d.concl)+'</p>'
+    + '<h4>事实分级</h4><ol>'+d.fact.map(f=>'<li><b>'+esc(f[0])+'</b>：'+esc(f[1])+'</li>').join('')+'</ol>'
+    + '<h4>传导链条</h4><p>'+esc(d.chain)+'</p>'
+    + '<h4>待验证节点</h4><p>'+esc(d.node)+'</p>'
+    + '<h4>来源</h4><p class="src">'+esc(d.src)+'</p>';
+}
+document.getElementById('askSend').addEventListener('click',()=>{askAnswer(document.getElementById('askInput').value);});
+document.getElementById('askInput').addEventListener('keydown',e=>{if(e.key==='Enter')askAnswer(e.target.value);});
+document.getElementById('askChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.getElementById('askInput').value=b.dataset.q;askAnswer(b.dataset.q);});
 
 /* ---- 榜单：从 E 数组动态计算 ---- */
 function score(r){return r==='r'?3:r==='y'?2:0.5;}
