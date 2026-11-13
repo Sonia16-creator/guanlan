@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>观澜 Horizon · 全球舆情雷达</title>
+<style>
+/* 布局：深色品牌页眉 → 工具栏（主题/导出/复制摘要） → 漏斗数字 → 今日要点 + 关键日期 → 项目状态 → 事件清单（可展开核查依据）→ 趋势/回测（示意） → 方法说明 */
+:root{
+  --bg:#F7F6F2; --surface:#FFFFFF; --ink:#172D3B; --text:#46525A; --muted:#7A8790; --line:#DCE3E7;
+  --brand:#172D3B; --brand-2:#355E75; --on-brand:#F7F6F2; --on-brand-2:#BDCBD2; --tint:#E9EEF1;
+  --gold:#6B4E12; --gold-soft:#F3E6C8; --gold-line:#D9C79B;
+  --red:#B3372F; --red-bg:#F8E4E1; --yellow:#8A5A00; --yellow-bg:#FBEFD2; --green:#2F6B4F; --green-bg:#E1EFE7;
+  --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif; --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1D26; --surface:#172D3B; --ink:#F1F4F5; --text:#C3CED4; --muted:#8FA0AA; --line:#2C4656;
+  --brand:#0B161D; --brand-2:#5E8BA3; --on-brand:#F7F6F2; --on-brand-2:#BDCBD2; --tint:#1F3A4B;
+  --gold:#E4C678; --gold-soft:#3A2E12; --gold-line:#6B5A2E;
+  --red:#F0958D; --red-bg:#4A2320; --yellow:#F0C766; --yellow-bg:#463710; --green:#8FCFAE; --green-bg:#1D3D2F; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0F1D26; --surface:#172D3B; --ink:#F1F4F5; --text:#C3CED4; --muted:#8FA0AA; --line:#2C4656;
+  --brand:#0B161D; --brand-2:#5E8BA3; --on-brand:#F7F6F2; --on-brand-2:#BDCBD2; --tint:#1F3A4B;
+  --gold:#E4C678; --gold-soft:#3A2E12; --gold-line:#6B5A2E;
+  --red:#F0958D; --red-bg:#4A2320; --yellow:#F0C766; --yellow-bg:#463710; --green:#8FCFAE; --green-bg:#1D3D2F; color-scheme:dark }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{background:var(--brand);color:var(--on-brand);border-bottom:3px solid var(--gold)}
+header .wrap{padding-block:28px 20px;display:flex;flex-direction:column;gap:10px}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--gold);font-weight:600}
+h1{font-family:var(--serif);font-size:clamp(24px,4vw,34px);line-height:1.25;margin:0;text-wrap:balance}
+.sub{color:var(--on-brand-2);font-size:14px}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.tag{border:1px solid var(--brand-2);border-radius:999px;padding:2px 12px;font-size:12.5px;color:var(--on-brand)}
+.tag.hl{border-color:var(--gold);color:var(--gold)}
+/* 工具栏 */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px}
+.tgroup{display:inline-flex;border:1px solid var(--brand-2);border-radius:999px;overflow:hidden}
+.tgroup button{font:inherit;font-size:13px;border:none;background:transparent;color:var(--on-brand-2);padding:4px 14px;cursor:pointer}
+.tgroup button[aria-pressed="true"]{background:var(--brand-2);color:#fff}
+.export-btn,.copy-btn{font:inherit;font-size:13px;border:1px solid var(--brand-2);background:var(--brand-2);color:#fff;border-radius:999px;padding:4px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.copy-btn{background:var(--gold);border-color:var(--gold)}
+.export-btn:hover,.copy-btn:hover{filter:brightness(1.08)}
+main .wrap{padding-block:24px 40px}
+h2{font-family:var(--serif);color:var(--ink);font-size:20px;margin:0 0 12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+h2 small{font-family:var(--sans);font-weight:400;font-size:13px;color:var(--muted)}
+.funnel{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.fstep{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.fstep b{display:block;font-family:var(--serif);font-size:28px;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+.fstep span{font-size:13px}
+.fstep em{display:block;font-style:normal;font-size:12px;color:var(--muted)}
+.fstep.on{background:var(--brand-2);border-color:var(--brand-2)} .fstep.on b,.fstep.on span{color:#fff} .fstep.on em{color:#E6ECEF}
+.fstep.gold{background:var(--gold);border-color:var(--gold)} .fstep.gold b,.fstep.gold span{color:#fff} .fstep.gold em{color:#F3E6C8}
+.two{display:grid;grid-template-columns:1.5fr 1fr;gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}
+.top3{display:flex;flex-direction:column;gap:12px;list-style:none;margin:0;padding:0}
+.top3 li{display:grid;grid-template-columns:28px 1fr;gap:10px}
+.top3 .n{font-family:var(--serif);font-size:20px;color:var(--brand-2);line-height:1.3}
+.top3 strong{color:var(--ink);display:block}
+.top3 p{margin:2px 0 0;font-size:14px}
+.dates{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.dates li{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.dates li:first-child{border-top:none;padding-top:0}
+.dates time{font-family:var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
+.dates small{display:block;color:var(--muted);font-size:12px}
+.projects{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.proj h3{margin:0;font-size:17px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.proj .co{font-size:13px;color:var(--muted)}
+.proj .cnt{display:flex;gap:6px;margin:10px 0}
+.proj p{margin:0;font-size:14px}
+.proj .hist{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:1px 10px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.pill.r{background:var(--red-bg);color:var(--red)} .pill.y{background:var(--yellow-bg);color:var(--yellow)} .pill.g{background:var(--green-bg);color:var(--green)}
+.pill.v{background:var(--tint);color:var(--ink)} .pill.w{background:transparent;border:1px dashed var(--muted);color:var(--muted)}
+.pill.gold{background:var(--gold-soft);color:var(--gold)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+/* 事件工具条 */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;align-items:center}
+.filters button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:4px 14px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--brand-2);border-color:var(--brand-2);color:#fff}
+.filters button .cnt{opacity:.7;font-size:12px}
+.filters button:focus-visible,.ev summary:focus-visible,a:focus-visible,.tools button:focus-visible,.tgroup button:focus-visible,.search input:focus-visible,.sel:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+.filters .sep{width:1px;background:var(--line);margin:0 4px;align-self:stretch}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.search{position:relative;flex:1 1 220px;min-width:200px}
+.search input{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px 6px 34px}
+.search input::placeholder{color:var(--muted)}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.sel{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:5px 12px;cursor:pointer}
+.tools .ghost{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:5px 14px;cursor:pointer}
+.tools .ghost:hover{background:var(--tint)}
+.tools .ghost:disabled{opacity:.4;cursor:not-allowed}
+.events{display:flex;flex-direction:column;gap:10px}
+.ev{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.ev summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;flex-direction:column;gap:6px}
+.ev summary::-webkit-details-marker{display:none}
+.ev .meta{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:13px;color:var(--muted)}
+.spchip{font:inherit;font-size:12px;border:1px solid var(--gold-line);background:var(--gold-soft);color:var(--gold);border-radius:999px;padding:0 10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.spchip:hover{background:var(--gold);color:#fff}
+.ev .ttl{color:var(--ink);font-weight:700;font-size:16px}
+.ev .lead{font-size:14px}
+.ev .more{font-size:13px;color:var(--brand-2)}
+.ev[open] .more{display:none}
+.ev.hidden{display:none!important}
+.body{padding:0 18px 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;border-top:1px solid var(--line);padding-top:14px}
+.body h4{margin:0 0 4px;font-size:12.5px;letter-spacing:.08em;color:var(--muted);font-weight:500}
+.body p,.body ol{margin:0;font-size:14px}
+.body ol{padding-left:18px}
+.body blockquote{margin:0;border-left:3px solid var(--brand-2);padding:2px 0 2px 12px;font-size:14px;color:var(--ink)}
+.body .full{grid-column:1/-1}
+.body a{color:var(--brand-2);word-break:break-word}
+.method{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.method ol,.method ul{margin:0;padding-left:18px;font-size:14px}
+.method h3{margin:0 0 8px;font-size:15px;color:var(--ink)}
+footer .wrap{padding-block:18px 28px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+
+.proj details{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.proj details summary{cursor:pointer;font-size:13px;color:var(--brand-2)}
+.proj dl{margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}
+.proj dt{color:var(--muted);white-space:nowrap} .proj dd{margin:0}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tl li{display:grid;grid-template-columns:92px 16px minmax(0,1fr);gap:8px;font-size:14px;padding-bottom:14px;position:relative}
+.tl li:last-child{padding-bottom:0}
+.tl time{font-family:var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
+.tl .node{width:10px;height:10px;border-radius:50%;background:var(--brand-2);margin-top:7px;position:relative}
+.tl li:not(:last-child) .node::after{content:"";position:absolute;left:4px;top:12px;width:2px;height:calc(100% + 40px);background:var(--line)}
+.tl li.todo .node{background:transparent;border:2px dashed var(--muted)}
+.tl strong{color:var(--ink)} .tl small{display:block;color:var(--muted);font-size:12.5px}
+.srcwrap{overflow-x:auto}
+table.src{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+table.src th,table.src td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+table.src th{color:var(--muted);font-weight:500;font-size:12.5px;border-top:none}
+table.src td:first-child{color:var(--ink);font-weight:700;white-space:nowrap}
+table.src .num{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700}
+.srcnote{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.impact{grid-column:1/-1;background:var(--tint);border-radius:8px;padding:10px 14px}
+.impact dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.impact dt{color:var(--muted);white-space:nowrap} .impact dd{margin:0;color:var(--ink)}
+
+.shell{display:grid;grid-template-columns:208px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 10px}
+.side .grp{font-size:12px;color:var(--muted);letter-spacing:1px;padding:10px 10px 4px}
+.side .grp:first-child{padding-top:2px}
+.side button{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:none;background:none;font:inherit;font-size:14.5px;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.side button:hover{background:var(--tint)}
+.side button[aria-current="page"]{background:var(--brand);color:var(--on-brand);font-weight:700}
+.side button .soon{font-size:11px;font-weight:400;border:1px dashed currentColor;border-radius:999px;padding:0 6px;opacity:.75}
+.views{display:flex;flex-direction:column;gap:28px;min-width:0}
+.views>[hidden]{display:none!important}
+.plan{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.plan .card h3{margin:0 0 8px;font-size:15px;color:var(--ink)}
+.plan .card ul{margin:0;padding-left:18px;font-size:14px}
+.plan .card li{margin:3px 0}
+.banner{background:var(--tint);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--ink)}
+.banner.gold{background:var(--gold-soft);border:1px solid var(--gold-line);color:var(--gold)}
+/* 趋势图表 */
+.chartwrap{overflow-x:auto;padding:6px 0}
+.chartwrap svg{display:block;min-width:560px;width:100%;height:auto}
+.legend{display:flex;gap:18px;font-size:13px;color:var(--text);margin-top:8px;flex-wrap:wrap}
+.legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+/* 回测指标卡 */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.metric b{display:block;font-family:var(--serif);font-size:26px;color:var(--ink);line-height:1.2;font-variant-numeric:tabular-nums}
+.metric span{font-size:12.5px;color:var(--muted)}
+.metric.gold b{color:var(--gold)}
+/* ===== 重大事件专题 ===== */
+.special-trigger{display:flex;align-items:flex-start;gap:12px;background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--gold);margin-bottom:16px}
+.special-trigger .ico{font-size:20px;line-height:1.4}
+.concl{background:var(--brand);color:var(--on-brand);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+.concl .tagline{font-size:12px;letter-spacing:.12em;color:var(--gold);font-weight:600;margin-bottom:8px}
+.concl p{font-family:var(--serif);font-size:18px;line-height:1.55;color:var(--on-brand);margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.kpi{background:rgba(255,255,255,.06);border:1px solid var(--brand-2);border-radius:10px;padding:10px 14px}
+.kpi b{display:block;font-family:var(--serif);font-size:22px;color:var(--gold);line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--on-brand-2)}
+.facttab-wrap{overflow-x:auto}
+table.facttab{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+table.facttab th,table.facttab td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+table.facttab th{color:var(--muted);font-weight:500;font-size:12.5px;border-top:none}
+table.facttab td:first-child{color:var(--ink);font-weight:600}
+.mk{display:inline-block;min-width:22px;text-align:center;font-weight:700}
+.mk.ok{color:var(--green)} .mk.mid{color:var(--yellow)} .mk.rum{color:var(--red)} .mk.nul{color:var(--muted)}
+.attr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.attr .card h3{margin:0 0 8px;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.attr ul{margin:0;padding-left:18px;font-size:13.5px}
+.attr li{margin:4px 0}
+.chain{display:flex;flex-direction:column;gap:0}
+.cnode{position:relative;padding:0 0 0 26px;margin-bottom:14px}
+.cnode::before{content:"";position:absolute;left:7px;top:6px;width:11px;height:11px;border-radius:50%;background:var(--brand-2)}
+.cnode::after{content:"";position:absolute;left:12px;top:18px;bottom:-14px;width:2px;background:var(--line)}
+.cnode:last-child::after{display:none}
+.cnode h4{margin:0 0 2px;font-size:14.5px;color:var(--ink)}
+.cnode p{margin:0;font-size:13.5px}
+.cnode .who{font-size:12.5px;color:var(--muted)}
+.cnode.key::before{background:var(--gold);width:13px;height:13px;left:6px;top:5px}
+.cmp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cmp{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.cmp h4{margin:0 0 6px;font-size:14px;color:var(--ink)}
+.cmp p{margin:0;font-size:13px}
+.cmp .when{font-size:12px;color:var(--muted)}
+.cmp .res{color:var(--ink);font-weight:600}
+table.verify{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+table.verify th,table.verify td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+table.verify th{color:var(--muted);font-weight:500;font-size:12.5px;border-top:none}
+table.verify .g{color:var(--green);font-weight:600}
+table.verify .b{color:var(--red);font-weight:600}
+/* ===== 体系架构 ===== */
+.layers{display:flex;flex-direction:column;gap:12px}
+.layer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;border-left:4px solid var(--brand-2)}
+.layer .lno{font-family:var(--serif);font-size:13px;color:var(--brand-2);font-weight:700;letter-spacing:.1em}
+.layer h3{margin:2px 0 6px;font-size:16px;color:var(--ink)}
+.layer p{margin:0 0 10px;font-size:13.5px}
+.layer .chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--text);background:var(--bg)}
+.chip.on{background:var(--brand-2);border-color:var(--brand-2);color:#fff}
+.chip.gold{background:var(--gold-soft);border-color:var(--gold-line);color:var(--gold)}
+table.dt{width:100%;border-collapse:collapse;font-size:13.5px;min-width:720px}
+table.dt th,table.dt td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+table.dt th{color:var(--muted);font-weight:500;font-size:12.5px;border-top:none}
+table.dt td:first-child{color:var(--ink);font-weight:700;white-space:nowrap}
+.st{display:inline-block;font-size:11.5px;border-radius:999px;padding:1px 9px;font-weight:600;white-space:nowrap}
+.st.on{background:var(--green-bg);color:var(--green)} .st.plan{background:var(--tint);color:var(--brand-2)} .st.opt{background:transparent;border:1px dashed var(--muted);color:var(--muted)}
+/* ===== 传导图（NGCP 专题）===== */
+.graph-wrap{overflow-x:auto;padding:6px 0}
+.graph-wrap svg{display:block;min-width:820px;width:100%;height:auto}
+.glegend{display:flex;gap:16px;font-size:12.5px;color:var(--text);margin-top:8px;flex-wrap:wrap;align-items:center}
+.glegend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.edge-key{display:inline-block;width:22px;height:0;margin-right:5px;vertical-align:middle}
+.edge-key.solid{border-top:2px solid var(--brand-2)}
+.edge-key.dash{border-top:2px dashed var(--muted)}
+/* ===== 情景推演卡 ===== */
+.scen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+.scen{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column}
+.scen-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.scen-head h3{margin:0;font-size:14.5px;color:var(--ink)}
+.prob{height:6px;background:var(--line);border-radius:999px;overflow:hidden;margin-bottom:12px}
+.prob span{display:block;height:100%;border-radius:999px}
+.prob span{background:var(--green)}
+.prob span.pb{background:var(--yellow)}
+.prob span.pc{background:var(--red)}
+.scen-body{font-size:13px;display:flex;flex-direction:column;gap:8px}
+.scen-body b{color:var(--ink)}
+.scen-v ul{margin:6px 0 0;padding-left:16px}
+.scen-v li{margin:3px 0}
+.scen-v .g{color:var(--green);font-weight:600} .scen-v .b{color:var(--red);font-weight:600}
+/* 传导图交互 */
+.gnode{transition:opacity .18s}
+.gnode.dim{opacity:.18}
+.gnode.focus{opacity:1}
+.gedge{transition:opacity .18s}
+.gedge.dim{opacity:.12}
+.glabel{transition:opacity .18s}
+.gnode-info{background:var(--tint);border:1px solid var(--brand-2);border-radius:10px;padding:12px 16px;margin-top:12px}
+.gnode-info h4{margin:0 0 6px;font-size:14.5px;color:var(--ink)}
+.gnode-info p{margin:0 0 8px;font-size:13.5px}
+.gnode-v{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.gnode-v .g{color:var(--green);font-weight:600;margin-right:6px}
+.gnode-v .b{color:var(--red);font-weight:600;margin-right:6px}
+/* 专题总览 */
+.spov-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.spov-card{font:inherit;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;cursor:pointer;transition:border-color .15s,transform .15s}
+.spov-card:hover{border-color:var(--brand-2);transform:translateY(-2px)}
+.spov-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.spov-status{font-size:12px;color:var(--muted)}
+.spov-card h3{margin:0 0 6px;font-size:17px;color:var(--ink)}
+.spov-trigger{font-size:12.5px;color:var(--gold);margin:0 0 8px}
+.spov-desc{font-size:13.5px;margin:0 0 12px}
+.spov-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.spov-meta span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--text)}
+.spov-go{font-size:13px;color:var(--brand-2);font-weight:600}
+/* ===== 敞口监控 ===== */
+.expo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.expo{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.expo h3{margin:0 0 4px;font-size:16px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.expo .chg{font-family:var(--serif);font-size:13px;font-weight:700}
+.expo .chg.up{color:var(--red)} .expo .chg.dn{color:var(--green)}
+.expo .main{font-size:13px;margin:6px 0}
+.expo .main b{color:var(--ink)}
+.expo .chain{font-size:12px;color:var(--muted);margin:6px 0 2px}
+.alert-item{display:grid;grid-template-columns:1fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.alert-item .al-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.alert-item .al-body{padding:12px 16px;font-size:13.5px}
+.alert-item .al-body .p{margin:0 0 4px}
+.alert-item .al-body .path{color:var(--brand-2)}
+.badge-line{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:1px 11px;font-size:12px;font-weight:600}
+.badge-line.solid{background:var(--red-bg);color:var(--red)}
+.badge-line.dash{background:var(--yellow-bg);color:var(--yellow)}
+/* ===== 榜单 ===== */
+.board-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.board-tabs button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:5px 16px;cursor:pointer}
+.board-tabs button[aria-pressed="true"]{background:var(--brand-2);border-color:var(--brand-2);color:#fff}
+.rank-list{display:flex;flex-direction:column;gap:10px}
+.rank-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center}
+.rank-no{font-family:var(--serif);font-size:30px;color:var(--muted);font-weight:700;text-align:center;line-height:1}
+.rank-item.r1 .rank-no{color:var(--gold)}
+.rank-item.r2 .rank-no{color:var(--brand-2)}
+.rank-item.r3 .rank-no{color:var(--brand-2);opacity:.7}
+.rank-main h3{margin:0 0 2px;font-size:15.5px;color:var(--ink)}
+.rank-main .sub{font-size:12.5px;color:var(--muted);margin:0}
+.rank-main .up{color:var(--red);font-weight:600;font-size:12.5px}
+.rank-main .down{color:var(--green);font-weight:600;font-size:12.5px}
+.rank-main .flat{color:var(--muted);font-size:12.5px}
+.rank-score{text-align:right}
+.rank-score b{font-family:var(--serif);font-size:22px;color:var(--ink);display:block;font-variant-numeric:tabular-nums}
+.rank-score span{font-size:11.5px;color:var(--muted)}
+/* ===== 局势推演 ===== */
+.ledger-bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.lstat{flex:1 1 160px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-align:center}
+.lstat b{display:block;font-family:var(--serif);font-size:24px;color:var(--ink);line-height:1.2;font-variant-numeric:tabular-nums}
+.lstat span{font-size:12px;color:var(--muted)}
+.lstat.gold b{color:var(--gold)} .lstat.ok b{color:var(--green)}
+table.ledger{width:100%;border-collapse:collapse;font-size:13px;min-width:860px}
+table.ledger th,table.ledger td{text-align:left;padding:9px 11px;border-top:1px solid var(--line);vertical-align:top}
+table.ledger th{color:var(--muted);font-weight:500;font-size:12.5px;border-top:none;background:var(--tint)}
+table.ledger .no{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+table.ledger .st{display:inline-block;font-size:11.5px;border-radius:999px;padding:1px 9px;font-weight:600;white-space:nowrap}
+table.ledger .st.open{background:var(--yellow-bg);color:var(--yellow)}
+table.ledger .st.hit{background:var(--green-bg);color:var(--green)}
+table.ledger .st.miss{background:var(--red-bg);color:var(--red)}
+table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
+#totop{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.12);opacity:0;pointer-events:none;transition:opacity .2s}
+#totop.show{opacity:1;pointer-events:auto}
+#totop:hover{background:var(--tint)}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:8px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:50}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:820px){
+  .shell{grid-template-columns:1fr;gap:16px}
+  .side{position:static;display:flex;gap:6px;overflow-x:auto;padding:8px}
+  .side .grp{display:none}
+  .side button{width:auto;flex:none}
+  .plan{grid-template-columns:1fr}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .toolbar{flex-direction:column;align-items:flex-start}
+}
+@media (max-width:820px){ .funnel{grid-template-columns:repeat(2,1fr)} .two,.projects,.method,.body{grid-template-columns:1fr} .kpis,.attr,.cmp-grid,.scen-grid,.spov-grid,.expo-grid{grid-template-columns:1fr} .rank-item{grid-template-columns:44px 1fr;grid-auto-rows:auto} .rank-score{grid-column:2;text-align:left} }
+@media print{
+  body{background:#fff;color:#222;font-size:12px}
+  header{background:#fff;color:#111;border-bottom:2px solid #111}
+  header .eyebrow,.sub,.tags,.toolbar{display:none}
+  h1{color:#111;font-size:22px}
+  .side,#totop,#toast,.filters,.tools,.ev .more{display:none!important}
+  footer{display:block!important;border-top:1px solid #bbb}
+  footer .wrap{padding-block:12px;font-size:10px;color:#555}
+  .shell{grid-template-columns:1fr}
+  .card,.ev,.fstep,.proj,.metric{border-color:#bbb;box-shadow:none;break-inside:avoid}
+  .ev{display:block!important}
+  .ev summary{cursor:default}
+  h2{color:#111;break-after:avoid}
+  a{color:#000;text-decoration:none}
+  a::after{content:" (" attr(href) ")";font-size:10px;color:#666}
+}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <div class="eyebrow">锋睿 FRONTWISE · 观澜 Horizon</div>
+  <h1>观澜 Horizon<span style="font-family:var(--sans);font-size:.55em;color:var(--on-brand-2);margin-left:12px;font-weight:400">锋睿 · 全球舆情雷达</span></h1>
+  <div class="sub">每天自动汇总境外项目所在国的政策、监管与舆论动态，分级初判，每条可回到原文。</div>
+  <div class="tags"><span class="tag hl">仅基于公开信息</span><span class="tag">智利 · 巴西 · 菲律宾</span><span class="tag">数据日 2026-11-10 · 历史回放</span><span class="tag">风险等级为 AI 初判</span></div>
+  <div class="toolbar" role="group" aria-label="页面工具">
+    <div class="tgroup" id="themeGroup" aria-label="主题切换">
+      <button type="button" data-theme="auto" aria-pressed="true">跟随系统</button>
+      <button type="button" data-theme="light" aria-pressed="false">浅色</button>
+      <button type="button" data-theme="dark" aria-pressed="false">深色</button>
+    </div>
+    <button type="button" class="copy-btn" id="copyBtn">📋 一键复制日报摘要</button>
+    <button type="button" class="export-btn" id="exportBtn">🖨 导出 / 打印报告</button>
+  </div>
+</div></header>
+
+<main><div class="wrap">
+<div class="shell">
+<nav class="side" aria-label="功能菜单" id="side">
+  <div class="grp">今日</div>
+  <button data-go="overview">今日总览</button>
+  <div class="grp">专题</div>
+  <button data-go="special-overview">专题总览</button>
+  <button data-go="special">专题 · CGE 监管处罚</button>
+  <button data-go="special-ngcp">专题 · NGCP 特许权<span class="soon">红色</span></button>
+  <div class="grp">事件</div>
+  <button data-go="events">事件清单</button>
+  <button data-go="timeline">事件时间线</button>
+  <div class="grp">项目</div>
+  <button data-go="projects">项目档案</button>
+  <div class="grp">敞口</div>
+  <button data-go="exposure">敞口监控</button>
+  <div class="grp">分析</div>
+  <button data-go="board">榜单</button>
+  <button data-go="foresight">局势推演</button>
+  <button data-go="trend">趋势对比</button>
+  <button data-go="backtest">历史回测</button>
+  <div class="grp">体系</div>
+  <button data-go="arch">体系架构</button>
+  <button data-go="sources">信源覆盖</button>
+  <button data-go="method">方法与规则</button>
+</nav>
+<div class="views">
+
+
+<section data-view="overview" aria-labelledby="h-funnel">
+  <h2 id="h-funnel">今天系统做了什么 <small>从检索到上报，每一层只做一件事</small></h2>
+  <div class="funnel">
+    <div class="fstep"><b>210</b><span>检索记录</span><em>采集：只管抓全</em></div>
+    <div class="fstep"><b>108</b><span>原始材料</span><em>读取正文并保留</em></div>
+    <div class="fstep"><b>17</b><span>事件</span><em>同一件事归并为一条</em></div>
+    <div class="fstep gold"><b id="n-y">8</b><span>需关注（黄）</span><em>分级初判，写明理由</em></div>
+    <div class="fstep"><b>0</b><span>需上报（红）</span><em>须人工复核后定级</em></div>
+  </div>
+</section>
+
+<section data-view="overview" class="two">
+  <div class="card" aria-labelledby="h-top">
+    <h2 id="h-top">今日要点 <small>AI 按影响和确定性挑出三条</small></h2>
+    <ol class="top3">
+      <li><span class="n">1</span><div><strong>智利官方通报：CGE 输电被罚 3000 UTM</strong><p>已有官方原文支持。处罚与设施维护缺陷有关；处罚决定、整改期限和申诉进展尚待补取。</p></div></li>
+      <li><span class="n">2</span><div><strong>巴西“Hora Certa”分时电价：媒体称已通过，官方决议未取得</strong><p>目前只有媒体说法，和前一日官方材料的阶段不一致。确认前不按已生效处理。</p></div></li>
+      <li><span class="n">3</span><div><strong>菲律宾：厄尔尼诺供电压力与备用电力限价草案同时出现</strong><p>能源部长称无法保证不停电；监管机构就备用市场限价征求意见。两件事都关系到电网运营。</p></div></li>
+    </ol>
+  </div>
+  <div class="card" aria-labelledby="h-dates">
+    <h2 id="h-dates">关键日期 <small>取自各事件原文</small></h2>
+    <ul class="dates">
+      <li><time>11-11</time><div>CGE 输电 Tierra Amarilla 计划检修（13 日还有一次）<small>智利 · 计划性停电</small></div></li>
+      <li><time>11-12</time><div>菲律宾能源部财务评估指引：提前意见截止（17:00）<small>菲律宾 · 公众咨询</small></div></li>
+      <li><time>11-13</time><div>CPFL Santa Cruz 劳动协议：工会表决<small>巴西 · 劳资关系</small></div></li>
+      <li><time>11-13</time><div>ANEEL 三项既有电力拍卖<small>巴西 · 电力采购</small></div></li>
+      <li><time>11-13</time><div>菲律宾备用电力限价草案：意见提交截止<small>菲律宾 · 报道所述期限，待核对原件</small></div></li>
+      <li><time>11-27</time><div>菲律宾备用电力限价草案：公众咨询<small>菲律宾 · 报道所述日期，待核对原件</small></div></li>
+    </ul>
+  </div>
+</section>
+
+<section data-view="projects" aria-labelledby="h-proj">
+  <h2 id="h-proj">项目状态 <small>项目清单与归属以客户确认为准</small></h2>
+  <div class="projects" id="projects"></div>
+</section>
+
+<section data-view="timeline" aria-labelledby="h-tl">
+  <h2 id="h-tl">事件连成线：CGE 监管处罚 <small>知识库把同一类事件的前后经过接起来</small></h2>
+  <div class="card"><ol class="tl">
+    <li><time>2025-08</time><span class="node"></span><div><strong>法院维持对 CGE 的罚款 40000 UTM（约 27.5 亿比索）</strong><small>起因是 2022 年阿劳卡尼亚大区停电时长超标 · 历史回放，来源：The Clinic 2025-08-18</small></div></li>
+    <li><time>2026-11-10</time><span class="node"></span><div><strong>监管机构 SEC 通报：CGE 输电被罚 3000 UTM</strong><small>同样发生在阿劳卡尼亚大区，原因是线路维护缺陷 · 本批次事件，已有官方原文</small></div></li>
+    <li class="todo"><time>待跟进</time><span class="node"></span><div><strong>处罚决定编号、整改期限、公司是否申诉</strong><small>取得后自动挂到这条线上，并按结果调整风险等级</small></div></li>
+  </ol></div>
+</section>
+
+<section data-view="sources" aria-labelledby="h-src">
+  <h2 id="h-src">信源覆盖 <small>当前全部为公开免费信源</small></h2>
+  <div class="card">
+    <div class="srcwrap"><table class="src">
+      <tr><th>国家</th><th>监管与能源部门</th><th>议会、公报、法院</th><th>公司与证券披露</th><th>当地媒体</th><th>宏观</th><th>合计</th></tr>
+      <tr><td>智利</td><td><span class="num">6</span>　SEC、CNE、能源部、电网调度</td><td><span class="num">5</span>　参众两院、政府公报、法院</td><td><span class="num">5</span>　CGE、金融市场委员会 CMF</td><td><span class="num">5</span>　Diario Financiero、BioBio 等</td><td><span class="num">1</span>　央行</td><td class="num">22</td></tr>
+      <tr><td>巴西</td><td><span class="num">6</span>　ANEEL、MME、ONS</td><td><span class="num">5</span>　参众两院、联邦公报、审计法院 TCU</td><td><span class="num">3</span>　CPFL 及投资者关系</td><td><span class="num">8</span>　Valor、G1、CanalEnergia 等</td><td><span class="num">1</span>　央行</td><td class="num">23</td></tr>
+      <tr><td>菲律宾</td><td><span class="num">2</span>　ERC、DOE</td><td><span class="num">15</span>　参议院各栏目、众议院、最高法院、政府公报</td><td><span class="num">3</span>　NGCP、交易所披露</td><td><span class="num">6</span>　BusinessWorld、Philstar 等</td><td><span class="num">2</span>　央行、TransCo</td><td class="num">28</td></tr>
+    </table></div>
+    <p class="srcnote">固定信源入口共 73 个；另有 62 个公开网站通过关键词检索读到过材料。目前没有接入任何付费信源。正式版可按需接入 Factiva、路透等授权信源，补上读取受限的当地付费媒体。</p>
+  </div>
+</section>
+
+<section data-view="events" aria-labelledby="h-ev">
+  <h2 id="h-ev">事件清单 <small>点开任意一条，查看分级依据、核查范围和原文证据</small></h2>
+  <div class="filters" id="filters" role="group" aria-label="筛选"></div>
+  <div class="tools">
+    <label class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="search" id="q" placeholder="搜索事件、项目、关键词、原文引文…" aria-label="搜索事件"></label>
+    <select class="sel" id="sort" aria-label="排序">
+      <option value="risk">排序：风险优先（红→黄→绿）</option>
+      <option value="country">排序：按国家</option>
+      <option value="title">排序：按标题</option>
+    </select>
+    <button type="button" class="ghost" id="expandAll">全部展开</button>
+    <button type="button" class="ghost" id="collapseAll">全部收起</button>
+    <span style="font-size:13px;color:var(--muted)" id="countLabel"></span>
+  </div>
+  <div class="events" id="events"></div>
+</section>
+
+<section data-view="exposure" aria-labelledby="h-expo">
+  <h2 id="h-expo">敞口监控 <small>客户自主添加关注的大宗商品敞口，事件传导到它时自动提醒</small></h2>
+  <p class="banner">这不是"新闻流"，是"敞口情报精选"——客户不交易、不求快，只要知道"哪几条事件会动我的敞口、为什么"。每条提醒分<b>实线（已影响）</b>与<b>虚线（可能传导，待验证）</b>。</p>
+
+  <div class="expo-grid">
+    <div class="expo">
+      <h3>🛢 原油 <span class="chg up">▲ 布伦特 102.4</span></h3>
+      <div class="main">监控对象 · 大宗商品 · <b>已确认</b> 在宏观层覆盖</div>
+      <div class="chain">传导主线：OPEC+ 产量 · 地缘（霍尔木兹）· 库存 · 全球需求 · 美元</div>
+    </div>
+    <div class="expo">
+      <h3>🥇 黄金 <span class="chg up">▲ 伦敦金 2,865</span></h3>
+      <div class="main">监控对象 · 贵金属 · <b>需单列</b> 补传导逻辑</div>
+      <div class="chain">传导主线：实际利率 · 美元（反向）· 避险 · 央行购金 · 通胀预期</div>
+    </div>
+    <div class="expo">
+      <h3>🥈 白银 <span class="chg up">▲ 伦敦银 36.8</span></h3>
+      <div class="main">监控对象 · 贵金属 · <b>双属性</b>（避险 + 工业）</div>
+      <div class="chain">传导主线：黄金五条 <b>+ 工业需求（光伏、电子、汽车）</b></div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:8px">传导提醒 <small>事件生成传导图时，只要有一条边指向你的敞口，就提醒</small></h2>
+  <div id="expoAlerts">
+    <div class="alert-item">
+      <div class="al-head"><span class="pill y"><span class="dot"></span>黄色初判</span><span class="badge-line dash">虚线 · 可能传导</span><span style="color:var(--muted);font-size:12.5px">美联储鹰派表态 · 尚未点名黄金</span></div>
+      <div class="al-body">
+        <p class="p"><b>可能传导到您监控的「黄金」</b> · 方向：利空</p>
+        <p class="p path">传导链：加息预期 → 美元走强 → 实际利率上行 → 黄金承压</p>
+        <p class="p" style="color:var(--muted);font-size:12.5px">验证节点：下次议息会议 · 原文：美联储声明 ↗</p>
+      </div>
+    </div>
+    <div class="alert-item">
+      <div class="al-head"><span class="pill r"><span class="dot"></span>红色初判</span><span class="badge-line solid">实线 · 已影响</span><span style="color:var(--muted);font-size:12.5px">霍尔木兹海峡局势紧张</span></div>
+      <div class="al-body">
+        <p class="p"><b>已影响您监控的「原油」</b> · 方向：利多</p>
+        <p class="p path">传导链：中东原油出口受阻 → 油轮绕行 → 布伦特上行 → 中远海能等油运标的</p>
+        <p class="p" style="color:var(--muted);font-size:12.5px">已观察：布伦特 73→102 美元 · 原文：Al Jazeera ↗</p>
+      </div>
+    </div>
+  </div>
+  <p class="srcnote">价值在"推理"而非"匹配"：美联储放鹰的新闻全文没有"黄金"二字，是传导图推理出"加息→美元强→黄金承压"才提醒你。普通关键词监控抓不到这条。</p>
+</section>
+
+<section data-view="board" aria-labelledby="h-board">
+  <h2 id="h-board">榜单 <small>看排名变化，不必读每一条事件 · 系统按风险分自动排序</small></h2>
+  <div class="board-tabs" id="boardTabs" role="group" aria-label="榜单类型">
+    <button type="button" data-tab="proj" aria-pressed="true">项目风险榜</button>
+    <button type="button" data-tab="country" aria-pressed="false">国别风险榜</button>
+    <button type="button" data-tab="topic" aria-pressed="false">本周升温议题榜</button>
+  </div>
+  <div class="rank-list" id="rankList"></div>
+  <p class="srcnote" style="margin-top:12px">风险分由系统按「红 3 分 · 黄 2 分 · 绿 0.5 分」自动计算并排序，↑↓ 为相对上期变化。每个名次点开可看构成它的事件与原文，榜单是入口、不是结论。</p>
+</section>
+
+<section data-view="foresight" aria-labelledby="h-foresight">
+  <h2 id="h-foresight">局势推演 <small>每个判断都带到期日，到期自动对账 · 可被验证，而非信不信由你</small></h2>
+  <p class="banner">我们不做"永不出错"的神秘预言。每个判断都写明依据、给出验证节点和到期时间；到了时间点，系统自动回填实际结果，<b>成立与否都留痕</b>。判断错了不删不藏——这正是信任的来源。</p>
+  <div class="ledger-bar">
+    <div class="lstat"><b id="f-total">0</b><span>进行中的推演</span></div>
+    <div class="lstat"><b id="f-hit">0</b><span>已验证成立</span></div>
+    <div class="lstat"><b id="f-miss">0</b><span>已验证未成立</span></div>
+    <div class="lstat gold"><b id="f-rate">—</b><span>历史命中率（滚动）</span></div>
+  </div>
+  <div class="card">
+    <div class="srcwrap"><table class="ledger">
+      <tr><th>编号</th><th>推演判断</th><th>依据</th><th>验证节点</th><th>到期</th><th>状态</th></tr>
+      <tr><td class="no">T-001</td><td>NGCP 特许权最可能走向「情景 B：到期不续/部分收回」</td><td>历史可比（水务特许权事件）+ 听证升级</td><td>特许权修正案是否成法；续期谈判是否启动</td><td>2027 续期节点</td><td><span class="st open">进行中</span></td></tr>
+      <tr><td class="no">T-002</td><td>「特许权已被收回」为传闻不实，不采信</td><td>无官方/国会原文</td><td>政府或国会是否发布收回文件</td><td>持续跟踪</td><td><span class="st open">进行中</span></td></tr>
+      <tr><td class="no">T-003</td><td>CGE 监管处罚事件线暂作黄色，不升级红色</td><td>金额小、未见股权/特许权影响证据</td><td>处罚决定细节、整改范围是否扩大</td><td>处罚决定公布时</td><td><span class="st open">进行中</span></td></tr>
+      <tr><td class="no">T-004</td><td>巴西分时电价「已通过」按未生效处理</td><td>媒体与官方阶段不一致</td><td>ANEEL 正式决议原文</td><td>决议公布时</td><td><span class="st open">进行中</span></td></tr>
+      <tr><td class="no">T-005</td><td>菲律宾厄尔尼诺供电压力不构成重大事故</td><td>属展望与预警，非已发生停电</td><td>NGCP 实际电网警报、机组停运</td><td>持续跟踪</td><td><span class="st open">进行中</span></td></tr>
+      <tr><td class="no">T-006</td><td>2022 阿劳卡尼亚停电将引发重大罚款（历史）</td><td>停电时长超标，监管已介入</td><td>法院终审结果</td><td>2025-08</td><td><span class="st hit">已验证成立 ✓</span></td></tr>
+      <tr><td class="no">T-007</td><td>菲律宾备用限价草案 11-13 前意见截止（历史）</td><td>媒体报道的期限</td><td>ERC 草案原件</td><td>2026-11-13</td><td><span class="st watch">待对账</span></td></tr>
+    </table></div>
+    <p class="srcnote">命中率 = 已验证成立 ÷ 已到期的全部推演。随着验证节点逐个到期，这条记录会持续累积，成为系统可信度的硬证据。这对应"历史回测"的持续运行形态。</p>
+  </div>
+</section>
+
+<section data-view="trend" aria-labelledby="h-trend">
+  <h2 id="h-trend">趋势对比 <small>近四周事件量与黄色事件走势 · 示意数据</small></h2>
+  <p class="banner gold">⚠ 下方图表为<b>示意数据</b>：本演示仅有 11 月 10 日一个真实批次，为说明“趋势对比”上线后的呈现形态，这里以示意数字展示。正式版需系统连续运行四周以上，且口径与客户确认后保持不变，前后数据才可比。</p>
+  <div class="card" style="margin-top:12px">
+    <div class="chartwrap">
+      <svg viewBox="0 0 660 300" role="img" aria-label="近四周事件总数与黄色事件数量柱状图（示意数据）">
+        <defs></defs>
+        <!-- 网格线 -->
+        <g stroke="var(--line)" stroke-width="1">
+          <line x1="48" y1="40"  x2="640" y2="40"/>
+          <line x1="48" y1="90"  x2="640" y2="90"/>
+          <line x1="48" y1="140" x2="640" y2="140"/>
+          <line x1="48" y1="190" x2="640" y2="190"/>
+          <line x1="48" y1="240" x2="640" y2="240"/>
+        </g>
+        <!-- Y 轴刻度 -->
+        <g fill="var(--muted)" font-size="11" text-anchor="end">
+          <text x="42" y="43">20</text><text x="42" y="93">15</text><text x="42" y="143">10</text><text x="42" y="193">5</text><text x="42" y="243">0</text>
+        </g>
+        <!-- 柱：总数（brand-2） 与 黄色（gold），最大值20，每单位10px，baseline=240 -->
+        <!-- 第1周 总数11 黄3 -->
+        <rect x="72"  y="130" width="44" height="110" fill="var(--brand-2)" rx="3"/>
+        <rect x="124" y="210" width="44" height="30"  fill="var(--gold)" rx="3"/>
+        <text x="94"  y="124" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700">11</text>
+        <text x="146" y="204" text-anchor="middle" fill="var(--gold)" font-size="11">3</text>
+        <!-- 第2周 总数13 黄4 -->
+        <rect x="222" y="110" width="44" height="130" fill="var(--brand-2)" rx="3"/>
+        <rect x="274" y="200" width="44" height="40"  fill="var(--gold)" rx="3"/>
+        <text x="244" y="104" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700">13</text>
+        <text x="296" y="194" text-anchor="middle" fill="var(--gold)" font-size="11">4</text>
+        <!-- 第3周 总数15 黄6 -->
+        <rect x="372" y="90"  width="44" height="150" fill="var(--brand-2)" rx="3"/>
+        <rect x="424" y="180" width="44" height="60"  fill="var(--gold)" rx="3"/>
+        <text x="394" y="84"  text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700">15</text>
+        <text x="446" y="174" text-anchor="middle" fill="var(--gold)" font-size="11">6</text>
+        <!-- 第4周（本批次）总数17 黄8 -->
+        <rect x="522" y="70"  width="44" height="170" fill="var(--brand-2)" rx="3"/>
+        <rect x="574" y="160" width="44" height="80"  fill="var(--gold)" rx="3"/>
+        <text x="544" y="64"  text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700">17</text>
+        <text x="596" y="154" text-anchor="middle" fill="var(--gold)" font-size="11">8</text>
+        <!-- X 轴标签 -->
+        <g fill="var(--muted)" font-size="12" text-anchor="middle">
+          <text x="94"  y="262">10-20 周</text><text x="244" y="262">10-27 周</text><text x="394" y="262">11-03 周</text><text x="544" y="262">11-10 周（本批次）</text>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--brand-2)"></span>事件总数</span>
+      <span><span class="sw" style="background:var(--gold)"></span>黄色（需关注）事件</span>
+    </div>
+  </div>
+  <div class="plan" style="margin-top:16px">
+    <div class="card"><h3>对比什么</h3><ul><li>各项目的事件数量和黄色、红色事件占比，按周、按月对比</li><li>各类议题的变化：监管处罚、电价与特许权、停电与安全、劳资、社区与环境</li><li>当地媒体对项目公司的报道量和负面占比</li><li>同一事件线上的进展节奏，例如处罚从通报到决定用了多久</li></ul></div>
+    <div class="card"><h3>怎么提醒</h3><ul><li>某项目某类议题连续两周上升，自动标为“升温”</li><li>单周报道量超过过去四周均值的设定倍数，推送提醒</li><li>周报和月报自动附趋势图和文字解读</li></ul></div>
+    <div class="card"><h3>上线前需要</h3><ul><li>系统连续运行四周以上，每日批次不中断</li><li>与客户确认议题分类口径，之后保持不变，前后数据才可比</li><li>确认对比周期：周、月，还是按特许权和电价审查周期</li></ul></div>
+    <div class="card"><h3>使用时注意</h3><ul><li>信源增减会造成数量变化，需要和真实的舆情变化区分开</li><li>数量上升不等于风险上升，仍以事件分级为准</li></ul></div>
+  </div>
+</section>
+
+<section data-view="backtest" aria-labelledby="h-backtest">
+  <h2 id="h-backtest">历史回测 <small>用已知结果的历史事件检验系统 · 示意数据</small></h2>
+  <p class="banner gold">⚠ 下方为<b>示意数据</b>：用于说明“历史回测”的指标口径与呈现方式，<b>不代表真实回测结果</b>。正式回测需与客户共同选定历史事件清单、补采对应时间段材料并约定“实际后果”认定标准后方可进行。</p>
+  <div class="metrics" style="margin-top:12px">
+    <div class="metric gold"><b>92%</b><span>发现率（重大事件抓取比例）</span></div>
+    <div class="metric"><b>6.4 天</b><span>平均提前量（早于大面积报道）</span></div>
+    <div class="metric"><b>83%</b><span>分级准确度（初判与实际相符）</span></div>
+    <div class="metric"><b>1 条</b><span>误报（标黄/红后证实无关）</span></div>
+  </div>
+  <div class="card">
+    <div class="srcwrap"><table class="src">
+      <tr><th>历史事件</th><th>系统首次发现</th><th>初判等级</th><th>实际结果</th><th>结果</th></tr>
+      <tr><td>2022 智利阿劳卡尼亚大区停电时长超标</td><td>停电次日报导出现时</td><td><span class="pill y"><span class="dot"></span>黄</span></td><td>2025 法院维持 40000 UTM 罚款</td><td>命中（等级低估）</td></tr>
+      <tr><td>巴西“Hora Certa”分时电价调整</td><td>正式决议前一日方案阶段</td><td><span class="pill y"><span class="dot"></span>黄</span></td><td>媒体称已通过（官方决议待取）</td><td>命中</td></tr>
+      <tr><td>菲律宾备用电力市场限价草案</td><td>征求意见阶段</td><td><span class="pill y"><span class="dot"></span>黄</span></td><td>意见截止 11-13、咨询 11-27</td><td>命中（时限待核）</td></tr>
+    </table></div>
+    <p class="srcnote">以上为示意；正式版会列出“发现率、提前量、分级准确度、误报量”四类指标，并与事件实际结果逐条对照，漏报补信源、误报调规则。</p>
+  </div>
+</section>
+
+<section data-view="special-overview" aria-labelledby="h-spov">
+  <h2 id="h-spov">专题总览 <small>红色事件或事件线连续升级时，系统自动生成重大事件专题</small></h2>
+  <div class="spov-grid">
+    <button type="button" class="spov-card" data-jump="special-ngcp">
+      <div class="spov-head"><span class="pill r"><span class="dot"></span>红色 · 特许权</span><span class="spov-status">已生成</span></div>
+      <h3>NGCP 特许经营权遭审查</h3>
+      <p class="spov-trigger">触发：红色事件 · 直接点名中资股东（国网 40%）</p>
+      <p class="spov-desc">菲律宾国会听证升级，涉及电网可靠性、国家安全与中资持股，触及股权/特许权红线。</p>
+      <div class="spov-meta"><span>3 层传导</span><span>3 情景</span><span>历史可比</span><span>验证节点</span></div>
+      <span class="spov-go">查看专题 →</span>
+    </button>
+    <button type="button" class="spov-card" data-jump="special">
+      <div class="spov-head"><span class="pill y"><span class="dot"></span>黄色 · 监管处罚</span><span class="spov-status">已生成</span></div>
+      <h3>CGE 监管处罚事件线</h3>
+      <p class="spov-trigger">触发：事件线连续升级 · 16 个月内二次同类处罚</p>
+      <p class="spov-desc">智利阿劳卡尼亚大区同类处罚重复出现（2025 40000 UTM → 2026 3000 UTM），构成升级信号。</p>
+      <div class="spov-meta"><span>时间线</span><span>事实分级</span><span>传导链</span><span>验证节点</span></div>
+      <span class="spov-go">查看专题 →</span>
+    </button>
+  </div>
+  <p class="srcnote" style="margin-top:12px">专题由系统自动触发并生成六部分结构：核心结论 → 事实基准 → 冲击归因 → 传导链/图 → 历史可比 → 情景与验证节点。正式版中，触发阈值与分级标准由客户业务部门确定。</p>
+</section>
+
+<section data-view="special" aria-labelledby="h-special">
+  <h2 id="h-special">重大事件专题 · CGE 监管处罚 <small>事件线连续升级触发（黄色事件线 · 二次升级）</small></h2>
+  <div class="special-trigger"><span class="ico">⚡</span><div>本专题由<b>事件线连续升级</b>触发：CGE 监管处罚在 2025-08 → 2026-11 之间第二次升级（阿劳卡尼亚大区同类处罚），系统自动聚合该事件线，生成下列六部分专题。正式版中，红色事件或同一条事件线短期内连续升级即自动触发，无需人工发起。</div></div>
+
+  <!-- 1 核心结论 -->
+  <div class="concl">
+    <div class="tagline">核心结论 · 一句话判断 + 三个关键数字</div>
+    <p>CGE 在智利阿劳卡尼亚大区因线路维护缺陷再次被监管处罚，与 2025 年 40000 UTM 罚款同属一条监管事件线；本次金额较小、尚未见股权或特许权影响，但同类处罚在 16 个月内二次出现，说明该大区电网运营存在重复性合规风险，需紧盯处罚决定细节与整改要求是否扩大。</p>
+    <div class="kpis">
+      <div class="kpi"><b>2 次 / 16 个月</b><span>同一大区同类处罚重复出现，构成升级信号</span></div>
+      <div class="kpi"><b>3000 UTM</b><span>本次处罚金额（约 2.2 亿智利比索），远低于历史 40000 UTM</span></div>
+      <div class="kpi"><b>0</b><span>尚未出现股权、特许权或重大财务影响的证据（维持黄色初判）</span></div>
+    </div>
+  </div>
+
+  <!-- 2 事实基准 -->
+  <div class="card" style="margin-bottom:16px">
+    <h2 style="margin-bottom:10px">事实基准 <small>时间线 + 事实分级表</small></h2>
+    <div class="card" style="border:1px dashed var(--line);background:var(--bg);margin-bottom:12px"><ol class="tl" style="padding:0">
+      <li><time>2022</time><span class="node"></span><div><strong>阿劳卡尼亚大区停电时长超标</strong><small>事件起因 · 历史回放</small></div></li>
+      <li><time>2025-08</time><span class="node"></span><div><strong>法院维持对 CGE 罚款 40000 UTM（约 27.5 亿比索）</strong><small>The Clinic 2025-08-18</small></div></li>
+      <li><time>2026-11-10</time><span class="node"></span><div><strong>SEC 通报 CGE 输电被罚 3000 UTM</strong><small>同样发生在阿劳卡尼亚大区，原因线路维护缺陷 · 官方原文</small></div></li>
+      <li class="todo"><time>待跟进</time><span class="node"></span><div><strong>处罚决定编号、整改期限、公司是否申诉</strong><small>取得后挂到本线，并按结果调整等级</small></div></li>
+    </ol></div>
+    <div class="facttab-wrap"><table class="facttab">
+      <tr><th>信息点</th><th>性质</th><th>核实状态</th><th>来源</th></tr>
+      <tr><td>CGE 输电被罚 3000 UTM</td><td><span class="mk ok">✓</span> 已确认</td><td>官方通报</td><td>智利能源部 11-10 通报</td></tr>
+      <tr><td>处罚与设施维护缺陷有关</td><td><span class="mk ok">✓</span> 已确认</td><td>官方通报</td><td>同上</td></tr>
+      <tr><td>2025 年 40000 UTM 罚款为同一事件线</td><td><span class="mk ok">✓</span> 已确认</td><td>官方/法院</td><td>The Clinic 2025-08-18</td></tr>
+      <tr><td>地区处罚合计近 6 亿比索（涉及 4 家公司）</td><td><span class="mk mid">◐</span> 需注意</td><td>官方通报，但非 CGE 单家</td><td>媒体转述 SEC 通报</td></tr>
+      <tr><td>“CGE 面临重大财务危机”</td><td><span class="mk rum">✗</span> 传闻不实</td><td>无来源，不采信</td><td>—</td></tr>
+      <tr><td>“处罚将导致特许权被撤销”</td><td><span class="mk rum">✗</span> 传闻不实</td><td>无来源，不采信</td><td>—</td></tr>
+      <tr><td>处罚决定编号、整改期限、申诉与否</td><td><span class="mk nul">○</span> 待补取</td><td>尚缺原文</td><td>待跟进</td></tr>
+    </table></div>
+    <p class="srcnote">“传闻不实”单独成列：客户一眼即可识别哪些信息无需理会，避免把传言当事实。</p>
+  </div>
+
+  <!-- 3 冲击归因 -->
+  <div class="attr" style="margin-bottom:16px">
+    <div class="card"><h3>这件事造成的 <span class="pill y"><span class="dot"></span>归因于事件</span></h3><ul>
+      <li>合规成本：本次 3000 UTM 罚款（金额较小）</li>
+      <li>声誉：官方通报点名，涉及区域电网关键设施</li>
+      <li>潜在整改义务：维护缺陷整改要求（范围待补取）</li>
+    </ul></div>
+    <div class="card"><h3>原本就有的背景 <span class="pill w">需剥离，勿混淆</span></h3><ul>
+      <li>2025 年 40000 UTM 罚款：历史事件，非本次新增</li>
+      <li>智利全国性电价/监管环境：与本次处罚无关</li>
+      <li>夏季预防性检修、计划性停电：属常规运营，非处罚</li>
+    </ul></div>
+  </div>
+
+  <!-- 4 传导链 -->
+  <div class="card" style="margin-bottom:16px">
+    <h2 style="margin-bottom:12px">传导链 <small>这件事会沿着什么路径、影响到谁</small></h2>
+    <div class="chain">
+      <div class="cnode key"><h4>① 项目公司：CGE 输电</h4><p class="who">直接承受罚款与整改义务</p><p>本次金额较小，但需确认整改是否扩大到该大区全部线路。</p></div>
+      <div class="cnode"><h4>② 股东</h4><p class="who">传导：经营结果 → 股东回报</p><p>罚款计入当期成本；尚未涉及股权或特许权，股东层面影响有限。</p></div>
+      <div class="cnode"><h4>③ 融资方</h4><p class="who">传导：合规记录 → 融资条款</p><p>同类处罚重复出现可能被债权人关注，需关注贷款协议中的合规陈述条款。</p></div>
+      <div class="cnode"><h4>④ 同国其他中资项目</h4><p class="who">传导：监管态度 → 同类资产</p><p>SEC 对该大区电网企业的执法口径，可能外溢到同国其他中资电力资产。</p></div>
+    </div>
+  </div>
+
+  <!-- 5 历史可比 -->
+  <div class="card" style="margin-bottom:16px">
+    <h2 style="margin-bottom:12px">历史可比 <small>同一国家、同一监管机构过去的类似事件</small></h2>
+    <div class="cmp-grid">
+      <div class="cmp"><h4>2022 停电时长超标</h4><p class="when">智利 · SEC</p><p class="res">最终：2025 法院维持 40000 UTM 罚款</p><p>从事件到终审历时约 3 年，处罚金额重大。</p></div>
+      <div class="cmp"><h4>本次 2026 维护缺陷</h4><p class="when">智利 · SEC · 同一大区</p><p class="res">已通报 3000 UTM，决定细节待补取</p><p>与 2022 事件同属一个监管事件线，重复性风险。</p></div>
+      <div class="cmp"><h4>规律</h4><p class="when">智利 SEC 执法特征</p><p class="res">同大区重复违规会被持续跟踪</p><p>从通报到终审周期长（以年计），单次金额波动大。</p></div>
+    </div>
+  </div>
+
+  <!-- 6 情景与验证节点 -->
+  <div class="card">
+    <h2 style="margin-bottom:12px">情景与验证节点 <small>直接变成待办事项</small></h2>
+    <div class="srcwrap"><table class="verify">
+      <tr><th>时间</th><th>事件</th><th>观察什么</th><th>好转信号</th><th>恶化信号</th></tr>
+      <tr><td>待定</td><td>取得处罚决定编号与全文</td><td>整改范围、期限、金额确认</td><td class="g">金额小、范围限、无附加义务</td><td class="b">整改扩大到全大区线路</td></tr>
+      <tr><td>待定</td><td>公司是否申诉</td><td>申诉意愿与理由</td><td class="g">接受处罚、快速整改</td><td class="b">申诉并引发更大关注</td></tr>
+      <tr><td>11-11 / 11-13</td><td>Tierra Amarilla 计划检修</td><td>是否与处罚相关、是否新增故障</td><td class="g">检修正常、无新事件</td><td class="b">检修中再出停电/事故</td></tr>
+      <tr><td>持续</td><td>同大区是否出现第三次同类处罚</td><td>SEC 是否继续通报</td><td class="g">无新增、事件线收敛</td><td class="b">第三次处罚出现 → 升级红色</td></tr>
+      <tr><td>持续</td><td>融资方是否触发合规条款</td><td>贷款协议合规陈述</td><td class="g">无触发、无异议</td><td class="b">债权人要求说明或加码</td></tr>
+    </table></div>
+    <p class="srcnote">这一页对国央企最实用：每个节点都附带“好转/恶化”两条信号，可直接下发给业务负责人跟踪，形成闭环。</p>
+  </div>
+</section>
+
+<section data-view="special-ngcp" aria-labelledby="h-special-ngcp">
+  <h2 id="h-special-ngcp">重大事件专题 · NGCP 特许权 <small>红色事件或事件线连续升级时，系统自动生成</small></h2>
+  <div class="special-trigger"><span class="ico">🚨</span><div>本专题由<b>红色事件</b>触发：菲律宾国会就 <b>NGCP 特许经营权</b>举行听证，议题涉及电网可靠性、国家安全，并<b>直接点名中资股东（国网持股 40%）</b>，触及「股权 / 特许权」红线。系统自动生成下方传导图与情景推演。正式版中，红色事件或同一条事件线短期连续升级即自动触发，无需人工发起。</div></div>
+
+  <!-- 1 核心结论 -->
+  <div class="concl">
+    <div class="tagline">核心结论 · 一句话判断 + 三个关键数字</div>
+    <p>菲律宾国会对 NGCP 特许经营权的审查，是海外资产中「股权与特许权」级别的最高风险：一旦国会推动特许权修订或收回，将直接影响项目存续与股东回报。当前仍处听证阶段、尚未形成决议，但事件已从「经营层面」升级到「牌照存续层面」，须按红色事件跟踪，并紧盯特许权修正立法与政府谈判两条主线。</p>
+    <div class="kpis">
+      <div class="kpi"><b>40%</b><span>中资股东（国网）持股，为本次听证直接点名对象</span></div>
+      <div class="kpi"><b>25 年</b><span>特许经营权（2007 授予）面临到期续期与修订的双重不确定性</span></div>
+      <div class="kpi"><b>3 条路径</b><span>推演出保留 / 不续 / 收回三种情景，需立法与谈判验证</span></div>
+    </div>
+  </div>
+
+  <!-- 2 事实基准 -->
+  <div class="card" style="margin-bottom:16px">
+    <h2 style="margin-bottom:10px">事实基准 <small>时间线 + 事实分级表</small></h2>
+    <div class="card" style="border:1px dashed var(--line);background:var(--bg);margin-bottom:12px"><ol class="tl" style="padding:0">
+      <li><time>2007</time><span class="node"></span><div><strong>NGCP 获 25 年输电特许经营权</strong><small>特许权起点 · 到期可续</small></div></li>
+      <li><time>2023 起</time><span class="node"></span><div><strong>国会持续就电网可靠性与中资持股举行听证</strong><small>参众两院能源委员会 · 多次听证</small></div></li>
+      <li><time>本批次</time><span class="node"></span><div><strong>听证升级：出现「暂停/收回特许权」与「国家安全」表述</strong><small>直接点名中资股东 · 属红色事件</small></div></li>
+      <li class="todo"><time>待跟进</time><span class="node"></span><div><strong>特许权修正案是否成文、政府谈判口径、续期安排</strong><small>取得后挂到本线，并按结果调整情景概率</small></div></li>
+    </ol></div>
+    <div class="facttab-wrap"><table class="facttab">
+      <tr><th>信息点</th><th>性质</th><th>核实状态</th><th>来源</th></tr>
+      <tr><td>国会就 NGCP 特许权举行听证</td><td><span class="mk ok">✓</span> 已确认</td><td>官方（国会）</td><td>参众两院能源委员会</td></tr>
+      <tr><td>听证涉及中资持股（国网 40%）</td><td><span class="mk ok">✓</span> 已确认</td><td>官方（国会）</td><td>听证记录 / 主流媒体</td></tr>
+      <tr><td>「暂停或收回特许权」的提案</td><td><span class="mk mid">◐</span> 已提出·未成法</td><td>议员提案阶段</td><td>国会议案 / 媒体报道</td></tr>
+      <tr><td>特许权「已被正式收回」</td><td><span class="mk rum">✗</span> 传闻不实</td><td>无来源，不采信</td><td>—</td></tr>
+      <tr><td>国网「已决定退出菲律宾」</td><td><span class="mk rum">✗</span> 传闻不实</td><td>无来源，不采信</td><td>—</td></tr>
+      <tr><td>特许权修正案文本、续期安排、政府立场</td><td><span class="mk nul">○</span> 待补取</td><td>尚缺原文</td><td>待跟进</td></tr>
+    </table></div>
+    <p class="srcnote">“传闻不实”单独成列：客户一眼即可识别哪些信息无需理会，避免把传言当事实。</p>
+  </div>
+
+  <!-- 3 冲击归因 -->
+  <div class="attr" style="margin-bottom:16px">
+    <div class="card"><h3>这件事造成的 <span class="pill r"><span class="dot"></span>归因于事件</span></h3><ul>
+      <li>特许权存续风险：从「经营问题」升级到「牌照问题」</li>
+      <li>中资股东被直接点名：政治与声誉风险</li>
+      <li>融资与评级：特许权不确定性可能触发债权人条款</li>
+    </ul></div>
+    <div class="card"><h3>原本就有的背景 <span class="pill w">需剥离，勿混淆</span></h3><ul>
+      <li>电网可靠性问题（红/黄警报）：长期存在，属听证导火索而非本次新增</li>
+      <li>菲律宾全国电力监管环境：行业共性</li>
+      <li>厄尔尼诺供电压力：气候背景，与特许权审查无直接因果</li>
+    </ul></div>
+  </div>
+
+  <!-- 4 传导图（升级版） -->
+  <div class="card" style="margin-bottom:16px">
+    <h2 style="margin-bottom:4px">传导图 <small>从事件到终局：三层传导 + 三种情景</small></h2>
+    <div class="graph-wrap" id="transgraph"></div>
+    <div class="gnode-info" id="gnodeInfo" hidden></div>
+    <div class="glegend">
+      <span><span class="sw" style="background:var(--red)"></span>高影响（特许权 / 股权 / 直接点名）</span>
+      <span><span class="sw" style="background:var(--yellow)"></span>中影响（二次传导）</span>
+      <span><span class="sw" style="background:var(--green)"></span>收敛（情景 A）</span>
+      <span><span class="edge-key solid"></span>已发生 / 已观察</span>
+      <span><span class="edge-key dash"></span>推演路径（待验证）</span>
+    </div>
+  </div>
+
+  <!-- 5 历史可比 -->
+  <div class="card" style="margin-bottom:16px">
+    <h2 style="margin-bottom:12px">历史可比 <small>同一国家 · 特许权被重议的同类先例</small></h2>
+    <div class="cmp-grid">
+      <div class="cmp"><h4>2019–2020 水务特许权事件</h4><p class="when">菲律宾 · Maynilad / Manila Water</p><p class="res">政府威胁重议特许权 → 股价暴跌 → 最终修订条款</p><p>外部持股公用事业被政府重议的经典先例，从爆发到修订约 1–2 年。</p></div>
+      <div class="cmp"><h4>NGCP 本次</h4><p class="when">菲律宾 · 国会 · 中资持股 40%</p><p class="res">听证升级，特许权续期与修订不确定性上升</p><p>与水务事件同构：可靠性 / 安全 + 外部持股双重驱动。</p></div>
+      <div class="cmp"><h4>规律</h4><p class="when">菲律宾特许权审查特征</p><p class="res">政治驱动强、周期长、最终多为「修订」而非「全收」</p><p>但过程会造成股价与融资的显著波动，须按红色跟踪。</p></div>
+    </div>
+  </div>
+
+  <!-- 6 情景推演（升级版） -->
+  <div class="card" style="margin-bottom:16px">
+    <h2 style="margin-bottom:4px">情景推演 <small>三种走向 + 概率 + 触发条件 + 验证节点</small></h2>
+    <div class="scen-grid">
+      <div class="scen">
+        <div class="scen-head"><h3>情景 A · 保留（修订条款）</h3><span class="pill g"><span class="dot"></span>约 45%</span></div>
+        <div class="prob"><span style="width:45%"></span></div>
+        <div class="scen-body">
+          <div><b>触发条件</b>：听证后转入「修订条款」路径，中菲政府谈判落地，无收回提案成法。</div>
+          <div><b>影响</b>：短期股价波动后企稳；长期合规与可靠性投入上升。</div>
+          <div><b>时间窗口</b>：6–12 个月。</div>
+          <div class="scen-v"><b>验证节点</b><ul><li><span class="g">好转</span> 修正案未进入表决，或条款温和</li><li><span class="b">恶化</span> 修正案附加强制退出 / 股权限制条款</li></ul></div>
+        </div>
+      </div>
+      <div class="scen">
+        <div class="scen-head"><h3>情景 B · 到期不续 / 部分收回</h3><span class="pill y"><span class="dot"></span>约 40%</span></div>
+        <div class="prob"><span class="pb" style="width:40%"></span></div>
+        <div class="scen-body">
+          <div><b>触发条件</b>：国会通过特许权修正案，或可靠性指标持续不达标，到期（2027）不再全额续期。</div>
+          <div><b>影响</b>：核心资产减值、股东回报大幅下降、融资条款触发。</div>
+          <div><b>时间窗口</b>：12–24 个月。</div>
+          <div class="scen-v"><b>验证节点</b><ul><li><span class="g">好转</span> 续期谈判启动，或政府明确续期意向</li><li><span class="b">恶化</span> 修正案成法、或续期被正式否决</li></ul></div>
+        </div>
+      </div>
+      <div class="scen">
+        <div class="scen-head"><h3>情景 C · 立即收回 / 国有化</h3><span class="pill r"><span class="dot"></span>约 15%</span></div>
+        <div class="prob"><span class="pc" style="width:15%"></span></div>
+        <div class="scen-body">
+          <div><b>触发条件</b>：以国家安全为由启动收回程序，或出现重大电网事故、中菲关系急剧变化。</div>
+          <div><b>影响</b>：投资重大损失、被迫退出市场，触发最高级别上报。</div>
+          <div><b>时间窗口</b>：突发，需即时响应。</div>
+          <div class="scen-v"><b>验证节点</b><ul><li><span class="g">好转</span> 政府澄清无收回意图</li><li><span class="b">恶化</span> 政府正式启动收回或国有化程序</li></ul></div>
+        </div>
+      </div>
+    </div>
+    <p class="srcnote" style="margin-top:12px">情景概率为 AI 初判的示意值，正式版由客户业务部门结合历史可比与专家判断共同确定，并随验证节点结果动态更新。</p>
+  </div>
+
+  <!-- 验证节点总表 -->
+  <div class="card">
+    <h2 style="margin-bottom:12px">情景与验证节点 <small>直接变成待办事项</small></h2>
+    <div class="srcwrap"><table class="verify">
+      <tr><th>时间</th><th>事件</th><th>观察什么</th><th>好转信号</th><th>恶化信号</th></tr>
+      <tr><td>持续</td><td>特许权修正案是否成文</td><td>法案文本、表决安排</td><td class="g">未进入表决 / 条款温和</td><td class="b">修正案成法并附收回 / 股权限制</td></tr>
+      <tr><td>持续</td><td>政府与国网的谈判口径</td><td>续期意向、股权安排</td><td class="g">明确续期 / 股权维持</td><td class="b">要求减持 / 退出</td></tr>
+      <tr><td>待定</td><td>特许权续期（2027）安排</td><td>是否启动续期程序</td><td class="g">启动续期谈判</td><td class="b">明确不续 / 部分收回</td></tr>
+      <tr><td>持续</td><td>融资方是否触发条款</td><td>贷款协议特许权陈述</td><td class="g">无触发、无异议</td><td class="b">债权人要求说明或加码</td></tr>
+      <tr><td>持续</td><td>同国其他中资项目外溢</td><td>同类资产监管态度</td><td class="g">无扩散、事件收敛</td><td class="b">外溢到其他中资电力资产</td></tr>
+    </table></div>
+    <p class="srcnote">这一页对国央企最实用：每个节点都附带“好转/恶化”两条信号，可直接下发给业务负责人跟踪，形成闭环。</p>
+  </div>
+
+  <p class="srcnote" style="margin-top:12px">本专题为演示样例，基于公开报道的事件线构建，具体条款、概率与时点为示意值；风险等级为 AI 初判，人工复核未完成，本页不构成投资建议。</p>
+</section>
+
+<script>
+/* 传导图渲染 + 交互：从实体节点 + 边构建 SVG（三层传导 + 三种情景） */
+(function(){
+  var host = document.getElementById('transgraph');
+  if(!host) return;
+  var sevColor = { r:'var(--red)', y:'var(--yellow)', g:'var(--green)' };
+  var sevFill  = { r:'var(--red-bg)', y:'var(--yellow-bg)', g:'var(--green-bg)' };
+  var nodes = [
+    {id:'trig', x:55,  y:300, w:150, h:88, sev:'r', lines:['菲律宾国会听证','NGCP 特许权遭审查','直接点名中资(国网40%)'],
+     detail:{t:'触发事件：国会听证升级', d:'议题从电网可靠性扩大到国家安全与中资持股，出现「暂停/收回特许权」表述。这是整条传导链的起点，属红色事件。', v:[['好转','听证降温，未再出现收回表述'],['恶化','修正案进入表决，或点名中资股东']]}},
+    {id:'fr',   x:305, y:105, w:150, h:88, sev:'r', lines:['特许权本体','收回/暂停/修订','牌照存续不确定'],
+     detail:{t:'特许权本体', d:'25 年特许经营权（2007 授予）面临修订、不续或收回三种可能。这是本次事件最重的影响点，直接决定项目存续。', v:[['好转','仅修订可靠性条款，续期不变'],['恶化','成法收回或附股权限制']]}},
+    {id:'ngcp', x:305, y:300, w:150, h:88, sev:'r', lines:['项目公司 NGCP','运营资质与合规','关键基础设施'],
+     detail:{t:'项目公司 NGCP', d:'作为输电特许权持有人，直接承受合规与声誉压力；其电网可靠性表现反过来影响听证走向，形成双向反馈。', v:[['好转','可靠性指标改善，听证降温'],['恶化','再出重大停电，坐实批评']]}},
+    {id:'sgcc', x:305, y:495, w:150, h:88, sev:'r', lines:['中资股东 国网','持股 40%','被直接点名'],
+     detail:{t:'中资股东（国网 40%）', d:'本次被直接点名，政治与声誉风险上升。股东层面尚未涉及股权或特许权强制变更，但需关注是否进一步要求减持。', v:[['好转','政府澄清无股权限制意图'],['恶化','被要求减持或退出']]}},
+    {id:'cred', x:555, y:105, w:150, h:88, sev:'y', lines:['融资方 / 债权人','特许权条款触发','再融资受阻'],
+     detail:{t:'融资方 / 债权人', d:'特许权不确定性可能触发贷款协议中的合规陈述条款，影响再融资与利率。属二次传导，需持续观察。', v:[['好转','无触发、融资正常'],['恶化','债权人要求说明或加码']]}},
+    {id:'mkt',  x:555, y:300, w:150, h:88, sev:'y', lines:['资本市场 / 评级','估值折价','评级观察'],
+     detail:{t:'资本市场 / 评级', d:'估值承压、评级进入观察名单。若特许权落地为「不续/收回」，将引发估值重估与评级下调。', v:[['好转','估值企稳、评级维持'],['恶化','评级下调或估值大幅折价']]}},
+    {id:'peer', x:555, y:495, w:150, h:88, sev:'y', lines:['同国其他中资项目','监管态度外溢','同类资产承压'],
+     detail:{t:'同国其他中资项目', d:'菲律宾监管对 NGCP 的执法口径可能外溢到同国其他中资电力资产，需横向关注同类项目的特许权与合规风险。', v:[['好转','无外溢、事件收敛'],['恶化','同类资产被纳入审查']]}},
+    {id:'sA',   x:805, y:105, w:150, h:88, sev:'g', lines:['情景 A','保留·修订条款','影响最小'],
+     detail:{t:'情景 A · 保留（约 45%）', d:'听证后转入修订条款路径，政府谈判落地，无收回提案成法。影响最小，短期波动后企稳。', v:[['好转','修正案未进入表决'],['恶化','修正案附退出/股权限制']]}},
+    {id:'sB',   x:805, y:300, w:150, h:88, sev:'y', lines:['情景 B','到期不续/部分收回','重大影响'],
+     detail:{t:'情景 B · 到期不续（约 40%）', d:'国会通过修正案，或可靠性持续不达标，到期（2027）不再全额续期。核心资产减值、股东回报大幅下降。', v:[['好转','续期谈判启动'],['恶化','续期被正式否决']]}},
+    {id:'sC',   x:805, y:495, w:150, h:88, sev:'r', lines:['情景 C','立即收回/国有化','极端影响'],
+     detail:{t:'情景 C · 立即收回（约 15%）', d:'以国家安全为由启动收回程序，或出现重大事故、中菲关系剧变。投资重大损失、被迫退出。', v:[['好转','政府澄清无收回意图'],['恶化','正式启动收回/国有化']]}}
+  ];
+  var edges = [
+    {from:'trig', to:'fr', label:'审查范围', solid:true},
+    {from:'trig', to:'ngcp', label:'运营合规压力', solid:true},
+    {from:'trig', to:'sgcc', label:'直接点名', solid:true},
+    {from:'fr', to:'cred', label:'特许权不确定', solid:false},
+    {from:'fr', to:'sA', solid:false},
+    {from:'fr', to:'sB', solid:false},
+    {from:'fr', to:'sC', solid:false},
+    {from:'ngcp', to:'mkt', label:'盈利承压', solid:false},
+    {from:'sgcc', to:'peer', label:'监管外溢', solid:false},
+    {from:'cred', to:'mkt', label:'联动', solid:false}
+  ];
+  var W = 980, H = 610, NS = 'http://www.w3.org/2000/svg';
+  var byId = {};
+  nodes.forEach(function(n){ byId[n.id]=n; });
+  var svg = document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.setAttribute('role','img');
+  svg.setAttribute('aria-label','NGCP 特许权事件传导图');
+  var defs = document.createElementNS(NS,'defs');
+  [['mSolid','var(--brand-2)'],['mDash','var(--muted)']].forEach(function(pair){
+    var m = document.createElementNS(NS,'marker');
+    m.setAttribute('id',pair[0]); m.setAttribute('markerWidth','9'); m.setAttribute('markerHeight','9');
+    m.setAttribute('refX','7'); m.setAttribute('refY','4'); m.setAttribute('orient','auto');
+    var p = document.createElementNS(NS,'path');
+    p.setAttribute('d','M0,0 L8,4 L0,8 z'); p.setAttribute('fill',pair[1]);
+    m.appendChild(p); defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+  var edgeEls = {};
+  edges.forEach(function(e){
+    var a = byId[e.from], b = byId[e.to];
+    var x1 = a.x + a.w, y1 = a.y + a.h/2, x2 = b.x, y2 = b.y + b.h/2;
+    var mx = (x1+x2)/2;
+    var path = document.createElementNS(NS,'path');
+    path.setAttribute('d','M '+x1+' '+y1+' C '+mx+' '+y1+', '+mx+' '+y2+', '+x2+' '+y2);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke', e.solid ? 'var(--brand-2)' : 'var(--muted)');
+    path.setAttribute('stroke-width', e.solid ? '2' : '1.5');
+    if(!e.solid) path.setAttribute('stroke-dasharray','5 4');
+    path.setAttribute('marker-end', e.solid ? 'url(#mSolid)' : 'url(#mDash)');
+    path.setAttribute('data-from', e.from); path.setAttribute('data-to', e.to);
+    path.classList.add('gedge');
+    svg.appendChild(path);
+    edgeEls[e.from+'|'+e.to] = path;
+    if(e.label){
+      var t = document.createElementNS(NS,'text');
+      t.setAttribute('x', mx); t.setAttribute('y', (y1+y2)/2 - 6);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','11');
+      t.setAttribute('fill','var(--muted)'); t.setAttribute('paint-order','stroke');
+      t.setAttribute('stroke','var(--surface)'); t.setAttribute('stroke-width','4');
+      t.classList.add('glabel');
+      t.textContent = e.label;
+      svg.appendChild(t);
+    }
+  });
+  var nodeEls = {};
+  nodes.forEach(function(n){
+    var g = document.createElementNS(NS,'g');
+    g.setAttribute('data-node', n.id);
+    g.classList.add('gnode');
+    var rect = document.createElementNS(NS,'rect');
+    rect.setAttribute('x',n.x); rect.setAttribute('y',n.y);
+    rect.setAttribute('width',n.w); rect.setAttribute('height',n.h);
+    rect.setAttribute('rx','10');
+    rect.setAttribute('fill', sevFill[n.sev]); rect.setAttribute('stroke', sevColor[n.sev]);
+    rect.setAttribute('stroke-width', n.id==='trig' ? '2.5' : '1.6');
+    g.appendChild(rect);
+    if(n.id==='trig'){
+      var lab = document.createElementNS(NS,'text');
+      lab.setAttribute('x', n.x + n.w/2); lab.setAttribute('y', n.y - 8);
+      lab.setAttribute('text-anchor','middle'); lab.setAttribute('font-size','11');
+      lab.setAttribute('font-weight','700'); lab.setAttribute('fill','var(--gold)');
+      lab.setAttribute('letter-spacing','1'); lab.textContent='触发事件';
+      g.appendChild(lab);
+    }
+    var t = document.createElementNS(NS,'text');
+    t.setAttribute('x', n.x + n.w/2);
+    t.setAttribute('y', n.y + n.h/2 - (n.lines.length-1)*8);
+    t.setAttribute('text-anchor','middle');
+    n.lines.forEach(function(ln,i){
+      var tsp = document.createElementNS(NS,'tspan');
+      tsp.setAttribute('x', n.x + n.w/2);
+      tsp.setAttribute('dy', i===0 ? '0' : '16');
+      tsp.setAttribute('font-size', i===0 ? '13' : '11');
+      tsp.setAttribute('font-weight', i===0 ? '700' : '400');
+      tsp.setAttribute('fill', sevColor[n.sev]);
+      tsp.textContent = ln;
+      t.appendChild(tsp);
+    });
+    g.appendChild(t);
+    g.style.cursor='pointer';
+    svg.appendChild(g);
+    nodeEls[n.id] = g;
+  });
+  host.appendChild(svg);
+
+  /* —— 交互：hover 高亮上下游 + 点击看详情 —— */
+  var infoBox = document.getElementById('gnodeInfo');
+  function reset(){ Object.values(edgeEls).forEach(p=>p.classList.remove('dim')); Object.values(nodeEls).forEach(g=>g.classList.remove('dim','focus')); }
+  function focusNode(id){
+    reset();
+    Object.values(nodeEls).forEach(g=>g.classList.add('dim'));
+    nodeEls[id].classList.remove('dim'); nodeEls[id].classList.add('focus');
+    edges.forEach(function(e){
+      if(e.from===id || e.to===id){ edgeEls[e.from+'|'+e.to].classList.remove('dim');
+        nodeEls[e.from].classList.remove('dim'); nodeEls[e.to].classList.remove('dim'); }
+    });
+  }
+  function showDetail(n){
+    var d = n.detail;
+    infoBox.hidden=false;
+    infoBox.innerHTML = '<h4>'+esc(d.t)+'</h4><p>'+esc(d.d)+'</p>'+
+      '<div class="gnode-v">'+d.v.map(function(v){return '<div><span class="'+(v[0]==='好转'?'g':'b')+'">'+esc(v[0])+'</span> '+esc(v[1])+'</div>'}).join('')+'</div>';
+  }
+  Object.values(nodeEls).forEach(function(g){
+    var id = g.getAttribute('data-node');
+    g.addEventListener('mouseenter', function(){ focusNode(id); });
+    g.addEventListener('mouseleave', reset);
+    g.addEventListener('click', function(){ showDetail(byId[id]); focusNode(id); });
+  });
+  svg.addEventListener('mouseleave', reset);
+})();
+</script>
+
+<section data-view="arch" aria-labelledby="h-arch">
+  <h2 id="h-arch">体系架构 <small>五层结构 · 这是锋睿的整体思路，让客户一眼看懂</small></h2>
+  <div class="layers" style="margin-bottom:16px">
+    <div class="layer"><div class="lno">LAYER ① · 数据层</div><h3>采集 · 清洗 · 入库</h3><p>把多源数据统一接入、去重、归一化，是整个雷达的原料。</p><div class="chips">
+      <span class="chip on">公开新闻 / 媒体</span><span class="chip on">监管与政府公告</span><span class="chip on">公司与证券披露</span><span class="chip gold">行情数据（可接）</span><span class="chip gold">财务与估值（可接）</span><span class="chip">关系图谱（可接）</span><span class="chip">客户内部数据（私有化）</span>
+    </div></div>
+    <div class="layer"><div class="lno">LAYER ② · 知识层</div><h3>实体识别 · 关系图谱 · 事件模板</h3><p>把“新闻”变成“有关系的实体”：识别项目公司、股东、监管机构、融资方，连成可传导的关系网。</p><div class="chips">
+      <span class="chip on">项目实体（CGE/CPFL/NGCP）</span><span class="chip on">监管机构</span><span class="chip on">事件线归并</span><span class="chip">股东与融资关系</span><span class="chip">同国中资项目关联</span>
+    </div></div>
+    <div class="layer"><div class="lno">LAYER ③ · 分析层</div><h3>研判分级 · 冲击归因 · 传导推演</h3><p>回答“这件事有多大、是谁造成的、会传到哪、接下来怎样”。</p><div class="chips">
+      <span class="chip on">三级分级（红黄绿）</span><span class="chip on">冲击归因</span><span class="chip on">传导链</span><span class="chip on">历史可比</span><span class="chip on">情景与验证节点</span>
+    </div></div>
+    <div class="layer"><div class="lno">LAYER ④ · 生产层</div><h3>报告生成 · 预警 · 专题</h3><p>把分析变成客户可用的产物。</p><div class="chips">
+      <span class="chip on">日报</span><span class="chip on">预警推送</span><span class="chip on">重大事件专题（自动触发）</span><span class="chip">上报初稿</span>
+    </div></div>
+    <div class="layer"><div class="lno">LAYER ⑤ · 治理层</div><h3>审计留痕 · 人机复核 · 合规</h3><p>守住底线：数据不出域、模型可切换、Agent 归机构所有、关键动作人工审批。</p><div class="chips">
+      <span class="chip on">数据不出域</span><span class="chip on">人工复核</span><span class="chip on">审计留痕</span><span class="chip">模型可切换</span><span class="chip">不构成投资建议</span>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:12px">可以连接与管理的数据 <small>与客户业务直接相关</small></h2>
+    <div class="srcwrap"><table class="dt">
+      <tr><th>数据类型</th><th>具体内容</th><th>用途</th><th>状态</th></tr>
+      <tr><td>公开信息</td><td>监管/政府/公司披露/当地媒体</td><td>事实基准、事件发现</td><td><span class="st on">已接入</span></td></tr>
+      <tr><td>行情数据</td><td>股价、指数、行业 ETF、资金流</td><td>冲击量化、影响测算</td><td><span class="st plan">可接入</span></td></tr>
+      <tr><td>财务与估值</td><td>财报、一致预期、估值倍数</td><td>情景估值、财务影响</td><td><span class="st plan">可接入</span></td></tr>
+      <tr><td>关系图谱</td><td>股权结构、供应链、融资关系</td><td>传导链、影响路径</td><td><span class="st plan">可接入</span></td></tr>
+      <tr><td>历史事件库</td><td>同国同监管历史事件与结局</td><td>历史可比、规律提取</td><td><span class="st plan">可接入</span></td></tr>
+      <tr><td>客户内部数据</td><td>项目档案、股权与特许权、内部研究</td><td>精准研判、私有化部署</td><td><span class="st opt">按需 · 数据不出域</span></td></tr>
+    </table></div>
+    <p class="srcnote">数据分层接入：L1 公开免费源（已接入）→ L2 授权/付费源（行情、财务）→ L3 客户内部数据（私有化、不出域）。正式版按客户需求逐层开通。</p>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2 style="margin-bottom:12px">子目录结构 <small>同一套引擎，按行业拆分</small></h2>
+    <div class="srcwrap"><table class="dt">
+      <tr><th>子目录</th><th>监控对象</th><th>数据源特色</th><th>状态</th></tr>
+      <tr><td>券商</td><td>上市公司 / 行业 / 宏观 / 人物 / 自身信用</td><td>公告、行情、资金流、研报、社交</td><td><span class="st plan">框架已定</span></td></tr>
+      <tr><td>海外能源</td><td>境外能源资产（CGE/CPFL/NGCP）</td><td>监管、议会、法院、当地媒体</td><td><span class="st on">已上线演示</span></td></tr>
+      <tr><td>航运</td><td>地缘 / 航道 / 船型 / 运价 / 船东</td><td>八层信源 + 运价指数插件</td><td><span class="st plan">已出用例</span></td></tr>
+      <tr><td>大宗商品敞口</td><td>原油、黄金、白银、铜、LNG</td><td>见「敞口监控」页</td><td><span class="st on">本页演示</span></td></tr>
+    </table></div>
+    <p class="srcnote">各子目录共用五层监控、事件分级、事实分级、专题六部分、传导图（实线/虚线）、榜单、局势推演、复盘。差异只在"监控对象 + 数据源 + 事件模板 + 关系图谱"。</p>
+  </div>
+</section>
+
+<section data-view="method" aria-labelledby="h-method">
+  <h2 id="h-method">这套雷达怎么工作 <small>正式版的分级标准由客户的业务部门确定</small></h2>
+  <div class="method">
+    <div class="card"><h3>七层分工</h3><ol><li>采集：只管抓全</li><li>去重与归并</li><li>相关性筛选</li><li>翻译与摘要：三句话</li><li>研判分级：写明理由</li><li>核实：官方原文或第二信源</li><li>报告：日报、预警、上报初稿</li></ol></div>
+    <div class="card"><h3>分级规则（演示用初稿）</h3><ul><li><span class="pill r"><span class="dot"></span>红</span> 可能影响股权、特许权或重大财务结果，或直接点名中资股东；须核实后即时上报</li><li><span class="pill y"><span class="dot"></span>黄</span> 会影响经营或收益，但有时间应对；进日报并持续跟踪</li><li><span class="pill g"><span class="dot"></span>绿</span> 一般动态，备查</li></ul></div>
+    <div class="card"><h3>核实标签的含义</h3><ul><li><span class="pill v">官方原文</span> 已读到监管或政府原站</li><li><span class="pill v">当事方公告</span> 只有一方的原始公告</li><li><span class="pill w">媒体转述</span> 未取得官方或公司原文</li><li><span class="pill w">同源转载</span> 多篇报道出自同一来源，只算一个信源</li></ul></div>
+  </div>
+  <div class="card" style="margin-top:14px;border-left:4px solid var(--gold)">
+    <h3>关于命中：我们不卖预言，卖可验证</h3>
+    <p style="font-size:13.5px;margin:6px 0">历史不会重演，但会押韵——结构会重复，时点和幅度每次都不同。所以我们不承诺"预测准"，只承诺"该看见的风险提前让你看见、验证节点提前写清楚、到期自动对账"。</p>
+    <ul style="font-size:13.5px;margin:6px 0;padding-left:18px">
+      <li>命中率只算"有到期日且已到期"的推演，未到期只展示、不纳入。</li>
+      <li>虚线推演没发生时，复盘反而证明"诚实区分了已发生与待验证"，而非事后诸葛亮。</li>
+      <li>说对了留下，说错了也留下——错了认账、事事有据，才是信任的来源。</li>
+    </ul>
+  </div>
+</section>
+</div></div>
+</div></main>
+
+<footer><div class="wrap">本页全部内容来自公开信息，数据为 2026 年 11 月 10 日批次的历史回放。风险等级为 AI 初判，人工复核未完成；最终定级及上报由人工决定。摘要为系统对外文原文的中文整理，请以原文为准。本页不构成投资建议。© 锋睿 Frontwise · 观澜 Horizon</div></footer>
+
+<button id="totop" aria-label="回到顶部" title="回到顶部">↑</button>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+function go(v){document.querySelectorAll('[data-view]').forEach(x=>x.hidden=x.dataset.view!==v);
+ document.querySelectorAll('#side button').forEach(b=>{if(b.dataset.go===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+ try{sessionStorage.setItem('radar-view',v)}catch(e){}}
+document.getElementById('side').addEventListener('click',e=>{const b=e.target.closest('button');if(b){go(b.dataset.go);window.scrollTo({top:0})}});
+
+/* ---- 主题切换 ---- */
+const themeGroup=document.getElementById('themeGroup');
+function applyTheme(t){
+  if(t==='auto')document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',t);
+  themeGroup.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.theme===t));
+  try{localStorage.setItem('radar-theme',t)}catch(e){}
+}
+themeGroup.addEventListener('click',e=>{const b=e.target.closest('button');if(b)applyTheme(b.dataset.theme)});
+try{applyTheme(localStorage.getItem('radar-theme')||'auto')}catch(e){}
+
+/* ---- Toast ---- */
+let toastTimer=null;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ---- 导出 / 打印 ---- */
+document.getElementById('exportBtn').addEventListener('click',()=>window.print());
+
+const V={official:["官方原文","v"],party:["当事方公告","v"],media:["媒体转述","w"],shared:["同源转载","w"],single:["单一媒体","w"]};
+const E=[
+{c:"智利",p:"CGE 输电",k:"监管处罚",r:"y",v:"official",sp:"special",t:"智利官方通报：CGE 输电被罚 3000 UTM",im:["合规成本、声誉","3000 UTM；按报道中 8100 UTM 合 5.86 亿多比索折算，约 2.2 亿智利比索。人民币金额待按汇率换算","取得处罚决定后才能确定申诉期限"],
+ s:["智利能源部 11 月 10 日发布 SEC 阿劳卡尼亚地区处罚通报，其中列明 CGE 输电被罚 3000 UTM。","通报将相关处罚与设施维护缺陷联系起来，涉及区域电网关键设施。","本条记录的是已公布的处罚；应继续核对处罚决定、整改要求及申诉进展。"],
+ rr:"已发生监管处罚，可能影响经营；未取得重大财务影响或特许权变化证据，暂作黄色初判。",vl:"官方通报支持处罚事实。",lim:"地区处罚合计不等于 CGE 罚款；未读取处罚决定附件，不推断已缴款或终审。",n:"补取处罚决定编号、整改期限和公司回应。",q:"3.000 UTM a CGE TRANSMISIÓN",
+ src:[["智利能源部","https://energia.gob.cl/noticias/la-araucania/sec-araucania-cursa-multas-por-casi-600-millones-4-empresas-tras-infracciones-normativa-electrica"],["El Diario de la Araucanía","https://www.eldiariodelaaraucania.cl/2026/11/10/multas-empresas-electricas-la-araucania-sec/"]]},
+{c:"巴西",p:"CPFL／行业政策",k:"分时电价",r:"y",v:"media",t:"媒体报道 ANEEL 通过“Hora Certa”分时电价调整",im:["客户计费方式、收入结构","报道标题称全国可能涉及约 570 万用户；CPFL 范围内的数量待核","待 ANEEL 正式决议公布"],
+ s:["11 月 10 日的媒体报道声称，ANEEL 通过对白色电价的调整，并将其更名为“Hora Certa”。","报道描述月用电量达到 500 千瓦时的部分低压用户拟被自动纳入，实施采取分阶段过渡。","当前读到的 11 月 9 日官方材料描述的是方案；尚未取得 11 月 10 日正式决议，不能据此确认生效日期及最终条款。"],
+ rr:"分时电价涉及配电客户计费及沟通，值得黄色跟踪；正式规则与报道状态需要进一步对照。",vl:"媒体报道与较早官方方案存在阶段差异。",lim:"此条只归属媒体说法，未将“已通过”作为核定事实。",n:"取得 11 月 10 日会议决议与正式公布文本。",q:"passará a se chamar tarifa Hora Certa",
+ src:[["CNN Brasil","https://www.cnnbrasil.com.br/infra/aneel-aprova-tarifa-hora-certa-que-pode-atingir-57-mi-de-consumidores/"]]},
+{c:"菲律宾",p:"NGCP／行业大事",k:"供电与极端天气",r:"y",v:"media",sp:"special-ngcp",t:"菲律宾能源部长警示厄尔尼诺期间供电压力",im:["电网运营、声誉","未量化；部长称水电发电量可能下降约 60%","2027 年厄尔尼诺期间"],
+ s:["《菲律宾星报》11 月 10 日报道，能源部长在前一日接受采访时表示，无法保证厄尔尼诺期间完全不停电。","部长称，水电发电量可能下降约 60%，高温还可能造成部分机组运行中断。","这是供电展望与风险预警，不表示 11 月 10 日已发生全国性停电，也不直接认定 NGCP 承担事故责任。"],
+ rr:"电力供需与备用裕度面临压力，需跟踪电网运行；预测不能按已发生重大事故判红。",vl:"媒体引用能源部长讲话。",lim:"多篇报道重复引用同一讲话，保守按一个来源组；未取得发布会完整记录。",n:"跟踪 NGCP 实际电网警报、机组停运与官方气象更新。",q:"60 percent reduction",
+ src:[["The Philippine Star","https://www.philstar.com/headlines/2026/11/10/2569091/no-guarantee-zero-blackouts-amid-el-nio-doe-chief"],["Energy News PH","https://energynewsph.com/doe-save-power-el-nino-hospital-backup/"]]},
+{c:"菲律宾",p:"NGCP／行业政策",k:"辅助服务价格",r:"y",v:"media",sp:"special-ngcp",t:"菲律宾备用电力市场二级限价方案征求意见",im:["辅助服务采购成本及其传导","未量化；限价数值待核对监管机构原件","11 月 13 日意见截止，11 月 27 日公众咨询"],
+ s:["11 月 10 日，媒体报道菲律宾能源监管委员会就备用电力市场二级价格上限草案征求意见。","报道称，方案拟按各电网、各备用类型分别监测 72 小时滚动均价，并在超过阈值时触发限价。","报道给出的意见提交期限为 11 月 13 日、公众咨询日期为 11 月 27 日；本条不将草案视为已生效规则。"],
+ rr:"辅助服务采购及费用传导规则可能影响系统运营，按黄色跟踪咨询结果。",vl:"媒体转述监管草案。",lim:"未取得 ERC 草案原件；报道中的限价数值尚未与原件核对，摘要不列具体限价。",n:"读取 ERC 草案与正式决议，核对 NGCP 采购义务。",q:"comment until November 13, 2026",
+ src:[["IKOT.PH","https://www.ikot.ph/erc-drafts-secondary-price-cap-for-reserve-market/"],["Lachica Madanlo 律师事务所","https://lmlaw.ph/article/8473-erc-to-cap-costly-power-reserve-prices"]]},
+{c:"巴西",p:"CPFL／行业政策",k:"电力市场改革",r:"y",v:"media",t:"巴西审计法院对零售电力市场开放提出消费者保护问题",im:["购电成本分摊、收入","报道未给出对 CPFL 的具体金额","待 ANEEL、MME 出台落实文件"],
+ s:["UOL 于 11 月 10 日报道，巴西联邦审计法院认为低压用户进入电力自由市场的准备存在协调与消费者保护缺口。","报道提到用户迁移可能造成配电企业超额购电，以及成本在留存用户与迁移用户间分配的问题。","报道所述法院决定作于 10 月 28 日；11 月 10 日是新闻发布日期，不是决定作出日期。"],
+ rr:"改革涉及配电购电合同和成本分摊，但材料未给出 CPFL 具体影响金额。",vl:"媒体转述审计结果。",lim:"未读取 TCU 决定原件，不将报道描述扩展为对 CPFL 的具体处罚。",n:"取得 TCU 决定及 ANEEL、MME 后续落实文件。",q:"28 de outubro de 2026",
+ src:[["UOL","https://economia.uol.com.br/noticias/redacao/2026/11/10/abertura-do-mercado-de-energia-pode-dividir-custos-de-forma-desigual-diz-tcu.ghtm"]]},
+{c:"巴西",p:"CPFL Santa Cruz",k:"劳资关系",r:"y",v:"party",t:"CPFL Santa Cruz 劳动协议方案将提交工会表决",im:["人工成本","工资调整 4.22%，拟追溯至 2026 年 9 月 1 日","11 月 13 日工会表决"],
+ s:["SINTEC-SP 工会 11 月 10 日公告称，CPFL Santa Cruz 在第六轮谈判中提交了集体劳动协议和利润分享方案。","工会公布的方案包括 4.22% 的工资调整，拟追溯至 2026 年 9 月 1 日。","工会安排 11 月 13 日进行表决；公告描述的是提案，尚不能视为协议已获通过。"],
+ rr:"劳动成本及协议执行仍有后续决策，列黄色跟踪，不推断罢工。",vl:"工会原始公告。",lim:"只有工会一方原始公告，未取得公司独立确认。",n:"跟踪表决结果与正式协议。",q:"reajuste salarial de 4,22%",
+ src:[["SINTEC-SP 工会","https://sintecsp.org.br/cpfl-santa-cruz-apresenta-proposta-final-para-act-2026-2028-e-plr-2026-2027-sintec-sp-convoca-assembleia/"]]},
+{c:"巴西",p:"CPFL",k:"供电与投诉",r:"y",v:"shared",t:"暴雨停电后，里约普雷图扩大 CPFL 现场服务",im:["赔偿支出、声誉","未量化；赔偿申请数量未公布","待市政府公告和公司说明"],
+ s:["RBTV 11 月 10 日报道，里约普雷图消费者保护机构从当天下午起扩大 CPFL 驻点服务。","报道注明消息来自市政府，服务内容包括停电及电压波动损失的核查和赔偿申请。","其他网站存在相同来源稿件，本次合并为一个事件，并继续跟踪恢复供电与投诉处理情况。"],
+ rr:"供电及赔偿申请可能带来经营影响，但不能据此推断已认定赔偿责任。",vl:"媒体转述市政府消息。",lim:"五篇材料不能算五个独立信源；未取得市政府原文。",n:"补查市政府公告和公司恢复供电说明。",q:"Fonte: Prefeitura de Rio Preto - SP",more:3,
+ src:[["RBTV","https://rbtv.com.br/noticia/30301/procon-amplia-atendimento-com-a-cpfl-apos-ocorrencias-do-fim-de-semana"],["Giro da Região","https://girodaregiao.com.br/noticia/63537/procon-amplia-atendimento-com-a-cpfl-apos-ocorrencias-do-fim-de-semana"]]},
+{c:"智利",p:"CGE",k:"供电中断",r:"y",v:"media",t:"Monte Patria 报告紧急停电，涉及 1097 户客户",im:["供电可靠性、声誉","1097 户客户","报道称当日 22 时预计恢复，实际恢复时间待证实"],
+ s:["La Serena Radio 11 月 10 日报道，Monte Patria 发生紧急供电中断。","报道援引 CGE 信息称涉及 1097 户客户，给出的预计恢复时间为当地当日 22 时。","该时间是发布时的预计安排，本批材料没有证实实际恢复时间。"],
+ rr:"已经报告供电中断，列黄色跟踪；没有达到重大事故的已证实信息。",vl:"媒体转述 CGE 供电信息。",lim:"未取得公司原始故障记录和最终复电时间。",n:"补查实际复电时间、故障原因与补偿情况。",q:"afecta actualmente a 1097 clientes",
+ src:[["La Serena Radio","https://laserenaradio.cl/web/2026/11/10/corte-de-suministro-electrico-afecta-a-1097-clientes-en-monte-patria/"]]},
+{c:"巴西",p:"CPFL 输电",k:"公司运营",r:"g",v:"single",t:"CPFL 输电在 Tecnopuc 启用新总部及运营中心",
+ s:["Cenário Energia 11 月 10 日报道，CPFL 输电在阿雷格里港 Tecnopuc 启用新总部，并迁入输电运营中心。","报道描述新设施集中行政与运营功能，旨在加强与高校和研究机构的联系。","报道同时提及集团到 2030 年在该州投资 147 亿雷亚尔的计划，该金额不是新总部建设投资额。"],
+ rr:"一般运营及投资计划动态，暂无本文支持的重大负面事件。",vl:"已读取行业媒体正文。",lim:"部分同题记录仅取得导语，未计为独立核实；公司原站此前读取受阻。",n:"跟踪公司披露及投资计划执行。",q:"não se refere exclusivamente à nova sede",more:3,
+ src:[["Cenário Energia","https://cenarioenergia.com.br/2026/11/10/cpfl-transmissao-instala-centro-operacao-tecnopuc-porto-alegre/"],["Jornal do Comércio","https://www.jornaldocomercio.com/economia/2026/11/1269877-grupo-cpfl-pretende-investir-rs-147-bilhoes-no-rs-ate-2030.html"]]},
+{c:"智利",p:"CGE",k:"设备维护",r:"g",v:"media",t:"CGE 推进夏季预防性检修，计划开展近 10 万项作业",
+ s:["Diario Rancagua 11 月 10 日转述 CGE 的 2026—2027 年夏季预防性维护计划。","报道列出近 10 万项现场维护作业和 600 公里沿线植被清理，并引用公司运营负责人说明。","这些数字属于公司公布的计划与进展口径，不表示全部工程已经完成。"],
+ rr:"例行检修准备，绿色备查；不从维护计划推断风险已消除。",vl:"媒体刊载公司计划。",lim:"公司陈述经媒体发布，未独立审计实际完成量。",n:"关注计划执行与夏季供电表现。",q:"casi 100 mil actividades",
+ src:[["Diario Rancagua","https://diariorancagua.cl/cge-avanza-en-extenso-plan-de-mantenimiento-preventivo-para-la-temporada-de-verano-2026-2027/"]]},
+{c:"智利",p:"CGE 输电",k:"计划检修",r:"g",v:"single",t:"CGE 输电计划在 Tierra Amarilla 开展检修",
+ s:["Atacama Noticias 11 月 10 日报道，CGE 输电计划于 11 月 11 日和 13 日对 Tierra Amarilla 的变电设施开展预防性维护。","涉及设施包括 Cerrillos 和 Los Loros 变电站，并安排计划性供电中断。","本条属于事前检修通知，具体停电时段和影响户数应以公司最新通知为准。"],
+ rr:"计划检修不是已发生重大停电，绿色备查。",vl:"已读取地方媒体通知。",lim:"原文表格的时间和户数对应不清，摘要不采用不明确数值。",n:"核对公司最新时间表及完成情况。",q:"subestaciones de Cerrillos y Los Loros",
+ src:[["Atacama Noticias","https://www.atacamanoticias.cl/2026/11/10/cge-transmision-realizara-trabajos-de-mantenimiento-en-redes-electricas-el-11-y-13-de-noviembre-en-tierra-amarilla/"]]},
+{c:"菲律宾",p:"NGCP",k:"储能与电网",r:"g",v:"shared",sp:"special-ngcp",t:"NGCP 推进“Airbag”储能计划，应对供电波动",
+ s:["SunStar 11 月 10 日刊发的新闻稿称，NGCP 推进输电侧电池储能计划，以增强电网对供电紧张及 2027 年厄尔尼诺影响的应对能力。","Daily Guardian 同日的署名报道提及 NGCP 正在评估 Panay 的项目地点，并介绍已有与拟评估站点。","NGCP 在稿件中强调电池不会创造电力、不能代替长期可靠发电容量；这些材料也不等于项目已获全部监管批准。"],
+ rr:"工程及运营准备动态，绿色备查；不把储能规划当供电风险已解决。",vl:"公司新闻稿与媒体报道交叉对照。",lim:"两篇的核心表述均来自 NGCP，不能认定为两个独立确认；未取得监管批准文件。",n:"跟踪监管审批、站点建设和并网日期。",q:"Batteries do not create electricity",more:2,
+ src:[["SunStar","https://www.sunstar.com.ph/pampanga/ngcp-strengthens-gridahead-of-el-ni%C3%B1o-impact"],["Daily Guardian","https://www.dailyguardian.com.ph/blog/panay-eyed-as-ngcp-expands-project-airbag-batteries"]]},
+{c:"菲律宾",p:"国家能源政策",k:"公众咨询",r:"g",v:"official",sp:"special-ngcp",t:"菲律宾能源部就能源合同财务评估指引征求意见",
+ s:["菲律宾能源部 11 月 10 日发布能源合同申请财务评估指引的公众咨询公告。","咨询主要面向现有和潜在能源合同申请人及可再生能源开发商。","线上咨询安排在 11 月 13 日上午 9 时，提前意见提交截止时间为 11 月 12 日 17 时。"],
+ rr:"面向能源合同申请人及可再生能源开发商的政策咨询，按绿色行业动态备查。",vl:"能源部原始咨询公告。",lim:"已读公告，未解析草案全部条文；不宣称新规已生效。",n:"跟踪咨询结果及指引正式文本。",q:"November 12, 2026 (5:00PM)",
+ src:[["菲律宾能源部 DOE","https://doe.gov.ph/public-consultation-announcement-on-the-dc-entitled-guidelines-in-the-conduct-of-financial-evaluations-for-energy-contract-applications"]]},
+{c:"巴西",p:"国家能源政策",k:"公众咨询",r:"g",v:"official",t:"巴西能源部就“全民通电”项目新操作手册征求意见",
+ s:["巴西能源部 11 月 10 日公告称，启动“全民通电”项目新操作手册公众咨询。","草案涉及优先服务对象、技术与财务程序，以及农村和偏远地区生产性用电安排。","咨询文件通过能源部网站及 Brasil Participativo 平台提供，意见可通过上述渠道提交。"],
+ rr:"农村及偏远地区电气化项目操作手册咨询，按绿色行业动态备查。",vl:"巴西能源部原始公告。",lim:"没有将单一转载计作独立证据；未读取全部咨询附件。",n:"跟踪公众咨询结果与正式操作手册。",q:"proposta de novo Manual de Operacionalização",
+ src:[["巴西能源部 MME","https://www.gov.br/mme/pt-br/assuntos/noticias/mme-abre-consulta-publica-sobre-novo-manual-de-operacionalizacao-do-luz-para-todos"]]},
+{c:"巴西",p:"CPFL／行业政策",k:"电力采购",r:"g",v:"official",t:"ANEEL 公告：11 月 13 日举行三项既有电力拍卖",
+ s:["ANEEL 在 11 月 10 日公告，将于 11 月 13 日举行 A-1、A-2 和 A-3 既有电力拍卖，由 CCEE 组织操作。","三类合同分别从 2027 年、2028 年及 2029 年开始供电，用于满足配电企业用电需求。","公告仅说明拍卖安排，未给出 CPFL 参拍、成交数量或合同价格。"],
+ rr:"例行采购安排，尚无项目特定不利变化，列绿色备查。",vl:"ANEEL 原始公告。",lim:"未读取招标附件或后续成交结果。",n:"跟踪拍卖结果及 CPFL 相关采购披露。",q:"38º Leilão de Energia Existente A-1",
+ src:[["ANEEL","https://www.gov.br/aneel/pt-br/assuntos/noticias/2026/aneel-realiza-leiloes-de-energia-existente-na-proxima-sexta-feira-13-11"]]},
+{c:"巴西",p:"CPFL／行业政策",k:"监管试点",r:"g",v:"official",t:"ANEEL 开放“森林能源”监管试点治理项目意向申请",
+ s:["ANEEL 在 11 月 10 日发布公告，邀请电力行业主体参与“森林能源”监管沙盒协同治理研发项目。","公告规定自相关批文发布起 20 日内表达意向，试点重点涉及亚马孙偏远地区及能源服务薄弱地区。","表达意向属于准备程序，不产生获批、优先或独家权利；现有材料未显示 CPFL 已参与。"],
+ rr:"行业研发及监管试点机会，未见对项目的强制义务或直接不利影响。",vl:"ANEEL 原始公告。",lim:"未读取批文、任务书附件；不自行推算提交截止日。",n:"核对批文发布日期及项目资格条件。",q:"não gera direito à autorização",
+ src:[["ANEEL","https://www.gov.br/aneel/pt-br/assuntos/noticias/2026/aneel-abre-prazo-para-manifestacao-de-interesse-em-projeto-de-governanca-do-sandbox-energias-da-floresta"]]},
+{c:"巴西",p:"CPFL／行业政策",k:"能源规划",r:"g",v:"official",t:"巴西发布 2036 年能源规划的环境与社会专题材料",
+ s:["巴西能源部 11 月 10 日宣布，与能源研究机构 EPE 发布 PDE 2036 环境、社会与能源专题册及技术说明。","公告讨论极端天气适应、公平能源转型，以及生物多样性和水资源保护与能源建设的协调。","PDE 属于指引性规划，公告本身不等同于对 CPFL 新增具体许可或处罚要求。"],
+ rr:"中长期规划信息，尚无项目特定即时经营影响，列绿色备查。",vl:"MME 原始公告。",lim:"已读发布公告，未逐页审阅两份专题文件；不把规划预测写成既成事实。",n:"补读专题原件，识别输配电项目环境要求。",q:"Com caráter indicativo",
+ src:[["巴西能源部 MME","https://www.gov.br/mme/pt-br/assuntos/noticias/novembro-26/meio-ambiente-sociedade-e-energia-ganham-destaque-no-planejamento-energetico-ate-2036"],["巴西 EPE","https://www.epe.gov.br/pt/imprensa/noticias/meio-ambiente-sociedade-e-energia-ganham-destaque-no-planejamento-energetico-ate-2036"]]}
+];
+const P=[
+ {c:"智利",co:"CGE、CGE 输电",reg:"SEC（电力燃料监管局）、CNE、能源部、Coordinador（电网调度）、SERNAC、CMF",ent:"CGE、CGE Distribución、CGE Transmisión",lang:"西班牙语 · 圣地亚哥时间",focus:"监管处罚与供电中断是当天的主要动态：一条官方处罚通报，一起紧急停电。",hist:"历史关联：2025 年 8 月，智利法院维持监管机构对 CGE 约 27.5 亿比索的罚款（停电时长超标）。"},
+ {c:"巴西",co:"CPFL 及下属公司",reg:"ANEEL（电力监管局）、MME（矿产能源部）、ONS、TCU（审计法院）、CVM、国会两院",ent:"CPFL Energia、CPFL Paulista、CPFL Piratininga、CPFL Santa Cruz、RGE",lang:"葡萄牙语 · 圣保罗时间",focus:"政策动态最多：分时电价、电力市场开放、劳动协议表决都在进行中。",hist:"本批次关注：11 月 13 日同时有工会表决和电力拍卖。"},
+ {c:"菲律宾",co:"NGCP",reg:"ERC（能源监管委员会）、DOE（能源部）、TransCo、参众两院能源与特许权相关委员会",ent:"NGCP、Synergy Grid（SGP）",lang:"英语，菲律宾语辅助 · 马尼拉时间",focus:"厄尔尼诺带来的供电压力，叠加备用电力市场限价草案。",hist:"本批次关注：限价草案的意见期限和咨询日期待核对监管机构原件。"}];
+const RN={r:"红",y:"黄",g:"绿"};
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const pill=(cls,txt,dot)=>`<span class="pill ${cls}">${dot?'<span class="dot"></span>':''}${esc(txt)}</span>`;
+document.getElementById("n-y").textContent=E.filter(e=>e.r==="y").length;
+document.getElementById("projects").innerHTML=P.map(p=>{const ev=E.filter(e=>e.c===p.c),y=ev.filter(e=>e.r==="y").length,g=ev.filter(e=>e.r==="g").length,r=ev.filter(e=>e.r==="r").length;
+ return `<div class="card proj"><h3>${p.c}<span class="co">${esc(p.co)}</span></h3><div class="cnt">${pill("r","红 "+r,1)}${pill("y","黄 "+y,1)}${pill("g","绿 "+g,1)}</div><p>${esc(p.focus)}</p><div class="hist">${esc(p.hist)}</div><details><summary>项目档案</summary><dl><dt>监控主体</dt><dd>${esc(p.ent)}</dd><dt>主要监管机构</dt><dd>${esc(p.reg)}</dd><dt>语言与时区</dt><dd>${esc(p.lang)}</dd><dt>股权与特许权</dt><dd>待客户确认后填入</dd><dt>本批次事件</dt><dd>${ev.map(e=>esc(e.t)).join("；")}</dd></dl></details></div>`}).join("");
+let fc="全部",fr="全部";
+function renderFilters(){const cs=["全部","智利","巴西","菲律宾"],rs=["全部","r","y","g"];
+ document.getElementById("filters").innerHTML=cs.map(c=>{const n=c==="全部"?E.length:E.filter(e=>e.c===c).length;return `<button type="button" data-c="${c}" aria-pressed="${fc===c}">${c==="全部"?"全部国家":c}<span class="cnt"> ${n}</span></button>`}).join("")+'<span class="sep"></span>'+rs.map(r=>{const n=r==="全部"?E.length:E.filter(e=>e.r===r).length;return `<button type="button" data-r="${r}" aria-pressed="${fr===r}">${r==="全部"?"全部级别":RN[r]+"色初判"}<span class="cnt"> ${n}</span></button>`}).join("");}
+function renderEvents(){const list=E.filter(e=>(fc==="全部"||e.c===fc)&&(fr==="全部"||e.r===fr));
+ const SP={special:"专题 · CGE 监管处罚", "special-ngcp":"专题 · NGCP 特许权"};
+ document.getElementById("events").innerHTML=list.length?list.map(e=>{const v=V[e.v];
+  return `<details class="ev" data-c="${esc(e.c)}" data-r="${e.r}" data-search="${esc((e.t+' '+e.p+' '+e.k+' '+e.s.join(' ')+' '+e.q).toLowerCase())}"><summary><div class="meta">${pill(e.r,RN[e.r]+"色初判",1)}${pill(v[1],v[0])}<span>${esc(e.c)} / ${esc(e.p)} · ${esc(e.k)}</span>${e.sp?`<button type="button" class="spchip" data-jump="${e.sp}">🔗 ${esc(SP[e.sp])} ↗</button>`:""}</div><div class="ttl">${esc(e.t)}</div><div class="lead">${esc(e.s[0])}</div><span class="more">查看分级依据与原文 ↓</span></summary>
+  <div class="body"><div class="full"><h4>摘要</h4><ol>${e.s.map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>
+  <div><h4>分级依据</h4><p>${esc(e.rr)}</p></div><div><h4>核查范围</h4><p>${esc(e.vl)}${esc(e.lim)}</p></div>
+  ${e.im?`<div class="impact"><h4>影响评估（AI 初判，未经人工复核）</h4><dl><dt>影响类型</dt><dd>${esc(e.im[0])}</dd><dt>规模</dt><dd>${esc(e.im[1])}</dd><dt>多久有结果</dt><dd>${esc(e.im[2])}</dd></dl></div>`:""}<div><h4>原文证据</h4><blockquote>${esc(e.q)}</blockquote></div><div><h4>后续关注</h4><p>${esc(e.n)}</p></div>
+  <div class="full"><h4>来源</h4><p>${e.src.map(s=>`<a href="${esc(s[1])}" target="_blank" rel="noopener">${esc(s[0])} ↗</a>`).join("　")}${e.more?`　另有 ${e.more} 篇同题或同源材料`:""}</p></div></div></details>`}).join(""):'<div class="card">当前筛选条件下没有事件。</div>';
+ applySearch();updateCount();}
+function applySearch(){const q=(document.getElementById('q').value||'').trim().toLowerCase();
+ document.querySelectorAll('#events .ev').forEach(el=>{el.classList.toggle('hidden',q&&!el.dataset.search.includes(q))});
+ updateCount();}
+function updateCount(){const vis=[...document.querySelectorAll('#events .ev:not(.hidden)')];
+ document.getElementById('countLabel').textContent=`共 ${vis.length} 条事件`;
+ document.getElementById('expandAll').disabled=document.getElementById('collapseAll').disabled=vis.length===0;}
+function sortEvents(){const sel=document.getElementById('sort').value;const box=document.getElementById('events');
+ const els=[...box.querySelectorAll('.ev')];
+ els.sort((a,b)=>{const ea=E.find(x=>esc(x.t)===a.querySelector('.ttl').textContent),eb=E.find(x=>esc(x.t)===b.querySelector('.ttl').textContent);
+  if(sel==='risk'){const o={r:0,y:1,g:2};return (o[ea.r]-o[eb.r])||ea.c.localeCompare(eb.c,'zh');}
+  if(sel==='country')return ea.c.localeCompare(eb.c,'zh');
+  return ea.t.localeCompare(eb.t,'zh');});
+ els.forEach(el=>box.appendChild(el));}
+document.getElementById("filters").addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;if(b.dataset.c)fc=b.dataset.c;if(b.dataset.r)fr=b.dataset.r;renderFilters();renderEvents();sortEvents();});
+document.getElementById('q').addEventListener('input',applySearch);
+document.getElementById('sort').addEventListener('change',sortEvents);
+document.getElementById('expandAll').addEventListener('click',()=>document.querySelectorAll('#events .ev:not(.hidden)').forEach(el=>el.open=true));
+document.getElementById('collapseAll').addEventListener('click',()=>document.querySelectorAll('#events .ev').forEach(el=>el.open=false));
+/* 事件卡 → 专题跳转 */
+document.getElementById('events').addEventListener('click',ev=>{const b=ev.target.closest('.spchip');if(!b)return;ev.stopPropagation();go(b.dataset.jump);window.scrollTo({top:0})});
+/* 专题总览卡 → 专题跳转 */
+document.querySelectorAll('.spov-card').forEach(c=>c.addEventListener('click',()=>{go(c.dataset.jump);window.scrollTo({top:0})}));
+renderFilters();renderEvents();sortEvents();
+
+/* ---- 榜单：从 E 数组动态计算 ---- */
+function score(r){return r==='r'?3:r==='y'?2:0.5;}
+function renderBoard(tab){
+  var list=[];
+  if(tab==='proj'){
+    var pm={}; E.forEach(e=>{var k=e.p.split('／')[0]; if(!pm[k])pm[k]={n:k,sub:e.p,r:0,y:0,g:0}; pm[k][e.r]++; });
+    list=Object.values(pm).map(p=>({name:p.n,sub:p.sub,score:p.r*3+p.y*2+p.g*0.5,detail:'红 '+p.r+' · 黄 '+p.y+' · 绿 '+p.g}));
+  }else if(tab==='country'){
+    var cm={}; E.forEach(e=>{if(!cm[e.c])cm[e.c]={n:e.c,r:0,y:0,g:0}; cm[e.c][e.r]++;});
+    list=Object.values(cm).map(p=>({name:p.n,sub:'国别风险',score:p.r*3+p.y*2+p.g*0.5,detail:'红 '+p.r+' · 黄 '+p.y+' · 绿 '+p.g}));
+  }else{
+    var tm={}; E.forEach(e=>{if(!tm[e.k])tm[e.k]={n:e.k,r:0,y:0,g:0,hot:0}; tm[e.k][e.r]++; if(e.r==='y')tm[e.k].hot++;});
+    list=Object.values(tm).map(p=>({name:p.n,sub:'本周议题',score:p.r*3+p.y*2+p.g*0.5,detail:'黄 '+p.y+' · 绿 '+p.g}));
+  }
+  list.sort((a,b)=>b.score-a.score);
+  var html=list.map((x,i)=>{
+    var cls=i===0?'r1':i===1?'r2':i===2?'r3':'';
+    var arrow='';
+    if(tab!=='topic'){arrow=i===0?'<span class="up">↑ 相对上期</span>':i===1?'<span class="up">↑ 升温</span>':'<span class="flat">— 持平</span>';}
+    else {arrow=i<3?'<span class="up">↑ 本周升温</span>':'<span class="flat">— 平稳</span>';}
+    return '<div class="rank-item '+cls+'"><div class="rank-no">'+(i+1)+'</div><div class="rank-main"><h3>'+esc(x.name)+'</h3><p class="sub">'+esc(x.sub)+' · '+esc(x.detail)+'</p><div>'+arrow+'</div></div><div class="rank-score"><b>'+x.score.toFixed(1)+'</b><span>风险分</span></div></div>';
+  }).join('');
+  document.getElementById('rankList').innerHTML=html||'<div class="card">暂无数据。</div>';
+}
+document.getElementById('boardTabs').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
+  document.querySelectorAll('#boardTabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderBoard(b.dataset.tab);});
+renderBoard('proj');
+
+/* ---- 局势推演计数 ---- */
+(function(){var total=5,hit=1,miss=0;document.getElementById('f-total').textContent=total;
+ document.getElementById('f-hit').textContent=hit;document.getElementById('f-miss').textContent=miss;
+ document.getElementById('f-rate').textContent=(total>0?Math.round(hit/(hit+miss)*100):0)+'%';})();
+
+/* ---- 一键复制日报摘要 ---- */
+function buildSummary(){
+ const ys=E.filter(e=>e.r==='y');
+ const L=[];
+ L.push('【观澜 Horizon · 锋睿】日报摘要');
+ L.push('数据日：2026-11-10（演示版 · 历史回放）');
+ L.push('');
+ L.push('■ 今日漏斗');
+ L.push('检索 210 → 原始材料 108 → 事件 17 → 需关注(黄) '+ys.length+' → 需上报(红) 0');
+ L.push('');
+ L.push('■ 今日要点');
+ L.push('1. 智利官方通报：CGE 输电被罚 3000 UTM');
+ L.push('2. 巴西“Hora Certa”分时电价：媒体称已通过，官方决议未取得');
+ L.push('3. 菲律宾：厄尔尼诺供电压力与备用电力限价草案同时出现');
+ L.push('');
+ L.push('■ 需关注事件（黄，共 '+ys.length+' 条）');
+ ys.forEach((e,i)=>L.push((i+1)+'. ['+e.c+'/'+e.p+'] '+e.t));
+ L.push('');
+ L.push('■ 关键日期');
+ L.push('11-11 CGE 输电 Tierra Amarilla 计划检修');
+ L.push('11-12 菲律宾能源部财务评估指引：提前意见截止');
+ L.push('11-13 CPFL Santa Cruz 劳动协议：工会表决');
+ L.push('11-13 ANEEL 三项既有电力拍卖');
+ L.push('11-13 菲律宾备用电力限价草案：意见提交截止');
+ L.push('11-27 菲律宾备用电力限价草案：公众咨询');
+ L.push('');
+ L.push('风险等级为 AI 初判，人工复核未完成；本页不构成投资建议。');
+ return L.join('\n');
+}
+async function copySummary(){
+ const txt=buildSummary();
+ try{await navigator.clipboard.writeText(txt);toast('已复制日报摘要，可直接粘贴');}
+ catch(e){
+  const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');toast('已复制日报摘要');}
+  catch(_){toast('复制失败，请手动选择复制');}
+  ta.remove();
+ }
+}
+document.getElementById('copyBtn').addEventListener('click',copySummary);
+
+/* 回到顶部 */
+const tt=document.getElementById('totop');
+window.addEventListener('scroll',()=>tt.classList.toggle('show',window.scrollY>400),{passive:true});
+tt.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+/* 打印前展开全部事件，保证导出完整 */
+window.addEventListener('beforeprint',()=>{document.querySelectorAll('.ev,.proj details').forEach(el=>el.open=true)});
+
+let v0='overview';try{v0=sessionStorage.getItem('radar-view')||v0}catch(e){}
+if(!document.querySelector('[data-view="'+v0+'"]'))v0='overview';go(v0);
+
+/* ?print=1 参数：展开全部视图与事件，用于无头浏览器导出完整 PDF（须在 go() 之后执行） */
+try{
+ if(new URLSearchParams(location.search).has('print')){
+   document.querySelectorAll('[data-view]').forEach(x=>x.hidden=false);
+   document.querySelectorAll('.ev,.proj details').forEach(el=>el.open=true);
+ }
+}catch(e){}
+</script>
+
+</body>
+</html>

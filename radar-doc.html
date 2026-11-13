@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>锋睿 · 舆情雷达体系 · 最终整合版</title>
+<style>
+:root{--bg:#F7F6F2;--ink:#172D3B;--text:#46525A;--muted:#7A8790;--line:#DCE3E7;--brand:#172D3B;--brand2:#355E75;--gold:#6B4E12;--goldsoft:#F3E6C8}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.75;margin:0}
+header{background:var(--brand);color:#F7F6F2;padding:40px 24px 32px;border-bottom:3px solid var(--gold)}
+header .w,main,footer{max-width:860px;margin:0 auto}
+header .w{padding:0 24px}
+header .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--gold);font-weight:600}
+header h1{font-size:30px;margin:8px 0 4px;color:#fff;font-family:"Songti SC","Noto Serif SC",serif}
+header p{color:#BDCBD2;font-size:14px;margin:0}
+main{padding:32px 24px 40px}
+h1{font-size:24px;color:var(--ink);border-bottom:2px solid var(--gold);padding-bottom:8px;margin:40px 0 16px}
+h2{font-size:19px;color:var(--ink);margin:28px 0 10px}
+h3{font-size:16px;color:var(--ink);margin:20px 0 8px}
+h4,h5,h6{font-size:15px;color:var(--ink);margin:16px 0 6px}
+p{margin:10px 0}
+strong{color:var(--ink)}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#E9EEF1;color:var(--ink);font-weight:600}
+tr:nth-child(even) td{background:#FAFAF8}
+code{background:#E9EEF1;padding:1px 6px;border-radius:4px;font-size:13px;color:var(--brand2)}
+pre{background:#172D3B;color:#F7F6F2;padding:14px 18px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.6}
+pre code{background:none;color:#F7F6F2;padding:0}
+blockquote{border-left:4px solid var(--gold);margin:14px 0;padding:8px 16px;background:var(--goldsoft);color:var(--gold);border-radius:0 8px 8px 0}
+blockquote strong{color:var(--gold)}
+ul,ol{margin:10px 0;padding-left:26px}
+li{margin:4px 0}
+hr{border:none;border-top:1px solid var(--line);margin:28px 0}
+footer{max-width:860px;padding:20px 24px 40px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line)}
+</style></head><body>
+<header><div class="w">
+<div class="eyebrow">锋睿 FRONTWISE · 产品文档</div>
+<h1>锋睿 · 舆情雷达体系 · 最终整合版</h1>
+<p>整合原体系全部核心 + 增量：传导提醒 · 敞口情报 · 大宗商品 · 产品线逻辑 · 关于命中</p>
+</div></header>
+<main>
+<h1>锋睿 · 舆情雷达体系 · 最终整合版</h1>
+<blockquote>本文档整合《舆情雷达体系搭建文档（最终版）》与后续增量讨论，是当前最完整的一版。<br>整合内容：原体系全部核心 + 模型接入结论 + 五条升级 + 主动监控×传导提醒 + 敞口情报需求 + 子目录结构 + 大宗商品（原油/黄金/白银）+ 产品线逻辑。<br>2026-11。</blockquote>
+<hr>
+<h1>一、定位</h1>
+<p>一句话：<strong>全球重大事件发生后，锋睿舆情雷达帮金融机构看清楚它往哪传导、影响哪些标的、哪些信号值得盯，并且每一次推演都留档复盘，用真实走势检验。</strong></p>
+<p>同一套引擎，两种用法：</p>
+<table><tr><th></th><th>市场雷达</th><th>主动监控</th></tr><tr><td>谁定义对象</td><td>锋睿（全球重大事件库）</td><td>客户自主添加</td></tr><tr><td>监控范围</td><td>全球宏观、行业、龙头公司、关键人物</td><td>自选股票池、行业、人物、关键词、自家机构、发债主体、竞品</td></tr><tr><td>典型产出</td><td>重大事件专题、传导图、全球日报、榜单</td><td>个性化预警、持仓影响清单、自身声誉风险报告</td></tr></table>
+<p>核心骨架：<strong>采集 → 归并 → 分级 → 传导 → 局势推演 → 推演复盘。</strong></p>
+<hr>
+<h1>二、产品结构：市场雷达 + 主动监控</h1>
+<p>两条线共用同一套数据、知识图谱和分析引擎，区别在于&quot;谁决定盯什么&quot;。</p>
+<p><strong>对比定位</strong>：</p>
+<table><tr><th>对比对象</th><th>他们擅长</th><th>锋睿的差异</th></tr><tr><td>财联社、Wind、Bloomberg</td><td>发现速度、资讯覆盖</td><td>不比快，比&quot;看清楚&quot;：传导图 + 局势推演</td></tr><tr><td>AI 投研工具（如 AlphaPai）</td><td>单次事件深度报告</td><td>推演留档、持续跟踪、命中率可查</td></tr><tr><td>传统舆情厂商</td><td>声量监测、中文舆情</td><td>多语言全球覆盖 + 金融传导分析</td></tr></table>
+<p><strong>主动监控怎么添加</strong>（5 步）：</p>
+<ol>
+<li>选对象类型：公司 / 行业 / 人物 / 关键词 / 自家机构 / 发债主体</li>
+<li>输入或批量导入：股票代码、公司名、人名、关键词；自动对齐 A/H/美/韩/日多地代码和多语言名称</li>
+<li>设阈值：只推红色 / 红+黄 / 全部；指定关心的事件类型</li>
+<li>选语言与市场：默认全部，可只选部分</li>
+<li>选推送渠道：企业微信 / 飞书 / 邮件 / API</li>
+</ol>
+<p>自动扩展：添加一家公司时，系统从知识图谱推荐它的核心供应商、客户、竞争对手和关键人物，一键加入。</p>
+<hr>
+<h1>三、监控对象：五层</h1>
+<p>在原有四层之外，增加第五层&quot;自身与信用风险&quot;。</p>
+<table><tr><th>层</th><th>对象</th><th>例子</th><th>主要用户</th></tr><tr><td>宏观</td><td>利率、汇率、大宗商品、政策、地缘</td><td>美联储议息、央行降准、OPEC+ 减产、中东冲突</td><td>研究所、自营</td></tr><tr><td>行业</td><td>景气度、产业政策、周期、产业链</td><td>AI 算力、存储、新能源、医药集采</td><td>研究所、资管</td></tr><tr><td>公司</td><td>公告、业绩、股权、处罚、诉讼</td><td>业绩预亏、实控人减持、立案调查</td><td>自营、资管</td></tr><tr><td>人物</td><td>创始人、CEO、央行行长、主权基金、政策制定者</td><td>黄仁勋辞职、美联储主席表态</td><td>研究所、财富管理</td></tr><tr><td>自身与信用风险（新增）</td><td>券商自身声誉、发债主体、IPO 发行人</td><td>自家被罚、APP 故障、客诉发酵、城投/地产债负面</td><td>品牌部、合规部、固收、投行</td></tr></table>
+<blockquote>第五层最适合先签单：需求刚性、决策链短，&quot;主体 → 股东 → 融资方&quot;的传导逻辑可直接复用能源版。</blockquote>
+<hr>
+<h1>四、全球市场与多语言覆盖</h1>
+<p>六大区域、十种语言，分期上线：</p>
+<table><tr><th>区域</th><th>市场</th><th>语言</th><th>上线</th></tr><tr><td>中国</td><td>A 股、港股、台股</td><td>简/繁体中文</td><td>第一期</td></tr><tr><td>北美</td><td>美股、美债、美联储</td><td>英语</td><td>第一期</td></tr><tr><td>东亚</td><td>韩股（KOSPI）、日股</td><td>韩语、日语</td><td>第一期</td></tr><tr><td>欧洲</td><td>伦敦、法兰克福、巴黎、阿姆斯特丹、瑞士</td><td>英、德、法语</td><td>第二期</td></tr><tr><td>中东</td><td>沙特、阿联酋、卡塔尔、以色列</td><td>阿拉伯、希伯来、波斯语</td><td>第二期</td></tr><tr><td>南亚与东南亚</td><td>印度、新加坡、越南、马来西亚</td><td>英语为主</td><td>第三期</td></tr></table>
+<p><strong>多语言不只是翻译</strong>：同一事件在不同语言媒体里的态度差异本身就是信号。&quot;跨语言情绪差&quot;指标——美国偏负面、韩国关注供应链、中文关注国产替代，差距越大，越可能存在定价分歧。</p>
+<hr>
+<h1>五、事件类型与分级标准</h1>
+<p>每条事件打三个标签：事件类型、事实分级、影响分级。</p>
+<p><strong>事件类型（八类）</strong>：高管与治理 / 业绩 / 监管与司法 / 股权与资本 / 政策 / 地缘与黑天鹅 / 舆情发酵 / 信用。</p>
+<p><strong>事实分级（四档）</strong>：已确认（公告、官方表态）/ 媒体报道（权威媒体）/ 未证实或传闻 / 已辟谣。</p>
+<p><strong>影响分级（红黄绿）</strong>：先由模型按事件类型、公司规模、传播速度初判，再用行情校准——事件后 1 天、5 天的超额收益。分级与实际市场反应不一致时，自动提示人工复核，并沉淀为下一次分级的参考。</p>
+<p><strong>社交舆情去噪</strong>：按账号可信度加权，识别水军和刷单，不只看声量。</p>
+<hr>
+<h1>六、重大主题传导模型</h1>
+<p>单点事件按五层递推，第六步&quot;推演复盘&quot;把结果回写到分级规则和传导图谱，形成闭环：</p>
+<pre><code>① 事件本体（事实分级：已确认/媒体报道/传闻不实）
+   ↓
+② 直接冲击（目标公司：股价、估值、预期）
+   ↓
+③ 产业链传导（上游供应商/下游客户/竞争对手/替代）
+   ↓
+④ 板块与市场传导（板块联动、资金流、市场情绪）+ 政策通道 + 多语言情绪差
+   ↓
+⑤ 情景推演（几种走向 + 概率 + 验证节点）
+   ↓
+⑥ 推演复盘（到期对账，回写规则）</code></pre>
+<p>每条传导边标&quot;实线（已观察到）/ 虚线（待验证）&quot;。点击任一节点，看影响说明、信号和原文来源。</p>
+<hr>
+<h1>七、回测与推演复盘：方法可靠，持续可靠</h1>
+<p><strong>区别</strong>：</p>
+<table><tr><th></th><th>历史回测</th><th>推演复盘</th></tr><tr><td>做法</td><td>用过去事件检验传导模型和分级规则</td><td>事前锁定推演，到期与实际结果对照</td></tr><tr><td>何时用</td><td>上线前、规则调整后</td><td>上线后每一次局势推演</td></tr><tr><td>证明什么</td><td>方法有效</td><td>持续有效，且没有&quot;事后诸葛亮&quot;</td></tr></table>
+<p><strong>复盘流程</strong>：</p>
+<ol>
+<li>留档：每次情景推演记录情景、概率、验证节点和判断依据，写入后不可修改</li>
+<li>跟踪：到达验证节点时自动提醒，拉取当时公告与行情</li>
+<li>复盘：对照实际走向，标记命中 / 部分命中 / 未命中，写明偏差原因</li>
+<li>沉淀：结果反哺分级规则和传导图谱，累积为&quot;推演命中率&quot;</li>
+</ol>
+<blockquote>对客户的说法：&quot;<strong>回测证明方法可靠，复盘证明持续可靠。</strong>&quot; 命中率长期积累后，就是最有说服力的销售材料。</blockquote>
+<p><strong>命中率分母口径（定死）</strong>：只统计&quot;有到期日且已到期&quot;的推演；命中=1、部分命中=0.5、未命中=0；未到期只展示、不纳入。</p>
+<hr>
+<h1>八、新功能：主动监控 × 传导提醒</h1>
+<p><strong>机制</strong>：客户在主动监控添加的对象（公司、行业、人物、关键词、大宗商品敞口），在知识图谱中即是一个实体节点。任何重大事件生成传导图时，只要图里有一条边指向该节点，就触发提醒。</p>
+<p><strong>实线 / 虚线，提醒语义必须分开</strong>：</p>
+<table><tr><th>传导边</th><th>含义</th><th>提醒语义</th><th>紧急度</th></tr><tr><td>实线</td><td>事件<strong>已</strong>影响该对象（有行情/公告证据）</td><td>&quot;这件事已经动了你的敞口&quot;</td><td>强提醒，立即</td></tr><tr><td>虚线</td><td>事件<strong>可能</strong>传导到该对象（推演，待验证）</td><td>&quot;这件事可能传导到你的敞口，建议盯紧&quot;</td><td>预警级，附验证节点</td></tr></table>
+<p><strong>价值在&quot;推理&quot;而非&quot;匹配&quot;</strong>：普通关键词监控抓不到&quot;一条没提黄金的新闻&quot;；传导提醒能。例：美联储放鹰的新闻全文没有&quot;黄金&quot;二字，但传导图推理出&quot;加息预期 → 美元走强 → 实际利率上行 → 黄金承压（虚线）&quot;，于是提醒客户。</p>
+<p><strong>提醒文案模板</strong>：</p>
+<pre><code>【传导提醒】&quot;{事件标题}&quot;
+→ 可能传导到您监控的「黄金」（虚线·待验证）
+→ 方向：利空 / 利多
+→ 传导链：加息预期 → 美元走强 → 实际利率上行 → 黄金承压
+→ 验证节点：下次议息会议（日期）
+→ 来源：原文链接</code></pre>
+<p><strong>闭环</strong>：主动监控（加对象）→ 传导图（虚线指向对象）→ 提醒 → 验证节点 → 到期复盘对账 → 命中率累积。</p>
+<hr>
+<h1>九、新客户需求：敞口情报精选</h1>
+<p><strong>客户原话</strong>：&quot;结合我们大的敞口，比如原油、黄金，找到市场影响大的新闻……我们不交易，不一定要快，但能推荐出关于这个产品的最重要的新闻。&quot;</p>
+<p><strong>理解</strong>：不是&quot;新闻预警&quot;，是&quot;<strong>敞口情报精选</strong>&quot;。他不缺信息，缺&quot;哪几条真正影响我的敞口、为什么&quot;。</p>
+<table><tr><th></th><th>交易向</th><th>敞口向</th></tr><tr><td>核心指标</td><td>快（分钟级）</td><td>准（重要性排序）</td></tr><tr><td>锚点</td><td>市场/事件</td><td>我的敞口</td></tr><tr><td>输出</td><td>预警 + 专题</td><td>每日精选 3–5 条 + 为什么</td></tr><tr><td>用户</td><td>交易员、投研</td><td>套保、资产配置、司库、实物贸易</td></tr></table>
+<p><strong>产品形态</strong>：&quot;敞口精选日报&quot;——每天开盘前，围绕客户登记的敞口，推 3–5 条影响最大的事件，每条附：事实分级 + 影响方向 + 传导链 + 一句&quot;为什么重要&quot;。</p>
+<blockquote>&quot;不交易&quot;是优势不是限制：不追求快，就有时间做&quot;影响大不大&quot;的深度判断。</blockquote>
+<hr>
+<h1>十、数据源分层</h1>
+<p>不自建数据库，做统一数据接口层：公开源起步，授权源提精度，客户内部数据做差异化。</p>
+<table><tr><th>层</th><th>类型</th><th>中国</th><th>欧美</th><th>亚洲其他</th><th>中东</th></tr><tr><td>L1</td><td>公告披露</td><td>巨潮、沪深交易所、港交所</td><td>SEC EDGAR、欧盟监管</td><td>DART（韩）、EDINET/TDnet（日）</td><td>Tadawul、ADX/DFM</td></tr><tr><td>L1</td><td>新闻</td><td>财联社、华尔街见闻</td><td>Reuters、主流财经媒体</td><td>韩日主流财经媒体</td><td>Al Arabiya</td></tr><tr><td>L1</td><td>社交舆情</td><td>雪球、股吧、微博</td><td>X、Reddit</td><td>Naver 论坛</td><td>X（阿拉伯语）</td></tr><tr><td>L1</td><td>政府与司法</td><td>证监会、央行</td><td>国会、美联储、商务部</td><td>各国央行、监管</td><td>OPEC、各国央行</td></tr><tr><td>L2</td><td>行情、资金流、一致预期、研报</td><td>Wind、Choice、iFinD</td><td>Bloomberg、LSEG</td><td>同左</td><td>同左</td></tr><tr><td>L3</td><td>客户持仓、内部研报、客诉</td><td>不出域，私有化部署</td><td></td><td></td><td></td></tr></table>
+<p><strong>合规提醒</strong>：Wind、Bloomberg 等授权数据通常不允许二次分发，采用&quot;客户自有账号接入&quot;模式；社交平台采集需逐一确认服务条款与个人信息保护要求。</p>
+<hr>
+<h1>十一、输出产品</h1>
+<table><tr><th>产出</th><th>频率</th><th>内容</th><th>渠道</th></tr><tr><td>红色预警</td><td>实时</td><td>事件、事实分级、受影响标的</td><td>企业微信、飞书、短信、API</td></tr><tr><td>全球日报</td><td>每日开盘前（三时区）</td><td>隔夜重大事件、分市场要点、待验证节点</td><td>邮件、企业微信</td></tr><tr><td>重大事件专题</td><td>事件触发</td><td>事实分级、传导图、多语言情绪差、局势推演</td><td>网页、PDF</td></tr><tr><td>榜单</td><td>每周</td><td>个股风险榜、行业景气榜、升温议题榜、资金流向榜、全球地缘风险榜</td><td>网页</td></tr><tr><td>推演复盘报告</td><td>每月</td><td>到期推演命中情况、偏差原因、累计命中率</td><td>网页、PDF</td></tr><tr><td>自身声誉报告</td><td>每日 + 实时</td><td>自家机构负面舆情、客诉发酵、同业对比</td><td>品牌部专用群</td></tr></table>
+<hr>
+<h1>十二、治理与合规</h1>
+<ul>
+<li><strong>不构成投资建议</strong>：只回答&quot;影响哪些标的、影响多大、盯哪些信号&quot;，不给买卖建议。</li>
+<li><strong>人工复核</strong>：红色事件和情景概率发布前由分析师确认；投顾内容经合规审核。</li>
+<li><strong>数据不出域</strong>：L3 客户数据只在私有化环境处理，支持信创环境与已备案大模型。</li>
+<li><strong>审计留痕</strong>：每条结论可追溯到原文链接；推演留档不可修改。</li>
+<li><strong>敏感信息</strong>：未证实传闻必须标注事实分级，不单独推送；隐私内容只保留与市场相关部分。</li>
+<li><strong>跨境数据</strong>：海外舆情采集与境内客户数据分开存放，按数据出境规定处理。</li>
+</ul>
+<hr>
+<h1>十三、对话入口：&quot;问雷达&quot;</h1>
+<p>在日报、专题、传导图旁放对话框，用户自然语言追问。回答只基于已采集、已分级的数据，每句话带来源和事实分级。</p>
+<p><strong>固定结构</strong>：一句结论 → 事实分级 → 传导链条 → 待验证节点 → 原文来源链接。</p>
+<p><strong>边界</strong>：不回答&quot;该买还是该卖&quot;；没有来源支撑的问题直接说&quot;雷达暂无数据&quot;，不猜；所有对话留痕可审计。</p>
+<p><strong>问题类型</strong>：事件问答 / 传导追问 / 情景假设 / 事实核查 / 跨语言对比 / 推演复盘 / 一键加入监控。</p>
+<p><strong>模型接入结论</strong>：</p>
+<ol>
+<li>接入 DeepSeek 等模型，走多模型路由（商业/开源/境内自主可控切换），DeepSeek 开源版可私有化部署，满足信创与合规。</li>
+<li>&quot;问雷达&quot;是 RAG，不是自由对话；约束须通过检索层 + 提示词硬性执行。</li>
+<li><strong>采集不用大模型（关键边界）</strong>：</li>
+</ol>
+<table><tr><th>环节</th><th>用什么</th><th>用不用模型</th></tr><tr><td>采集/抓取</td><td>爬虫、API、订阅源</td><td>❌ 不用</td></tr><tr><td>理解/处理（翻译、摘要、实体识别、分级、情绪打分）</td><td>模型</td><td>✅ 用</td></tr><tr><td>研判/推演</td><td>模型 + 分析师</td><td>✅ 用 + 人</td></tr><tr><td>把关/发布</td><td>合规、人工确认</td><td>❌ 人</td></tr></table>
+<blockquote>对外口径：&quot;<strong>机器采集 + 模型研判</strong>&quot;，不说&quot;用大模型抓舆情&quot;。</blockquote>
+<hr>
+<h1>十四、案例库</h1>
+<table><tr><th>案例</th><th>已确认事实</th><th>传导主线</th><th>验证节点</th></tr><tr><td>韩股崩盘（推荐首个演示）</td><td>11-06 KOSPI 盘中跌 8.8% 熔断；SK 海力士跌 10.44%；外资净卖 2.77 万亿韩元</td><td>美股芯片跌 → AI 资本开支疑虑 → HBM 订单 → 外资抛售 → A 股存储映射</td><td>韩国两融政策效果；英伟达财报（11-17）</td></tr><tr><td>美国中期选举</td><td>民主党拿下国会；数据中心股跌、清洁能源涨、军工跌</td><td>国会监督 → 数据中心放缓 → 算力链；清洁能源政策 → 欧洲风电、A 股光伏</td><td>数据中心听证会、国防预算</td></tr><tr><td>伊朗战争与油价</td><td>布伦特 73→100 美元；海湾出口 60–80%；OPEC+ 产量少约 500 万桶/日</td><td>油价 → 通胀利率 → 航空化工成本；中东主权基金节奏；霍尔木兹航运</td><td>OPEC+ 2027 配额评估</td></tr></table>
+<p><strong>演示选例建议</strong>：黄仁勋讲&quot;深度传导&quot;，韩股讲&quot;可对账&quot;（有熔断、资金流、政府应对三样已兑现数据）。</p>
+<hr>
+<h1>十五、竞品格局</h1>
+<p>竞品已存在，头部券商在自建。锋睿的机会在&quot;多语言全球舆情 × 中文金融传导 × 推演复盘&quot;的组合，以及头部券商之外的客户。</p>
+<table><tr><th>类别</th><th>代表</th><th>他们已有</th><th>锋睿切入点</th></tr><tr><td>头部券商自建产业链图谱</td><td>招商、华泰等约 10 家</td><td>A/H 股产业链，事件沿链追踪</td><td>补海外多语言舆情 + 推演复盘，可作数据/模块供应商</td></tr><tr><td>海外新闻智能</td><td>Permutable AI、RavenPack</td><td>25 万源、80+ 语言、影响分数</td><td>缺中文解读、A/H 股映射、本地合规部署</td></tr><tr><td>AI 投研工具</td><td>AlphaPai 等</td><td>单次事件深度报告</td><td>持续跟踪 + 命中率</td></tr><tr><td>传统舆情/资讯</td><td>国内舆情厂商、Wind、财联社</td><td>声量监测、快讯</td><td>金融传导与情景推演</td></tr></table>
+<p><strong>Agenta 不是竞品，是锋睿自己的产品</strong>（见产品线逻辑）。</p>
+<p>目标客户：中小券商、公募私募、港澳及海外中资机构、互联网券商（如长桥），以及所有券商的品牌与合规部。</p>
+<hr>
+<h1>十六、落地路径与衡量指标</h1>
+<p><strong>三期</strong>：</p>
+<ul>
+<li>第一期：中国、北美、韩日；市场雷达 + 主动监控 + 对话入口；韩股崩盘与黄仁勋两个演示专题；种子客户试点</li>
+<li>第二期：加欧洲、中东；自身声誉与信用风险；接入 Agenta</li>
+<li>第三期：加南亚与东南亚；量化因子；接入 Quant72；私有化部署版</li>
+</ul>
+<p><strong>衡量指标</strong>：提前量（早于中文快讯多少分钟）/ 分级准确率 / 推演命中率 / 使用度（周活、对话数、监控对象数）。</p>
+<p>种子客户：长桥（互联网券商，覆盖港美股）优先洽谈。</p>
+<hr>
+<h1>十七、SOP（红色事件制作流程）</h1>
+<p>一条红色事件从采集到专题发布控制在 24 小时内。</p>
+<table><tr><th>时间（事件后）</th><th>步骤</th><th>谁做</th><th>产出</th></tr><tr><td>0–5 分钟</td><td>采集、去重、实体识别</td><td>系统</td><td>事件卡片</td></tr><tr><td>5–15 分钟</td><td>分级：系统初判，红色分析师确认</td><td>系统 + 值班分析师</td><td>事件类型、事实分级、红黄绿</td></tr><tr><td>15–30 分钟</td><td>发出红色预警</td><td>值班分析师</td><td>预警：事件、分级、受影响标的</td></tr><tr><td>2 小时内</td><td>传导图初版</td><td>行业分析师</td><td>传导图（实线/虚线）</td></tr><tr><td>2–6 小时</td><td>多语言核实与情绪差</td><td>多语言核实组</td><td>更新事实分级、情绪差摘要</td></tr><tr><td>24 小时内</td><td>重大事件专题 + 局势推演</td><td>行业分析师 + 合规审核</td><td>专题报告；推演锁定入库</td></tr><tr><td>验证节点到期</td><td>推演复盘</td><td>行业分析师</td><td>命中标记 + 偏差原因</td></tr><tr><td>每月</td><td>复盘报告与规则校准</td><td>研究负责人</td><td>命中率、分级规则更新</td></tr></table>
+<p>黄色进日报，必要时补传导图；绿色只入库、进榜单统计。</p>
+<p><strong>重大事件专题模板（六部分）</strong>：事件概述与时间线 / 事实分级表 / 直接冲击 / 传导图与多语言情绪差 / 局势推演（2–3 走向 + 概率）/ 验证节点与跟踪清单。</p>
+<p><strong>质量规则</strong>：每句结论追溯原文；未证实信息不单独推送；推演入库不可修改（更新另开一版）；虚线有证据才改实线；分级与实际不一致必进复盘。</p>
+<p><strong>SOP 包装建议</strong>：把&quot;红色预警 30 分钟、专题 24 小时&quot;作为对外 SLA 承诺写入销售材料。</p>
+<hr>
+<h1>十八、产品线子目录结构</h1>
+<p>同一套底座引擎，按行业拆成并列子目录：</p>
+<table><tr><th>子目录</th><th>监控对象</th><th>数据源特色</th><th>状态</th></tr><tr><td><strong>券商</strong></td><td>上市公司/行业/宏观/人物/自身信用</td><td>公告/行情/资金流/研报/社交</td><td>框架已定</td></tr><tr><td><strong>海外能源</strong></td><td>境外能源资产（CGE/CPFL/NGCP）</td><td>监管/议会/法院/当地媒体</td><td>已上线演示</td></tr><tr><td><strong>航运</strong></td><td>地缘/航道/船型/运价/船东</td><td>八层信源 + 运价指数插件</td><td>已出用例</td></tr><tr><td><strong>大宗商品敞口</strong></td><td>原油、黄金、白银、铜、LNG</td><td>见下节</td><td>新客户需求引出</td></tr></table>
+<p>各子目录共用：五层监控、事件分级、事实分级、专题六部分、传导图（实线/虚线）、榜单、局势推演、复盘。差异只在&quot;监控对象 + 数据源 + 事件模板 + 关系图谱&quot;。</p>
+<hr>
+<h1>十九、大宗商品敞口（原油 / 黄金 / 白银）</h1>
+<p><strong>覆盖口径</strong>：原油已在宏观层、案例库、航运油轮画像中明确覆盖；黄金、白银在大类&quot;大宗商品&quot;下覆盖但未单列，本版补强。</p>
+<p><strong>传导主线</strong>：</p>
+<table><tr><th>标的</th><th>传导主线</th></tr><tr><td>原油</td><td>OPEC+ 产量、地缘（中东/霍尔木兹）、库存、全球需求、美元</td></tr><tr><td>黄金</td><td>实际利率、美元指数（反向）、避险、央行购金、通胀预期</td></tr><tr><td>白银</td><td>黄金五条 <strong>+ 工业需求（光伏、电子、汽车）</strong> —— 白银独有，故波动常大于黄金</td></tr></table>
+<p><strong>数据源分层</strong>：</p>
+<table><tr><th>层</th><th>原油</th><th>黄金</th><th>白银</th></tr><tr><td>L1</td><td>OPEC 公告、EIA 库存、路透/半岛地缘</td><td>美联储/欧央行声明、世界黄金协会、央行购金数据</td><td>COMEX 白银、光伏装机（IEA/能源局）、半导体出货</td></tr><tr><td>L2</td><td>完整行情、CFTC 持仓</td><td>完整行情、CFTC 持仓</td><td>完整行情、CFTC 持仓</td></tr><tr><td>L3</td><td>客户敞口、套保头寸</td><td>客户敞口、套保头寸</td><td>客户敞口、套保头寸</td></tr></table>
+<blockquote>建议：黄金、白银并成&quot;贵金属&quot;一组单列，因为白银的工业属性让它多一条传导链，不能只当&quot;黄金的影子&quot;。</blockquote>
+<hr>
+<h1>二十、产品线逻辑：雷达 + Agenta + Quant72</h1>
+<p>一套底座，三个产品，一条闭环。</p>
+<table><tr><th>产品</th><th>回答的问题</th><th>环节</th><th>主要用户</th></tr><tr><td>舆情雷达</td><td>外部发生了什么、会传导到哪里</td><td>感知</td><td>券商各条线、资管、品牌合规</td></tr><tr><td>Agenta</td><td>这家公司值多少钱、判断是否成立</td><td>评估</td><td>对冲基金、资管、个人研究者</td></tr><tr><td>Quant72</td><td>用数据验证、策略怎么执行</td><td>验证与执行</td><td>量化团队</td></tr></table>
+<p><strong>闭环</strong>：雷达（事件）→ Agenta（基本面与组合）→ Quant72（量化）。</p>
+<pre><code>雷达发现事件、推演传导
+  ↓ 红色事件推送进 Agenta 知识图谱
+Agenta 重新建模、调估值、更新组合
+  ↓ 调整后的判断做成因子
+Quant72 回测验证、样本外检验
+  ↓ 复盘回写
+累积为机构研究资产 + 命中率</code></pre>
+<p><strong>为什么三个一起讲</strong>：单卖雷达是&quot;资讯工具&quot;、单卖 Agenta 是&quot;投研插件&quot;，三个一起是&quot;从感知到执行的完整投研操作系统&quot;——这是融资叙事和销售定位的分水岭。</p>
+<p><strong>落地顺序</strong>：先雷达（能演示、决策链短）→ 再 Agenta（事件带动估值需求）→ 后 Quant72（有持仓后自然要验证）。</p>
+<hr>
+<h1>二十一、关于命中：我们不卖预言，卖可验证</h1>
+<p><strong>历史不会重演，但会押韵</strong>（History doesn&#x27;t repeat itself, but it often rhymes）。</p>
+<p>周期理论（如康波）的方向判断常有解释力，但时点与幅度判断经常失准。这恰恰说明：<strong>结构会重复，时点和幅度每次都不同。</strong></p>
+<p>因此，产品不卖&quot;预测&quot;，卖&quot;推演框架&quot;：</p>
+<table><tr><th></th><th>卖预测（危险）</th><th>卖框架（稳）</th></tr><tr><td>客户怎么理解</td><td>&quot;你预测的事发生了吗？&quot;</td><td>&quot;该看见的风险，提前让我看见了吗？&quot;</td></tr><tr><td>核心动作</td><td>猜中唯一未来</td><td>把不确定性结构化，写清验证节点</td></tr><tr><td>命中率含义</td><td>神不神</td><td>有没有&quot;事后诸葛亮&quot;</td></tr></table>
+<p><strong>命中率的准确定义 = &quot;风险提前看见率&quot;，而非&quot;预言准确率&quot;。</strong></p>
+<p>三条口径（钉死，防止反噬）：</p>
+<ol>
+<li>命中率分母只算&quot;有到期日且已到期&quot;的推演；未到期的只展示、不纳入。</li>
+<li>虚线推演未发生时，复盘反而证明&quot;我们诚实区分了已发生与待验证&quot;，而非事后诸葛亮。</li>
+<li>历史可比只比&quot;结构相似&quot;的同类事件（同国同监管、同类型），不比&quot;看起来像&quot;，否则是拿历史硬套未来。</li>
+</ol>
+<blockquote>一句话：<strong>别担心命中，要担心的是&quot;承诺命中&quot;。</strong> 一个情报系统最值钱的，不是永不犯错，是错了认账、事事有据。我们把账本做出来，就已经赢了。</blockquote>
+<hr>
+<h1>附：五条升级意见汇总</h1>
+<ol>
+<li><strong>演示选例</strong>：韩股崩盘讲&quot;可对账&quot;（熔断/资金流/政府应对已兑现），黄仁勋讲&quot;深度传导&quot;。</li>
+<li><strong>跨语言情绪差口径</strong>：同一提示词、同一打分标尺，用&quot;相对自身历史&quot;跨语言比较。</li>
+<li><strong>命中率分母</strong>：只统计已到期推演；命中=1、部分=0.5、未命中=0。</li>
+<li><strong>传闻可信度</strong>：四档事实分级不变，给&quot;未证实&quot;加信源数量/可信度权重。</li>
+<li><strong>SOP 转 SLA</strong>：把时间线包装成对客户的 SLA 承诺。</li>
+</ol>
+<hr>
+<blockquote>本文档为当前最完整整合版，取代此前分散的框架、增补、产品线等文件。</blockquote>
+</main>
+<footer>锋睿 Frontwise · 本文档整合至 2026-11-13 · 数据仅为公开信息示例，不构成投资建议</footer>
+</body></html>
