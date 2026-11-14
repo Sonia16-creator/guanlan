@@ -745,9 +745,6 @@ body.demo main{padding-bottom:96px}
 <main><div class="wrap">
 <div class="shell">
 <nav class="side" aria-label="功能菜单" id="side">
-  <button class="who" data-go="who-fin"><span>金融机构</span></button>
-  <button class="who" data-go="who-price"><span>价格波动型行业</span></button>
-  <button class="who" data-go="who-global"><span>出海企业</span></button>
   <div class="grp" data-demo>认识观澜</div>
   <button data-demo data-go="productline"><span>产品线</span></button>
   <button data-demo data-go="arch"><span>体系架构</span></button>
@@ -761,11 +758,9 @@ body.demo main{padding-bottom:96px}
   <button data-go="exposure"><span>敞口监控</span><span class="nb r" id="nb-expo"></span></button>
   <button data-go="timeline"><span>事件线</span></button>
   <div class="grp">行业看板</div>
-  <button data-go="sector-securities"><span>券商</span><span class="nb" id="nb-sec"></span></button>
-  <button data-go="sector-energy"><span>海外能源</span><span class="nb" id="nb-energy"></span></button>
-  <button data-go="sector-shipping"><span>航运</span><span class="nb" id="nb-ship"></span></button>
-  <button data-go="sector-mfg"><span>出海制造</span><span class="nb new" id="nb-mfg">新</span></button>
-  <button data-go="sector-commodity"><span>大宗商品</span></button>
+  <button data-go="who-fin"><span>金融机构</span><span class="nb" id="nb-sec"></span></button>
+  <button data-go="who-price"><span>价格波动型行业</span><span class="nb" id="nb-ship"></span></button>
+  <button data-go="who-global"><span>出海企业</span><span class="nb" id="nb-energy"></span><span class="nb new" id="nb-mfg" hidden>新</span></button>
   <div class="grp">研判</div>
   <button data-go="foresight"><span>局势推演</span><span class="nb" id="nb-fore"></span></button>
   <button data-go="ask"><span>问雷达</span></button>
@@ -1856,12 +1851,12 @@ const DEMO=new URLSearchParams(location.search).has('demo');
 if(DEMO)document.body.classList.add('demo');
 const DEMO_ROUTE=[
  ['productline','观澜是什么','一套底座、三个产品：雷达负责「感知」，再把红色事件推给 Agenta 评估、Quant72 验证，形成投研闭环。'],
- ['arch','怎么做到的','五层结构：采集 → 知识 → 分析 → 生产 → 治理。强调数据不出域、模型可切换、关键动作人工审批。'],
- ['overview','今日要点','打开就知道今天要处理什么：红黄绿分级、重点项目、关键日期。'],
- ['live','实时信源','真实数据、每天自动更新两次：数十个免费公开信源，AI 摘要并写明分级理由。可筛选红色事件。'],
- ['foresight','局势推演','红色事件自动推演三种情景，每条带验证节点和到期对账日；推演档案只增不删，错了也留痕。'],
- ['special-ngcp','局势推演 · 专题','以 NGCP 特许权为例：事实分级、冲击归因、传导图、历史可比、情景推演，一页讲清楚一件大事。'],
- ['sector-shipping','换一个行业','同一套底座，换一套信源和事件模板就是航运版：八层信源、三类画像、影响链。'],
+ ['who-fin','金融机构','券商、基金、家办各看一个案例：事件落到板块、个股，再接到财务模型的每股收益和目标价。先切到对方的身份再讲。'],
+ ['who-price','价格波动型行业','航运、大宗商品：用霍尔木兹这条真实事件走四步，发生了什么、几种走向、运价和油价怎么动、到期怎么对账。'],
+ ['who-global','出海企业','海外资产持有企业看特许权和股权，出海制造企业看关税和准入。同一套底座，换一套信源和规则。'],
+ ['live','实时信源','证明不是摆拍：近百个公开信源每天自动采集两次，AI 写中文摘要和分级理由，可按行业、等级、画像筛选。'],
+ ['foresight','局势推演与对账','红色事件自动推演三种情景，每条带验证节点和对账日；档案只增不删，错了也留痕，命中率由此累积。'],
+ ['exposure','关注变量与提醒','客户自己勾选关心的变量、定概率门槛；推演触及且过门槛就提醒，并可推送。规则由客户定，这是别人抄不走的部分。'],
  ['sources','信源与方法','全部来自公开信源，信源健康可查；付费信源（Factiva、路透等）签约授权后接入。'],
 ];
 function renderDemoBar(v){const bar=document.getElementById('demoBar');if(!DEMO){bar.hidden=true;return;}
@@ -1874,7 +1869,8 @@ document.getElementById('demoBar').addEventListener('click',e=>{const b=e.target
  if(b.dataset.dgo)go(b.dataset.dgo);});
 const side=document.getElementById('side');
 function viewExists(v){return !!document.querySelector('[data-view="'+v+'"]');}
-const VIEW_PARENT={special:"foresight","special-ngcp":"foresight"},SP_NAME={special:"CGE 监管处罚","special-ngcp":"NGCP 特许权"};
+const VIEW_PARENT={special:"foresight","special-ngcp":"foresight","sector-securities":"who-fin","sector-shipping":"who-price","sector-commodity":"who-price","sector-energy":"who-global","sector-mfg":"who-global"},
+ SP_NAME={special:"CGE 监管处罚","special-ngcp":"NGCP 特许权","sector-securities":"券商工作台","sector-shipping":"航运工作台","sector-commodity":"大宗商品看板","sector-energy":"海外能源看板","sector-mfg":"出海制造工作台"};
 function go(v,opts){
  if(v==='special-overview')v='foresight'; /* 旧链接：重大事件专题已并入局势推演 */
  if(!viewExists(v))v='overview';
