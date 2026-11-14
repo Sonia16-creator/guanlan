@@ -229,6 +229,8 @@ def collect(sources: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
                     got = fetch_gdelt(s["q"])
                 else:
                     raise ValueError("未知信源类型 " + s["type"])
+                if s.get("max"):
+                    got = got[:s["max"]]
                 if s.get("filter"):
                     pat = re.compile(s["filter"], re.I)
                     got = [g for g in got if pat.search(g["title"] + " " + g["snippet"])]
@@ -239,6 +241,10 @@ def collect(sources: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
                              country=s.get("country"), persona=[s["persona"]] if s.get("persona") else [],
                              layer=s.get("layer"), official=bool(s.get("official")),
                              asset=[s["asset"]] if s.get("asset") else [])
+                    if s.get("stock"):
+                        g["stocks"] = [s["stock"]]
+                    if s.get("inst"):
+                        g["inst"] = s["inst"]
                     items.append(g)
                 rec.update(ok=True, count=len(got))
         except Exception as e:  # 单个信源失败不影响整体
@@ -247,6 +253,95 @@ def collect(sources: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
         health.append(rec)
         print(("OK " if rec["ok"] else "ERR") + f" {s['id']:<18} {rec['count']:>3} {rec.get('error', '')}", flush=True)
     return items, health, chokepoints
+
+
+# ---------------- 关注清单：自选股与自家机构 ----------------
+#
+# 来源一：pipeline/watch.json 的 stocks / institutions
+# 来源二：GitHub 上带「关注清单」标签的未关闭 Issue，标题「个股：名称 代码 检索词」或「机构：名称」
+#   · 标签只有仓库协作者能加，所以外人开的 Issue 不会生效；关闭 Issue 即移除
+
+WATCHLIST = {"stocks": [], "institutions": []}
+
+
+def _lang_of(code: str) -> str:
+    c = code.upper()
+    if c.endswith((".KS", ".KQ")):
+        return "ko"
+    if c.endswith((".SS", ".SZ", ".HK")):
+        return "zh"
+    return "en"
+
+
+def load_watchlist() -> dict:
+    try:
+        cfg = json.loads((ROOT / "pipeline" / "watch.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        cfg = {}
+    stocks = [dict(s, src="默认") for s in cfg.get("stocks", []) if isinstance(s, dict) and s.get("name") and s.get("code")]
+    insts = [{"name": n, "src": "默认"} for n in cfg.get("institutions", []) if n]
+    if GH_TOKEN and GH_REPO:
+        try:
+            for iss in gh("GET", "/issues", params={"labels": "关注清单", "state": "open", "per_page": 100}):
+                m = re.match(r"\s*(个股|机构)\s*[:：]\s*(.+)", iss.get("title") or "")
+                if not m:
+                    continue
+                parts = m.group(2).split()
+                if m.group(1) == "机构":
+                    insts.append({"name": clean(" ".join(parts), 30), "src": f"#{iss['number']}", "issue": iss["number"]})
+                elif len(parts) >= 2 and re.fullmatch(r"[A-Za-z0-9.\-]{1,12}", parts[1]):
+                    stocks.append({"name": clean(parts[0], 20), "code": parts[1].upper(), "q": clean(" ".join(parts[2:]), 40),
+                                   "min": 30, "src": f"#{iss['number']}", "issue": iss["number"]})
+        except Exception as e:
+            print(f"读取关注清单 Issue 失败：{str(e)[:120]}")
+    seen, out = set(), []
+    for s in stocks:
+        if s["name"] not in seen:
+            seen.add(s["name"])
+            out.append(s)
+    return {"stocks": out[:30], "institutions": list({i["name"]: i for i in insts}.values())[:10]}
+
+
+def fetch_quote(code: str) -> dict | None:
+    """免费延迟行情（Yahoo Finance 公开接口），仅演示用；正式版应换成有授权的行情源。"""
+    r = session.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{code}", params={"range": "1mo", "interval": "1d"}, timeout=TIMEOUT)
+    r.raise_for_status()
+    d = r.json()["chart"]["result"][0]
+    pts = [(t, c) for t, c in zip(d.get("timestamp") or [], d["indicators"]["quote"][0]["close"]) if c is not None]
+    if len(pts) < 2:
+        return None
+    last, prev = pts[-1][1], pts[-2][1]
+    day = lambda t: datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%d")
+    return {"code": code, "cur": d["meta"].get("currency"), "en": d["meta"].get("shortName") or "",
+            "last": round(last, 2), "chg": round((last / prev - 1) * 100, 2), "date": day(pts[-1][0]),
+            "closes": [round(c, 2) for _, c in pts[-22:]], "from": day(pts[-22:][0][0])}
+
+
+def watch_sources(wl: dict) -> list[dict]:
+    out = []
+    for s in wl["stocks"]:
+        lang = _lang_of(s["code"])
+        terms = {s.get("q") or s["name"]} | ({s["name"]} if lang == "zh" else set())
+        out.append({"id": "wl-" + s["code"].lower(), "name": "自选股 · " + s["name"], "sector": "securities", "type": "gnews",
+                    "lang": lang, "q": " OR ".join(f'"{t}"' for t in sorted(terms)), "stock": s["name"], "max": 15})
+    for i in wl["institutions"]:
+        out.append({"id": "inst-" + hashlib.md5(i["name"].encode()).hexdigest()[:8], "name": "自家机构 · " + i["name"], "sector": "securities",
+                    "type": "gnews", "lang": "zh", "persona": "compliance", "inst": i["name"],
+                    "q": f'"{i["name"]}" (处罚 OR 罚单 OR 故障 OR 宕机 OR 投诉 OR 立案 OR 警示函 OR 泄露)'})
+    return out
+
+
+def fetch_quotes(wl: dict) -> list[dict]:
+    out = []
+    for s in wl["stocks"]:
+        try:
+            q = fetch_quote(s["code"])
+        except Exception as e:
+            print(f"  行情失败 {s['code']}：{str(e)[:80]}")
+            q = None
+        out.append(dict(q or {"code": s["code"]}, name=s["name"]))
+        time.sleep(0.4)
+    return out
 
 
 # ---------------- 合并去重 ----------------
@@ -261,6 +356,10 @@ def merge(old: list[dict], new: list[dict], ts: datetime) -> tuple[list[dict], i
             srcs = set(ex.get("also", [])) | {it["source"]}
             srcs.discard(ex["source"])
             ex["also"] = sorted(srcs)
+            if it.get("stocks"):  # 同一条新闻被自选股检索再次抓到：补上个股标签
+                ex["stocks"] = sorted(set(ex.get("stocks", [])) | set(it["stocks"]))
+            if it.get("inst") and not ex.get("inst"):
+                ex["inst"] = it["inst"]
             continue
         it["id"] = iid
         it["first_seen"] = iso(ts)
@@ -361,7 +460,8 @@ def analyze(items: list[dict], ts: datetime) -> int:
                 ps = [p for p in (r.get("persona") or []) if p in ("dry", "box", "tank")]
                 it["persona"] = sorted(set(ps) | set(it.get("persona") or []))
             elif it["sector"] == "securities":
-                it["persona"] = sorted({p for p in (r.get("persona") or []) if p in ("research", "prop", "wealth", "compliance")})
+                it["persona"] = sorted({p for p in (r.get("persona") or []) if p in ("research", "prop", "wealth", "compliance")}
+                                       | set(it.get("persona") or []))
             elif it["sector"] == "manufacturing":
                 ps = [p for p in (r.get("persona") or []) if p in ("battery", "pv", "auto", "appliance")]
                 it["persona"] = sorted(set(ps) | set(it.get("persona") or []))
@@ -417,6 +517,7 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
 - 每个情景都要写自己的传导路径 path：局势往这个方向发展时，冲击一层一层落到哪里。三个情景的路径必须不同，体现发展方向不同带来的差异；局势缓和的情景可以只有两层。
 - 每个情景列出会被明显推动的影响变量 vars，变量代码只能从下表选，没有就给空数组：
 {vars}
+- 客户自选股清单：{stocks}。某情景会明显影响其中某只时，写进该情景的 stocks；名称必须与清单完全一致，清单以外的股票不要写，没有就给空数组。
 
 只输出 JSON，结构如下：
 {{
@@ -430,7 +531,8 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
   {{"name": "情景名，10 字以内", "prob": 50, "sev": "该情景对关注对象的影响程度：r 重大 / y 中等 / g 轻微或局势收敛",
     "trigger": "触发条件", "impact": "影响", "window": "时间窗口", "better": "好转信号", "worse": "恶化信号",
     "path": ["一级传导：直接冲击到谁，16 字以内", "二级传导：行业或市场层面，16 字以内", "终局：落到哪类资产、标的或敞口，16 字以内"],
-    "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}]}}
+    "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}],
+    "stocks": [{{"n": "自选股名称", "dir": "up 或 down", "note": "原因，16 字以内"}}]}}
  ],
  "watch": [{{"what": "要跟踪的验证节点", "when": "时间或频率", "good": "好转信号", "bad": "恶化信号"}}],
  "review_by": "到期对账日 YYYY-MM-DD：到这一天应该能看出哪种情景成立，按最可能情景的时间窗口估计，不早于今天后 7 天、不晚于 1 年",
@@ -452,7 +554,7 @@ def simulate_one(it: dict, ts: datetime) -> dict | None:
              "red_reason": a.get("reason_zh", "")}
     payload = {
         "model": DEEPSEEK_MODEL,
-        "messages": [{"role": "system", "content": SIM_PROMPT.format(today=ts.strftime("%Y-%m-%d"), focus=focus,
+        "messages": [{"role": "system", "content": SIM_PROMPT.format(today=ts.strftime("%Y-%m-%d"), focus=focus, stocks=_stock_names(),
                                                                          vars="\n".join(f"  {k} = {v}" for k, v in SIM_VARS.items()))},
                      {"role": "user", "content": json.dumps(event, ensure_ascii=False)}],
         "response_format": {"type": "json_object"},
@@ -480,7 +582,7 @@ def simulate_one(it: dict, ts: datetime) -> dict | None:
                      "trigger": _txt(x.get("trigger"), 160),
                      "impact": _txt(x.get("impact"), 160), "window": _txt(x.get("window"), 40),
                      "better": _txt(x.get("better"), 100), "worse": _txt(x.get("worse"), 100),
-                     "path": [_txt(s, 30) for s in (x.get("path") or [])[:4] if s], "vars": _norm_vars(x.get("vars"))})
+                     "path": [_txt(s, 30) for s in (x.get("path") or [])[:4] if s], "vars": _norm_vars(x.get("vars")), "stocks": _norm_stocks(x.get("stocks"))})
     if not scen or not d.get("conclusion"):
         return None
     total = sum(x["prob"] for x in scen)
@@ -570,8 +672,22 @@ ENRICH_PROMPT = """你是锋睿「观澜 Horizon」的局势推演分析员。�
 - path：该情景下冲击逐层落到哪里，2 到 3 层，每层 16 字以内（一级传导：直接冲击到谁；二级传导：行业或市场层面；终局：落到哪类资产、标的或敞口）。三个情景的路径必须不同
 - vars：该情景下会被明显推动的影响变量，最多 4 个，没有就给空数组。变量代码只能从下表选：
 {vars}
+- stocks：客户自选股清单为 {stocks}。该情景会明显影响其中某只时列出，名称必须与清单完全一致，清单以外的不要写，没有就给空数组
 
-只输出 JSON：{{"scenarios": [{{"sev": "y", "path": ["…", "…", "…"], "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}]}}]}}"""
+只输出 JSON：{{"scenarios": [{{"sev": "y", "path": ["…", "…", "…"], "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}], "stocks": [{{"n": "自选股名称", "dir": "up 或 down", "note": "原因，16 字以内"}}]}}]}}"""
+
+
+def _stock_names() -> str:
+    return "、".join(s["name"] for s in WATCHLIST["stocks"]) or "（空）"
+
+
+def _norm_stocks(raw) -> list[dict]:
+    names, out, seen = {s["name"] for s in WATCHLIST["stocks"]}, [], set()
+    for v in raw or []:
+        if isinstance(v, dict) and v.get("n") in names and v["n"] not in seen:
+            seen.add(v["n"])
+            out.append({"n": v["n"], "dir": "down" if v.get("dir") == "down" else "up", "note": _txt(v.get("note"), 30)})
+    return out[:6]
 
 
 def _norm_vars(raw) -> list[dict]:
@@ -594,7 +710,7 @@ def enrich_sims(items: list[dict], ts: datetime) -> int:
         src = {"event": it.get("ai", {}).get("title_zh") or it["title"], "sector": it["sector"], "conclusion": m.get("conclusion"),
                "scenarios": [{k: x.get(k) for k in ("name", "prob", "trigger", "impact", "window")} for x in m["scenarios"]]}
         payload = {"model": DEEPSEEK_MODEL, "response_format": {"type": "json_object"}, "temperature": 0.2,
-                   "messages": [{"role": "system", "content": ENRICH_PROMPT.format(vars="\n".join(f"  {k} = {v}" for k, v in SIM_VARS.items()))},
+                   "messages": [{"role": "system", "content": ENRICH_PROMPT.format(stocks=_stock_names(), vars="\n".join(f"  {k} = {v}" for k, v in SIM_VARS.items()))},
                                 {"role": "user", "content": json.dumps(src, ensure_ascii=False)}]}
         try:
             r = session.post(DEEPSEEK_URL, json=payload, timeout=120, headers={"Authorization": f"Bearer {DEEPSEEK_KEY}"})
@@ -609,6 +725,7 @@ def enrich_sims(items: list[dict], ts: datetime) -> int:
             x["sev"] = o.get("sev") if o.get("sev") in ("r", "y", "g") else ""
             x["path"] = [_txt(s, 30) for s in (o.get("path") or [])[:4] if s]
             x["vars"] = _norm_vars(o.get("vars"))
+            x["stocks"] = _norm_stocks(o.get("stocks"))
         m["enriched_at"] = iso(ts)
         done += 1
     return done
@@ -629,6 +746,11 @@ def var_probs(sim: dict) -> dict:
             e["prob"] += x.get("prob", 0)
             e["scen"].append(f"情景 {'ABC'[i]} {x.get('prob', 0)}%")
             e["note"] = e["note"] or v.get("note", "")
+        for v in x.get("stocks") or []:
+            e = out.setdefault(("stock:" + v["n"], v["dir"]), {"prob": 0, "scen": [], "note": ""})
+            e["prob"] += x.get("prob", 0)
+            e["scen"].append(f"情景 {'ABC'[i]} {x.get('prob', 0)}%")
+            e["note"] = e["note"] or v.get("note", "")
     return out
 
 
@@ -642,12 +764,13 @@ def load_watch() -> list[dict]:
 
 def find_alerts(items: list[dict]) -> list[dict]:
     rules = {r["k"]: int(r.get("min", 30)) for r in load_watch()}
+    rules.update({"stock:" + s["name"]: int(s.get("min", 30)) for s in WATCHLIST["stocks"]})
     hits = []
     for it in items:
         for (k, d), e in var_probs(it.get("sim") or {}).items():
             if k in rules and e["prob"] >= rules[k]:
                 hits.append({"id": it["id"], "title": it.get("ai", {}).get("title_zh") or it["title"], "link": it.get("link"),
-                             "k": k, "name": SIM_VARS[k], "dir": d, "prob": e["prob"], "min": rules[k],
+                             "k": k, "name": SIM_VARS.get(k) or k.split(":", 1)[-1], "dir": d, "prob": e["prob"], "min": rules[k],
                              "scen": e["scen"], "note": e["note"], "review_by": it["sim"].get("review_by")})
     return sorted(hits, key=lambda h: -h["prob"])
 
@@ -689,7 +812,7 @@ REVIEW_PROMPT = """你是锋睿「观澜 Horizon」的推演对账员。输入�
 
 只输出 JSON：{"verdict": "hit/miss/unclear", "scenario": "A/B/C/none", "explain": "中文判断理由，120 字以内，点明依据的证据序号", "evidence": [证据序号, 最多 5 个]}"""
 
-GH_LABELS = {"对账": "1d4ed8", "确认": "15803d", "改判-成立": "15803d", "改判-未成立": "b91c1c", "改判-无法判定": "6b7280", "风险提醒": "b45309"}
+GH_LABELS = {"对账": "1d4ed8", "确认": "15803d", "改判-成立": "15803d", "改判-未成立": "b91c1c", "改判-无法判定": "6b7280", "风险提醒": "b45309", "关注清单": "7c3aed"}
 _labels_ready = False
 
 
@@ -873,7 +996,15 @@ def main() -> int:
             old = json.loads(FEED.read_text(encoding="utf-8"))
         except ValueError:
             print("旧 feed.json 损坏，重新开始")
+    try:
+        gh_ready()  # 先建好标签，网站上的「添加」链接才能带上「关注清单」
+    except Exception as e:
+        print(f"GitHub 标签准备失败：{str(e)[:120]}")
+    WATCHLIST.update(load_watchlist())
+    print(f"关注清单：自选股 {len(WATCHLIST['stocks'])} 只，自家机构 {len(WATCHLIST['institutions'])} 个")
+    sources += watch_sources(WATCHLIST)
     new_items, health, chokepoints = collect(sources)
+    quotes = fetch_quotes(WATCHLIST)
     if not chokepoints:
         chokepoints = old.get("chokepoints", [])  # PortWatch 偶尔失败时保留上一次数据
     items, added = merge(old.get("items", []), new_items, ts)
@@ -910,6 +1041,8 @@ def main() -> int:
             "unclassified": sum(1 for it in shown if "ai" not in it),
         },
         "sim_vars": SIM_VARS,
+        "watchlist": WATCHLIST,
+        "quotes": quotes,
         "alerts_this_run": alerts,
         "health": health,
         "chokepoints": chokepoints,

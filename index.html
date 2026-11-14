@@ -599,6 +599,24 @@ body:not(.demo) [data-demo]{display:none!important}
 .side .grp~button[aria-current="page"]::after{left:-2px;top:4px;bottom:4px}
 .backlink{font:inherit;font-size:13px;color:var(--muted);background:none;border:none;padding:0;margin:0 0 6px;cursor:pointer}
 .backlink:hover{color:var(--ink)}
+/* ===== 自选股卡片 ===== */
+.stk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.stk{font:inherit;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:11px 13px;cursor:pointer;display:flex;flex-direction:column;gap:6px;color:var(--text);min-width:0}
+.stk:hover{border-color:var(--brand-2)}.stk.hot{border-color:var(--red)}
+.stk-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.stk-top b{color:var(--ink);font-size:14.5px}.stk-top span{color:var(--muted);font-size:11.5px}
+.stk-px{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.stk-px .px{font-family:var(--serif);font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.stk-px .px small{font-family:inherit;font-size:11px;color:var(--muted);margin-left:3px}
+.stk-px .chg{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}.chg.up{color:#c0392b}.chg.dn{color:#1e8449}
+.stk svg{width:100%;height:30px;display:block}
+.stk-meta{display:flex;flex-wrap:wrap;gap:5px;font-size:12px;color:var(--muted);align-items:center}
+.stk-imp{font-size:12px;line-height:1.45;color:var(--text);border-top:1px dashed var(--line);padding-top:6px}
+.stk-imp b.up{color:#c0392b}.stk-imp b.dn{color:#1e8449}
+.wl-form{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.wl-form input{font:inherit;font-size:13.5px;flex:1 1 160px;min-width:0;border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:var(--surface);color:var(--text)}
+.btn-add{font:inherit;font-size:13.5px;font-weight:600;border:1px solid var(--brand-2);background:var(--brand-2);color:#fff;border-radius:9px;padding:7px 16px;cursor:pointer}
+a.linkbtn{text-decoration:none}
 table.mx{min-width:520px}table.mx td,table.mx th{text-align:center}table.mx td:first-child,table.mx th:first-child{text-align:left}
 table.mx .cell{display:inline-flex;gap:4px;align-items:center;justify-content:center;min-width:54px;border-radius:8px;padding:2px 8px;font-variant-numeric:tabular-nums;font-size:12.5px}
 table.mx .cell.r{background:var(--red-bg);color:var(--red);font-weight:700}table.mx .cell.y{background:var(--yellow-bg);color:var(--yellow);font-weight:600}table.mx .cell.z{color:var(--muted)}
@@ -1099,6 +1117,25 @@ body.demo main{padding-bottom:96px}
     <h3 class="ct">选择岗位 <small>同一件事，不同岗位看的角度不一样</small></h3>
     <div class="board-tabs" id="secTabs" role="group" aria-label="券商岗位"></div>
     <div id="secRole"></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 class="ct">我的自选股 <small id="secStockSub">行情 × 舆情 × 推演 · 点卡片看这只股票的全部消息</small><a class="linkbtn" href="https://github.com/Sonia16-creator/guanlan/issues?q=is%3Aissue+is%3Aopen+label%3A%E5%85%B3%E6%B3%A8%E6%B8%85%E5%8D%95" target="_blank" rel="noopener noreferrer">管理清单 →</a></h3>
+    <div class="stk-grid" id="secStocks"><p class="srcnote" style="margin:0">正在读取数据…</p></div>
+    <form class="wl-form" id="stockForm">
+      <input name="n" placeholder="名称，如 台积电" required maxlength="20" aria-label="股票名称">
+      <input name="c" placeholder="行情代码，如 TSM、2330.TW、600519.SS" required maxlength="12" pattern="[A-Za-z0-9.\-]+" aria-label="行情代码">
+      <input name="q" placeholder="新闻检索词（可选），如 TSMC" maxlength="40" aria-label="新闻检索词">
+      <button type="submit" class="btn-add">添加自选股</button>
+    </form>
+    <p class="srcnote" style="margin-top:8px">添加会打开 GitHub 的新建页面，内容已填好，点提交即可；下次自动更新时生效，关闭那条记录即移除。行情为免费延迟数据（Yahoo Finance），仅供演示，红涨绿跌。</p>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 class="ct">自家机构舆情 <small>监管处罚、系统故障、投诉、泄露等负面，单独置顶，归合规风控</small></h3>
+    <div id="secInst"><p class="srcnote" style="margin:0">正在读取数据…</p></div>
+    <form class="wl-form" id="instForm">
+      <input name="n" placeholder="机构名称，如 某某证券" required maxlength="30" aria-label="机构名称" style="flex:2 1 220px">
+      <button type="submit" class="btn-add">启用监控</button>
+    </form>
   </div>
   <div class="two" style="margin-top:14px;align-items:start">
     <div class="card">
@@ -1995,6 +2032,7 @@ function liveCard(it){const a=it.ai||{};const lv=a.level;
  tags.push(it.official?pill('v','官方原文'):pill('w','媒体'));
  if(a.unverified)tags.push('<span class="pill r" style="background:transparent;border:1px dashed var(--red)">未证实</span>');
  tags.push(`<span>${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''}${it.sector!=='securities'&&(it.persona||[]).length?' · '+it.persona.map(p=>esc(PERN[p]||p)).join('/'):''}${(it.asset||[]).length?' · '+it.asset.map(x=>esc(ASSETN[x]||x)).join('/'):''}${a.type?' · '+esc(a.type):''}</span>`);
+ (it.stocks||[]).forEach(s=>tags.push(`<span class="pill v">自选股 · ${esc(s)}</span>`));if(it.inst)tags.push(`<span class="pill r">自家机构 · ${esc(it.inst)}</span>`);
  const also=(it.also||[]).length?`<span class="also">另见 ${it.also.length} 个信源</span>`:'';
  return `<article class="litem lv-${lv||'n'}"><div class="meta">${tags.join('')}</div>
   <a class="lt" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(title)}</a>
@@ -2014,7 +2052,7 @@ function renderLiveList(){const q=LIVE.q.trim().toLowerCase();const o={r:0,y:1,g
  let list=liveItems().filter(it=>(LIVE.sector==='all'||it.sector===LIVE.sector)
   &&(LIVE.level==='all'||(LIVE.level==='n'?!it.ai:it.ai&&it.ai.level===LIVE.level))
   &&(LIVE.persona==='all'||!PERSEC[LIVE.sector]||personaOf(it).includes(LIVE.persona))
-  &&(!q||[it.title,it.source,it.outlet,it.ai&&it.ai.title_zh,it.ai&&it.ai.summary_zh].join(' ').toLowerCase().includes(q)));
+  &&(!q||[it.title,it.source,it.outlet,it.ai&&it.ai.title_zh,it.ai&&it.ai.summary_zh,(it.stocks||[]).join(' '),it.inst||''].join(' ').toLowerCase().includes(q)));
  list.sort((a,b)=>((o[a.ai&&a.ai.level]??3)-(o[b.ai&&b.ai.level]??3))||String(b.published).localeCompare(String(a.published)));
  document.getElementById('liveCount').textContent=`共 ${list.length} 条 · 近 7 天 · 按风险和时间排序`;
  document.getElementById('liveList').innerHTML=list.length?list.slice(0,LIVE.limit).map(liveCard).join(''):'<p class="srcnote">当前筛选条件下没有条目。</p>';
@@ -2071,7 +2109,7 @@ function renderOverview(){const f=LIVE.feed;if(!f)return;
   :'<li class="srcnote">近 7 天没有黄色事件。</li>';
  renderWatch();renderSec();renderMfg();}
 /* ---- 券商页：实时动态、事件 → 板块、验证节点日历 ---- */
-const EQ_VAR=k=>k.startsWith('sec_')||k.startsWith('equity_')||k==='fx'||k==='rate'||k==='credit';
+const EQ_VAR=k=>k.startsWith('stock:')||k.startsWith('sec_')||k.startsWith('equity_')||k==='fx'||k==='rate'||k==='credit';
 const SEC_ROLE={research:{name:'研究所',users:'宏观、策略与行业分析师',care:'政策与数据超预期、行业景气变化、全球事件往哪个板块传导',use:'晨会素材和点评选题：先看「事件 → 板块」，再打开传导图核对每一层的依据'},
  prop:{name:'自营与资管',users:'投资经理、交易员、风控',care:'会直接推动持仓标的价格的事：业绩、治理、股权变动、信用事件、黑天鹅',use:'在「敞口监控」里勾选自己持有的板块并设概率门槛，过门槛才提醒，减少噪音'},
  wealth:{name:'财富管理',users:'投资顾问、客户经理',care:'市场大幅波动和普通投资者会来问的事，需要一个说得清的解释',use:'红色事件的推演给出三种情景和验证节点，可以直接改写成给客户的提示口径'},
@@ -2085,6 +2123,7 @@ function renderSec(){const f=LIVE.feed;if(!f||!document.getElementById('secLive'
   <span>券商信源 <b>${srcs.filter(x=>x.ok).length}/${srcs.length}</b> 可用</span>
   <span>近 7 天 <b>${all.length}</b> 条：${pill('r','红 '+n('r'),1)} ${pill('y','黄 '+n('y'),1)} ${pill('g','绿 '+n('g'),1)}${all.some(it=>!it.ai)?` <span class="pill w">未分级 ${all.filter(it=>!it.ai).length}</span>`:''}</span>`;
  document.getElementById('nb-sec').textContent=n('r')?n('r')+' 红':(n('y')?n('y')+' 黄':'');
+ renderStocks();
  const hot=all.filter(it=>lvl(it)==='r'||lvl(it)==='y'),cnt=k=>hot.filter(it=>personaOf(it).includes(k)).length;
  document.getElementById('secTabs').innerHTML=`<button type="button" data-p="all" aria-pressed="${secP==='all'}">全部 <span class="cnt">${hot.length}</span></button>`+Object.entries(SEC_ROLE).map(([k,v])=>`<button type="button" data-p="${k}" aria-pressed="${k===secP}">${esc(v.name)} <span class="cnt">${cnt(k)}</span></button>`).join('');
  const RP=SEC_ROLE[secP];
@@ -2095,9 +2134,9 @@ function renderSec(){const f=LIVE.feed;if(!f||!document.getElementById('secLive'
  /* 事件 → 板块：所有进行中的推演里，落到股票市场、板块、汇率利率的变量 */
  const rows=[];openSims().forEach(it=>varProbs(it).forEach(e=>{if(EQ_VAR(e.k)&&!e.auto)rows.push(Object.assign({it},e));}));
  rows.sort((a,b)=>b.prob-a.prob||String(b.it.published).localeCompare(String(a.it.published)));
- document.getElementById('secVars').innerHTML=rows.length?rows.slice(0,8).map(h=>{const t=(h.it.ai&&h.it.ai.title_zh)||h.it.title,w=WATCH[h.k];
+ document.getElementById('secVars').innerHTML=rows.length?rows.slice(0,8).map(h=>{const t=(h.it.ai&&h.it.ai.title_zh)||h.it.title,w=wmin(h.k);
    return `<div class="ralert"><div class="rp" style="font-size:19px${h.dir==='down'?';color:var(--green)':''}">${Math.min(100,h.prob)}%<small>${w?'门槛 '+w+'%':'未关注'}</small></div>
-    <div class="rt"><b>${esc(SIM_VARS[h.k])} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''}<span>← ${esc(t)} · ${esc(h.scen.join(' + '))}</span></div>
+    <div class="rt"><b>${esc(VN(h.k))} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''}<span>← ${esc(t)} · ${esc(h.scen.join(' + '))}</span></div>
     <button type="button" class="simbtn" data-sim="${esc(h.it.id)}">传导图 →</button></div>`;}).join('')+(rows.length>8?`<p class="srcnote" style="margin:8px 0 0">共 ${rows.length} 条，这里显示概率最高的 8 条。红色为上行，绿色为下行。</p>`:'')
   :'<p class="srcnote" style="margin:0">进行中的推演还没有落到市场或板块的变量。下次自动更新后，新推演会给出板块级影响。</p>';
  /* 验证节点日历：券商类推演的对账日和要盯的节点 */
@@ -2131,9 +2170,9 @@ function renderMfg(){const f=LIVE.feed;if(!f||!document.getElementById('mfgLive'
  document.getElementById('mfgLive').innerHTML=list.length?list.map(liveCard).join(''):`<p class="srcnote" style="margin:0">${all.length?'近 7 天该画像没有红色或黄色事件。':'出海制造信源刚接入，下次自动更新后这里会显示事件。'}</p>`;
  const rows=[];openSims().filter(it=>it.sector==='manufacturing'&&(mfgP==='all'||has(it,mfgP))).forEach(it=>varProbs(it).forEach(e=>{if(MFG_VAR.includes(e.k)&&!e.auto)rows.push(Object.assign({it},e));}));
  rows.sort((a,b)=>b.prob-a.prob);
- document.getElementById('mfgVars').innerHTML=rows.length?rows.slice(0,8).map(h=>{const t=(h.it.ai&&h.it.ai.title_zh)||h.it.title,w=WATCH[h.k];
+ document.getElementById('mfgVars').innerHTML=rows.length?rows.slice(0,8).map(h=>{const t=(h.it.ai&&h.it.ai.title_zh)||h.it.title,w=wmin(h.k);
    return `<div class="ralert"><div class="rp" style="font-size:19px">${Math.min(100,h.prob)}%<small>${w?'门槛 '+w+'%':'未关注'}</small></div>
-    <div class="rt"><b>${esc(SIM_VARS[h.k])} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''}<span>← ${esc(t)} · ${esc(h.scen.join(' + '))}</span></div>
+    <div class="rt"><b>${esc(VN(h.k))} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''}<span>← ${esc(t)} · ${esc(h.scen.join(' + '))}</span></div>
     <button type="button" class="simbtn" data-sim="${esc(h.it.id)}">传导图 →</button></div>`;}).join('')
   :'<p class="srcnote" style="margin:0">还没有出海制造的推演。出现红色事件后会自动推演，并列出对关税、准入、工厂审批等变量的影响。</p>';
  const cal=[];openSims().filter(it=>it.sector==='manufacturing'&&(mfgP==='all'||has(it,mfgP))).forEach(it=>{const t=(it.ai&&it.ai.title_zh)||it.title,d=reviewBy(it);
@@ -2151,6 +2190,33 @@ function renderMfg(){const f=LIVE.feed;if(!f||!document.getElementById('mfgLive'
   :'<tr><td>近 7 天还没有红色或黄色事件。下次自动更新后这里会按市场和产品显示。</td></tr>';}
 document.getElementById('mfgTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;mfgP=b.dataset.p;renderMfg();});
 document.getElementById('mfgAll').addEventListener('click',()=>{LIVE.sector='manufacturing';LIVE.level='all';LIVE.persona=mfgP;go('live');renderLiveFilters();renderLiveList();});
+/* ---- 自选股与自家机构 ---- */
+const GH_NEW='https://github.com/Sonia16-creator/guanlan/issues/new?labels='+encodeURIComponent('关注清单');
+function spark(cs,up){if(!cs||cs.length<2)return'';const mn=Math.min(...cs),mx=Math.max(...cs),W=200,H=30,r=mx-mn||1;
+ const pts=cs.map((c,i)=>(i*W/(cs.length-1)).toFixed(1)+','+(H-3-(c-mn)/r*(H-6)).toFixed(1)).join(' ');
+ return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${up?'#c0392b':'#1e8449'}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;}
+function renderStocks(){const f=LIVE.feed,box=document.getElementById('secStocks');if(!f||!box)return;
+ const wl=f.watchlist;if(!wl){box.innerHTML='<p class="srcnote" style="margin:0">自选股功能已上线，下次自动更新后这里会显示行情和相关消息。</p>';document.getElementById('secInst').innerHTML='<p class="srcnote" style="margin:0">还没有启用。填入机构名称后，下次自动更新开始采集。</p>';return;}
+ const qs={};(f.quotes||[]).forEach(q=>qs[q.name]=q);const all=liveItems(),lvl=it=>it.ai&&it.ai.level;
+ const imp={};openSims().forEach(it=>varProbs(it).forEach(e=>{if(!e.k.startsWith('stock:'))return;const n=e.k.slice(6);if(!imp[n]||e.prob>imp[n].prob)imp[n]=Object.assign({it},e);}));
+ box.innerHTML=wl.stocks.length?wl.stocks.map(s=>{const q=qs[s.name]||{},news=all.filter(it=>(it.stocks||[]).includes(s.name)),r=news.filter(it=>lvl(it)==='r').length,y=news.filter(it=>lvl(it)==='y').length;
+  const up=(q.chg||0)>=0,big=Math.abs(q.chg||0)>=5,m=imp[s.name],hit=m&&m.prob>=(+s.min||30);
+  return `<button type="button" class="stk${big||hit?' hot':''}" data-stock="${esc(s.name)}">
+   <div class="stk-top"><b>${esc(s.name)}</b><span>${esc(s.code)}${s.issue?' · 自己添加':''}</span></div>
+   ${q.last!=null?`<div class="stk-px"><span class="px">${q.last.toLocaleString('en-US')}<small>${esc(q.cur||'')}</small></span><span class="chg ${up?'up':'dn'}">${up?'+':''}${q.chg}%${big?' · 异动':''}</span></div>${spark(q.closes,q.closes[q.closes.length-1]>=q.closes[0])}`:'<div class="stk-meta">行情暂不可用</div>'}
+   <div class="stk-meta">${q.date?`<span>${esc(q.date.slice(5))} 收盘</span>`:''}<span>近 7 天消息 ${news.length}</span>${r?pill('r','红 '+r,1):''}${y?pill('y','黄 '+y,1):''}</div>
+   ${m?`<div class="stk-imp">推演：<b class="${m.dir==='down'?'dn':'up'}">${arrow(m.dir)} 约 ${Math.min(100,m.prob)}%</b>${hit?'（已过门槛 '+(+s.min||30)+'%）':''} ← ${esc((m.it.ai&&m.it.ai.title_zh)||m.it.title)}</div>`:''}</button>`;}).join('')
+  :'<p class="srcnote" style="margin:0">还没有自选股。在下面填入名称和行情代码添加。</p>';
+ document.getElementById('secStockSub').textContent=`${wl.stocks.length} 只 · 行情 × 舆情 × 推演 · 点卡片看这只股票的全部消息`;
+ const ins=wl.institutions||[],mine=all.filter(it=>it.inst).sort((a,b)=>String(b.published).localeCompare(String(a.published)));
+ document.getElementById('secInst').innerHTML=ins.length?`<p class="srcnote" style="margin:0 0 10px">正在监控：${ins.map(i=>'<b>'+esc(i.name)+'</b>').join('、')} · 近 7 天 ${mine.length} 条</p>`+(mine.length?'<div class="livelist">'+mine.slice(0,4).map(liveCard).join('')+'</div>':'<p class="srcnote" style="margin:0">近 7 天没有检索到相关负面。</p>')
+  :'<p class="srcnote" style="margin:0">还没有启用。填入机构名称后，系统会用「机构名 + 处罚 / 罚单 / 故障 / 宕机 / 投诉 / 立案 / 警示函 / 泄露」检索，下次自动更新开始采集。</p>';}
+document.getElementById('secStocks').addEventListener('click',e=>{const b=e.target.closest('.stk');if(!b)return;
+ LIVE.sector='securities';LIVE.level='all';LIVE.persona='all';LIVE.q=b.dataset.stock;const qi=document.getElementById('liveQ');if(qi)qi.value=LIVE.q;go('live');renderLiveFilters();renderLiveList();});
+document.getElementById('stockForm').addEventListener('submit',e=>{e.preventDefault();const d=new FormData(e.target),v=k=>String(d.get(k)||'').trim().replace(/\s+/g,k==='q'?' ':'');
+ window.open(GH_NEW+'&title='+encodeURIComponent('个股：'+v('n')+' '+v('c').toUpperCase()+(v('q')?' '+v('q'):''))+'&body='+encodeURIComponent('由观澜网站「添加自选股」生成。提交后下次自动更新生效；关闭本条即移除。'),'_blank','noopener');});
+document.getElementById('instForm').addEventListener('submit',e=>{e.preventDefault();const n=String(new FormData(e.target).get('n')||'').trim();if(!n)return;
+ window.open(GH_NEW+'&title='+encodeURIComponent('机构：'+n)+'&body='+encodeURIComponent('由观澜网站「自家机构舆情」生成。提交后下次自动更新开始采集该机构的负面舆情；关闭本条即停止。'),'_blank','noopener');});
 document.getElementById('secTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;secP=b.dataset.p;renderSec();});
 document.getElementById('secAll').addEventListener('click',()=>{LIVE.sector='securities';LIVE.level='all';LIVE.persona=secP;go('live');renderLiveFilters();renderLiveList();});
 function renderShipLive(){const box=document.getElementById('shipLive');if(!LIVE.feed)return;
@@ -2182,10 +2248,13 @@ const VAR_KW={freight_tank:/油轮.{0,6}运价|油轮运费|VLCC|油运/,freight
  sec_semis:/半导体|存储|芯片|HBM/,sec_ai:/算力|光模块|服务器|AI 硬件/,sec_ev:/新能源车|电动车|锂电|电池/,sec_energy:/油气股|能源股|电力股|能源板块/,sec_shipping:/航运股|港口股|航运板块/,sec_airline:/航空|旅游/,sec_gold:/黄金股|有色/,sec_fin:/银行股|券商股|金融股|银行板块/,
  fx:/汇率|贬值|升值|美元指数/,rate:/利率|融资成本|加息|降息|收益率/,credit:/评级|信用利差|违约/,equity_cn:/A ?股|港股|沪深|恒生/,equity_us:/美股|纳指|标普|道指/,equity_asia:/韩股|日股|KOSPI|日经/,
  tariff:/电价|费率/,concession:/特许权|牌照|特许经营/,stake:/股权|国有化|减持|控制权/};
+const VN=k=>SIM_VARS[k]||(String(k).startsWith('stock:')?k.slice(6):k);
+const wlStocks=()=>(LIVE.feed&&LIVE.feed.watchlist&&LIVE.feed.watchlist.stocks)||[];
+function wmin(k){if(String(k).startsWith('stock:')){const s=wlStocks().find(s=>s.name===k.slice(6));return s?(+s.min||30):0;}return WATCH[k];}
 const WATCH_DEFAULT={freight_tank:30,freight_dry:30,freight_box:50,oil:50,concession:30,stake:30,duty:30,access:30,plant:50};
 let WATCH=(()=>{try{const w=JSON.parse(localStorage.getItem('guanlan-watch'));if(w&&typeof w==='object')return w;}catch(e){}return Object.assign({},WATCH_DEFAULT);})();
 const saveWatch=()=>{try{localStorage.setItem('guanlan-watch',JSON.stringify(WATCH))}catch(e){}};
-function scenVars(it,x){if(Array.isArray(x.vars))return x.vars.filter(v=>SIM_VARS[v.k]);
+function scenVars(it,x){if(Array.isArray(x.vars))return x.vars.filter(v=>SIM_VARS[v.k]).concat((x.stocks||[]).map(s=>({k:'stock:'+s.n,dir:s.dir,note:s.note})));
  const t=x.impact||'',out=[];
  for(const k in VAR_KW)if(VAR_KW[k].test(t))out.push({k,auto:true});
  if(/运价|运费/.test(t)&&!out.some(v=>v.k.startsWith('freight_')))(it.persona||[]).forEach(p=>{const k={dry:'freight_dry',box:'freight_box',tank:'freight_tank'}[p];if(k)out.push({k,auto:true});});
@@ -2246,12 +2315,12 @@ const CASE_SIMS=[
 ];
 function openSims(){const seen=new Set(),out=[];
  ARC.items.concat(LIVE.feed?LIVE.feed.items.filter(x=>x.sim):[]).forEach(x=>{if(seen.has(x.id))return;seen.add(x.id);if(['hit','miss','unclear'].includes(x.status))return;out.push(x);});return out;}
-function riskAlerts(){const hits=[];openSims().forEach(it=>varProbs(it).forEach(e=>{const min=WATCH[e.k];if(min&&e.prob>=min)hits.push(Object.assign({it,min},e));}));
+function riskAlerts(){const hits=[];openSims().forEach(it=>varProbs(it).forEach(e=>{const min=wmin(e.k);if(min&&e.prob>=min)hits.push(Object.assign({it,min},e));}));
  return hits.sort((a,b)=>(a.auto-b.auto)||b.prob-a.prob||String(b.it.published).localeCompare(String(a.it.published)));}
 const arrow=d=>d==='down'?'↓':d==='up'?'↑':'';
 function alertRow(h){const t=(h.it.ai&&h.it.ai.title_zh)||h.it.title;
  return `<div class="ralert"><div class="rp">${Math.min(100,h.prob)}%<small>门槛 ${h.min}%</small></div>
-  <div class="rt"><b>${esc(SIM_VARS[h.k])} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''} ← ${esc(t)}<span>${esc(h.scen.join(' + '))}${h.auto?' · 关键词推断，方向待定':''} · 对账日 ${esc(reviewBy(h.it)||'—')}</span></div>
+  <div class="rt"><b>${esc(VN(h.k))} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''} ← ${esc(t)}<span>${esc(h.scen.join(' + '))}${h.auto?' · 关键词推断，方向待定':''} · 对账日 ${esc(reviewBy(h.it)||'—')}</span></div>
   <button type="button" class="simbtn" data-sim="${esc(h.it.id)}">看传导图 →</button></div>`;}
 function renderWatch(){const g=document.getElementById('watchGrid');if(!g)return;
  g.innerHTML=Object.keys(SIM_VARS).map(k=>{const on=!!WATCH[k],m=WATCH[k]||30;
@@ -2277,13 +2346,13 @@ function simFlow(it){const m=it.sim,a=it.ai||{},sc=m.scenarios||[];if(!sc.length
  const depth=structured?Math.max(...sc.map(x=>(x.path||[]).length)):3;
  const lanes=sc.map((x,i)=>{const path=Array.isArray(x.path)&&x.path.length?x.path:null,vs=scenVars(it,x);
   const nodes=path?path.map((s,j)=>`<div class="sf-n"${j===path.length-1&&path.length<depth?` style="grid-column:span ${depth-path.length+1}"`:''}>${esc(s)}</div>`).join(''):`<div class="sf-n" style="grid-column:span ${depth}">${esc(x.impact)}</div>`;
-  const chips=vs.length?vs.map(v=>{const w=WATCH[v.k],hit=w&&probs[v.k+'|'+v.dir]>=w;
-   return `<span class="vchip ${v.dir}${w?' watch':''}${hit?' hit':''}" title="${w?'你关注的变量'+(hit?'，已过门槛':''):''}">${esc(SIM_VARS[v.k])} <b>${arrow(v.dir)}</b>${v.note?`<small>${esc(v.note)}</small>`:''}</span>`;}).join(''):'<em>无明显变动</em>';
+  const chips=vs.length?vs.map(v=>{const w=wmin(v.k),hit=w&&probs[v.k+'|'+v.dir]>=w;
+   return `<span class="vchip ${v.dir}${w?' watch':''}${hit?' hit':''}" title="${w?'你关注的变量'+(hit?'，已过门槛':''):''}">${esc(VN(v.k))} <b>${arrow(v.dir)}</b>${v.note?`<small>${esc(v.note)}</small>`:''}</span>`;}).join(''):'<em>无明显变动</em>';
   return `<div class="sf-lane sv-${x.sev||'n'}"><div class="sf-n sf-scen">情景 ${'ABC'[i]} · ${esc(x.name)}<small>约 ${+x.prob||0}%${x.window?' · '+esc(x.window):''}</small></div>${nodes}<div class="sf-vars">${chips}</div></div>`;}).join('');
  const heads=structured?['一级传导','二级传导','终局','更远一层'].slice(0,depth).map(t=>`<span>${t}</span>`).join(''):'<span style="grid-column:span 3">影响</span>';
- const hits=varProbs(it).filter(e=>WATCH[e.k]&&e.prob>=WATCH[e.k]).sort((x,y)=>y.prob-x.prob);
+ const hits=varProbs(it).filter(e=>wmin(e.k)&&e.prob>=wmin(e.k)).sort((x,y)=>y.prob-x.prob);
  return `<div><h3>情景传导图 <small style="font-weight:400;color:var(--muted)">局势往不同方向发展，冲击落到不同的层面</small></h3>
-  ${hits.length?`<div class="sf-alert" style="margin-bottom:10px">触及你关注的变量：${hits.map(e=>`${esc(SIM_VARS[e.k])} ${arrow(e.dir)} 合计约 <b>${Math.min(100,e.prob)}%</b>（${esc(e.scen.join(' + '))}，门槛 ${WATCH[e.k]}%）`).join('；')}</div>`:''}
+  ${hits.length?`<div class="sf-alert" style="margin-bottom:10px">触及你关注的变量：${hits.map(e=>`${esc(VN(e.k))} ${arrow(e.dir)} 合计约 <b>${Math.min(100,e.prob)}%</b>（${esc(e.scen.join(' + '))}，门槛 ${wmin(e.k)}%）`).join('；')}</div>`:''}
   <div class="sf-head" style="--d:${depth}"><div>触发事件</div><div><span>情景与概率</span>${heads}<span>影响变量</span></div></div>
   <div class="sflow" style="--d:${depth}"><div class="sf-ev">${esc(a.title_zh||it.title)}</div><div class="sf-lanes">${lanes}</div></div>
   <div class="sf-sum"><span><span class="edge-key dash"></span>推演路径（待验证）</span><span class="vchip watch">你关注的变量</span><span class="vchip watch hit">已过门槛</span><span><b style="color:var(--red)">↑</b> 上行 <b style="color:var(--green)">↓</b> 下行</span>${structured?'':'<span>· 这条推演生成较早，变量由关键词推断、未判断方向；下次自动更新后会补上逐层传导</span>'}</div>
