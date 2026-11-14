@@ -1206,7 +1206,7 @@ body.demo main{padding-bottom:96px}
     <div class="case-card"><span class="tag">深度传导</span><h3>黄仁勋辞去英伟达 CEO</h3><p class="fact">11-12 辞职即时生效；FBI/国会/公司三方调查；股价收跌超 4%</p><p class="chain">治理丑闻 + 国家安全 + 出口管制叠加 → 算力链、HBM、国产替代、中东主权 AI</p><p class="verify">验证节点：财报（11-17）、正式 CEO 任命、国会听证</p><button type="button" class="simbtn" data-sim="case-nvda">局势推演 →</button></div>
     <div class="case-card"><span class="tag">大宗商品</span><h3>伊朗战争与油价</h3><p class="fact">布伦特 73→100 美元；海湾出口 60–80%；OPEC+ 产量少约 500 万桶/日</p><p class="chain">油价 → 通胀利率 → 航空化工成本 → 中东主权基金节奏 → 霍尔木兹航运</p><p class="verify">验证节点：OPEC+ 2027 配额评估（11 月中旬）</p><button type="button" class="simbtn" data-sim="case-oil">局势推演 →</button></div>
   </div>
-  <p class="srcnote" style="margin-top:12px">三个案例的局势推演是人工整理的示范，不计入推演档案和命中率。演示分工：黄仁勋讲"深度传导"，韩股讲"可对账"（熔断、资金流、政府应对三样已兑现）。四个事件都指向同一条主线——AI 资本开支能否持续。</p>
+  <p class="srcnote" style="margin-top:12px">三个案例的局势推演为人工整理，已登记进推演档案（编号 M-0001 至 M-0003），到期对账并计入命中率。演示分工：黄仁勋讲"深度传导"，韩股讲"可对账"（熔断、资金流、政府应对三样已兑现）。四个事件都指向同一条主线——AI 资本开支能否持续。</p>
 </section>
 
 
@@ -2124,7 +2124,7 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
   <div class="scen-v"><b>验证节点</b><ul><li><span class="g">好转</span> ${esc(x.better)}</li><li><span class="b">恶化</span> ${esc(x.worse)}</li></ul></div></div></div>`).join('');
  const watch=(m.watch||[]).length?`<div class="facttab-wrap"><table class="facttab"><tr><th>观察什么</th><th>时间</th><th>好转信号</th><th>恶化信号</th></tr>${m.watch.map(w=>`<tr><td>${esc(w.what)}</td><td>${esc(w.when)}</td><td>${esc(w.good)}</td><td>${esc(w.bad)}</td></tr>`).join('')}</table></div>`:'';
  const cp=m.comparable||{};
- return `<div class="sd-head"><div><div class="eyebrow">局势推演 · ${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''} · ${it.demo?'案例库 · 示范推演':'红色初判'}</div><h2>${esc(a.title_zh||it.title)}</h2></div><button type="button" class="sd-x" aria-label="关闭">×</button></div>
+ return `<div class="sd-head"><div><div class="eyebrow">局势推演 · ${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''} · ${it.demo||it.manual?'案例库 · 人工推演':'红色初判'}</div><h2>${esc(a.title_zh||it.title)}</h2></div><button type="button" class="sd-x" aria-label="关闭">×</button></div>
  <div class="sd-body">
   <div class="sd-concl">${esc(m.conclusion)}</div>
   <div class="sd-two"><div class="sd-box"><h3>已知事实（来自原文）</h3>${li(m.facts)}</div><div class="sd-box"><h3>待补取核实</h3>${li(m.unknowns)}</div></div>
@@ -2137,10 +2137,10 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
    <p style="margin:0 0 6px">${esc(it.review.explain||'')}</p>${it.review.note?`<p class="sd-note">${esc(it.review.note)}</p>`:''}
    ${(it.review.evidence||[]).length?'<ul>'+it.review.evidence.map(e=>`<li><a href="${esc(safeUrl(e.link))}" target="_blank" rel="noopener noreferrer">${esc(e.title)}</a> <span class="mute">${esc(e.outlet||'')} ${esc(String(e.published||'').slice(0,10))}</span></li>`).join('')+'</ul>':''}
    <p class="sd-note">${it.confirmed?(it.override?'负责人已人工改判，以人工判断为准。':'负责人已确认 AI 初判。'):'AI 对账初判，待负责人确认。'}对账时间 ${esc(fmtTime(it.review.at))}（首尔时间）</p></div>`:''}
-  ${it.demo?`<p class="sd-note">这是案例库的示范推演：事实取自案例卡上的演示数据，情景、传导路径和概率为人工整理的示意值，不计入推演档案和命中率，不构成投资建议。建议对账日 ${esc(m.review_by||'')}。</p>`:`<p class="sd-note">原文：<a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>（${esc(it.outlet||it.source)}）</p>
+  ${it.demo||it.manual?`<p class="sd-note">这是案例库的人工推演：事实取自案例卡，情景、传导路径和概率为人工整理的示意值，不构成投资建议。${it.no?`已于 ${esc(fmtTime(it.archived_at))}（首尔时间）登记进推演档案，编号 ${esc(it.no)}，`:'已登记进推演档案，'}对账日 ${esc(m.review_by||'')}，到期与 AI 推演一样对账并计入命中率。</p>`:`<p class="sd-note">原文：<a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>（${esc(it.outlet||it.source)}）</p>
   <p class="sd-note">本推演由 AI（${esc(m.model||'')}）于 ${esc(fmtTime(m.at))}（首尔时间）根据公开报道自动生成，情景概率为示意值；风险等级为 AI 初判，未经人工复核，以原文为准，不构成投资建议。</p>`}
  </div>`;}
-function openSim(id){const it=CASE_SIMS.find(x=>x.id===id)||ARC.items.find(x=>x.id===id)||(LIVE.feed&&LIVE.feed.items.find(x=>x.id===id&&x.sim));if(!it||!it.sim)return; /* 档案里的版本带对账结果，优先用 */
+function openSim(id){const it=ARC.items.find(x=>x.id===id)||(LIVE.feed&&LIVE.feed.items.find(x=>x.id===id&&x.sim))||CASE_SIMS.find(x=>x.id===id);if(!it||!it.sim)return; /* 档案里的版本带对账结果，优先用 */
  let d=document.getElementById('simDlg');
  if(!d){d=document.createElement('dialog');d.id='simDlg';d.className='simdlg';document.body.appendChild(d);
   d.addEventListener('click',e=>{if(e.target===d||e.target.closest('.sd-x'))d.close();});}
@@ -2159,7 +2159,7 @@ function renderArc(){const all=ARC.items,note=document.getElementById('simArcNot
  const list=all.filter(x=>ARC.sector==='all'||x.sector===ARC.sector).slice().reverse();
  document.getElementById('simLedger').innerHTML='<tr><th>编号</th><th>事件</th><th>推演判断</th><th>验证节点</th><th>到期对账</th><th>状态</th><th></th></tr>'+list.map(x=>{
   const m=x.sim,a=x.ai||{},top=(m.scenarios||[])[0]||{},w=(m.watch||[])[0];const st=ARC_ST[arcStatus(x)];
-  return `<tr><td class="no">${esc(x.no||'')}<br>${esc(String(m.at||'').slice(0,10))}</td>
+  return `<tr><td class="no">${esc(x.no||'')}<br>${esc(String(m.at||'').slice(0,10))}${x.manual?'<br><span class="mute">人工推演</span>':''}</td>
    <td><b>${esc(a.title_zh||x.title)}</b><br><span class="mute">${esc(SECN[x.sector]||x.sector)}${x.country?' · '+esc(x.country):''}</span></td>
    <td>最可能：情景 A · ${esc(top.name||'')}（约 ${+top.prob||0}%）<br><span class="mute">${esc(m.conclusion)}</span></td>
    <td>${esc(w?w.what:(top.worse||''))}</td><td>${esc(m.review_by||'')}</td>
