@@ -481,7 +481,7 @@ def analyze(items: list[dict], ts: datetime) -> int:
 
 SIM_FOCUS = {
     "energy": "国网海外能源资产（智利 CGE、巴西 CPFL、菲律宾 NGCP）的特许权、股权、电价与监管、融资，以及对中资股东的影响",
-    "shipping": "事件 → 通道 → 船型 → 运价与船东股价的传导，涉及干散货、集运、油轮三类船东和经纪人",
+    "shipping": "事件 → 通道 → 船型 → 运价 → 船公司利润的传导，涉及干散货、集运、油轮三类船东和经纪人。运价不等于利润：收入 = 运量 × 每箱（每吨）收入，实现运费受长约和滞后影响并叠加附加费；成本里折旧和租金是准固定成本，会放大利润波动。验证节点优先写可核对的披露指标：季度运量、平均运费、单箱收入、成本细分、租赁成本、毛利率",
     "securities": "对 A 股、港股、美股、韩股、日股相关板块与公司的传导，以及利率、汇率、资金面；影响变量优先落到具体板块（sec_ 开头的变量），再写市场整体",
     "commodity": "对原油、黄金、白银、铜、LNG 价格与供需的传导，以及持有这些敞口的企业",
     "manufacturing": "政策事件 → 目标市场 → 产品 → 成本与订单 → 产能布局的传导，涉及中国电池与储能、光伏、汽车、家电企业的出口和海外工厂；验证节点优先写案件的法定日期（立案、初裁、终裁、生效日）",
@@ -495,6 +495,8 @@ SIM_VARS = {
     "fx": "汇率", "rate": "利率与融资成本", "credit": "信用与评级",
     "equity_cn": "A 股与港股", "equity_us": "美股", "equity_asia": "韩股与日股",
     "tariff": "电价与监管费率", "concession": "特许权与牌照", "stake": "股权与控制权",
+    # 航运公司盈利驱动项
+    "volume": "承运量", "realized_rate": "实现运费", "surcharge": "附加费与每箱收入", "bunker": "燃油成本", "charter": "租金与租赁成本",
     # 出海制造
     "duty": "关税与双反税率", "access": "市场准入与认证", "subsidy": "补贴资格", "export_ctrl": "出口管制与技术限制",
     "plant": "海外工厂审批与投产", "orders": "订单与出货", "rawmat": "原材料成本",
@@ -517,6 +519,12 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
 - 每个情景都要写自己的传导路径 path：局势往这个方向发展时，冲击一层一层落到哪里。三个情景的路径必须不同，体现发展方向不同带来的差异；局势缓和的情景可以只有两层。
 - 每个情景列出会被明显推动的影响变量 vars，变量代码只能从下表选，没有就给空数组：
 {vars}
+- 仅 shipping 子目录：每个情景再写 profit（运价到船公司利润的传导），按「利润是残差」的口径判断，不要直接写「运价涨所以利润涨」：
+  · vol 承运量 / rate 实现运费（受长约和船期滞后影响，不等于即期运价）/ surcharge 附加费与每箱收入 / varcost 燃油与港口等变动成本 / fixcost 折旧与租金等准固定成本 / net 利润
+  · 每项给 dir（up / down / flat）和 16 字以内的 note；net 的 note 写清经营杠杆：成本刚性会放大利润的涨跌
+  · differ 一句话写清哪类公司受益更多、哪类受损更多（如租入运力多与自有船多、长约多与即期多），40 字以内
+  其他子目录不要写 profit。
+- 每个情景给 path_ev：与 path 等长的数组，标明每一层的依据，f = 输入里已发生的事实，c = 公司或官方已披露，j = 研究判断。
 - 客户自选股清单：{stocks}。某情景会明显影响其中某只时，写进该情景的 stocks；名称必须与清单完全一致，清单以外的股票不要写，没有就给空数组。
 
 只输出 JSON，结构如下：
@@ -532,7 +540,9 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
     "trigger": "触发条件", "impact": "影响", "window": "时间窗口", "better": "好转信号", "worse": "恶化信号",
     "path": ["一级传导：直接冲击到谁，16 字以内", "二级传导：行业或市场层面，16 字以内", "终局：落到哪类资产、标的或敞口，16 字以内"],
     "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}],
-    "stocks": [{{"n": "自选股名称", "dir": "up 或 down", "note": "原因，16 字以内"}}]}}
+    "stocks": [{{"n": "自选股名称", "dir": "up 或 down", "note": "原因，16 字以内"}}],
+    "path_ev": ["f", "j", "j"],
+    "profit": {{"vol": {{"dir": "flat", "note": ""}}, "rate": {{"dir": "up", "note": ""}}, "surcharge": {{"dir": "up", "note": ""}}, "varcost": {{"dir": "up", "note": ""}}, "fixcost": {{"dir": "flat", "note": ""}}, "net": {{"dir": "up", "note": ""}}, "differ": ""}}}}
  ],
  "watch": [{{"what": "要跟踪的验证节点", "when": "时间或频率", "good": "好转信号", "bad": "恶化信号"}}],
  "review_by": "到期对账日 YYYY-MM-DD：到这一天应该能看出哪种情景成立，按最可能情景的时间窗口估计，不早于今天后 7 天、不晚于 1 年",
@@ -582,7 +592,8 @@ def simulate_one(it: dict, ts: datetime) -> dict | None:
                      "trigger": _txt(x.get("trigger"), 160),
                      "impact": _txt(x.get("impact"), 160), "window": _txt(x.get("window"), 40),
                      "better": _txt(x.get("better"), 100), "worse": _txt(x.get("worse"), 100),
-                     "path": [_txt(s, 30) for s in (x.get("path") or [])[:4] if s], "vars": _norm_vars(x.get("vars")), "stocks": _norm_stocks(x.get("stocks"))})
+                     "path": [_txt(s, 30) for s in (x.get("path") or [])[:4] if s], "vars": _norm_vars(x.get("vars")), "stocks": _norm_stocks(x.get("stocks")),
+                     **_norm_profit(x, it["sector"])})
     if not scen or not d.get("conclusion"):
         return None
     total = sum(x["prob"] for x in scen)
@@ -672,9 +683,34 @@ ENRICH_PROMPT = """你是锋睿「观澜 Horizon」的局势推演分析员。�
 - path：该情景下冲击逐层落到哪里，2 到 3 层，每层 16 字以内（一级传导：直接冲击到谁；二级传导：行业或市场层面；终局：落到哪类资产、标的或敞口）。三个情景的路径必须不同
 - vars：该情景下会被明显推动的影响变量，最多 4 个，没有就给空数组。变量代码只能从下表选：
 {vars}
+- profit：仅当 sector 为 shipping 时写（运价到船公司利润的传导），按「利润是残差」的口径判断，不要直接写「运价涨所以利润涨」：
+  · vol 承运量 / rate 实现运费（受长约和船期滞后影响，不等于即期运价）/ surcharge 附加费与每箱收入 / varcost 燃油与港口等变动成本 / fixcost 折旧与租金等准固定成本 / net 利润
+  · 每项给 dir（up / down / flat）和 16 字以内的 note；net 的 note 写清经营杠杆：成本刚性会放大利润的涨跌
+  · differ 一句话写清哪类公司受益更多、哪类受损更多（如租入运力多与自有船多、长约多与即期多），40 字以内
+  其他子目录不要写 profit。
+- path_ev：与 path 等长的数组，标明每一层的依据，f = 输入里已发生的事实，c = 公司或官方已披露，j = 研究判断。
 - stocks：客户自选股清单为 {stocks}。该情景会明显影响其中某只时列出，名称必须与清单完全一致，清单以外的不要写，没有就给空数组
 
-只输出 JSON：{{"scenarios": [{{"sev": "y", "path": ["…", "…", "…"], "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}], "stocks": [{{"n": "自选股名称", "dir": "up 或 down", "note": "原因，16 字以内"}}]}}]}}"""
+只输出 JSON：{{"scenarios": [{{"sev": "y", "path": ["…", "…", "…"], "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}], "stocks": [{{"n": "自选股名称", "dir": "up 或 down", "note": "原因，16 字以内"}}], "path_ev": ["f", "j", "j"], "profit": {{"vol": {{"dir": "flat", "note": ""}}, "rate": {{"dir": "up", "note": ""}}, "surcharge": {{"dir": "up", "note": ""}}, "varcost": {{"dir": "up", "note": ""}}, "fixcost": {{"dir": "flat", "note": ""}}, "net": {{"dir": "up", "note": ""}}, "differ": ""}}}}]}}"""
+
+
+PROFIT_KEYS = ("vol", "rate", "surcharge", "varcost", "fixcost", "net")
+
+
+def _norm_profit(x: dict, sector: str) -> dict:
+    """path_ev：每层依据（f 事实 / c 披露 / j 判断）；profit：航运情景的运价到利润传导。"""
+    n = len([s for s in (x.get("path") or [])[:4] if s])
+    ev = [e if e in ("f", "c", "j") else "j" for e in (x.get("path_ev") or [])][:n]
+    out = {"path_ev": ev + ["j"] * (n - len(ev))}
+    p = x.get("profit")
+    if sector == "shipping" and isinstance(p, dict):
+        pr = {}
+        for k in PROFIT_KEYS:
+            v = p.get(k) if isinstance(p.get(k), dict) else {}
+            pr[k] = {"dir": v.get("dir") if v.get("dir") in ("up", "down", "flat") else "flat", "note": _txt(v.get("note"), 30)}
+        pr["differ"] = _txt(p.get("differ"), 80)
+        out["profit"] = pr
+    return out
 
 
 def _stock_names() -> str:
@@ -726,6 +762,8 @@ def enrich_sims(items: list[dict], ts: datetime) -> int:
             x["path"] = [_txt(s, 30) for s in (o.get("path") or [])[:4] if s]
             x["vars"] = _norm_vars(o.get("vars"))
             x["stocks"] = _norm_stocks(o.get("stocks"))
+            o["path"] = x["path"]
+            x.update(_norm_profit(o, it["sector"]))
         m["enriched_at"] = iso(ts)
         done += 1
     return done

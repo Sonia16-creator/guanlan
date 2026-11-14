@@ -599,6 +599,16 @@ body:not(.demo) [data-demo]{display:none!important}
 .side .grp~button[aria-current="page"]::after{left:-2px;top:4px;bottom:4px}
 .backlink{font:inherit;font-size:13px;color:var(--muted);background:none;border:none;padding:0;margin:0 0 6px;cursor:pointer}
 .backlink:hover{color:var(--ink)}
+.sf-n.ev-f,.sf-n.ev-c{border-style:solid;border-color:var(--brand-2)}
+table.pf td{text-align:center;vertical-align:top}table.pf td:first-child{text-align:left;white-space:nowrap}
+table.pf td b{font-size:15px}table.pf td small{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+table.pf td.pf-g>b{color:var(--green)}table.pf td.pf-b>b{color:var(--red)}table.pf td.pf-net{background:var(--tint)}
+table.pf tr.pf-d td{text-align:left;font-size:12.5px;color:var(--text);border-top:none;padding-top:0}
+.pfsteps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.pfstep{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);font-size:13px;position:relative}
+.pfstep b{display:block;color:var(--ink);margin-bottom:3px}.pfstep span{color:var(--muted);font-size:12.5px;line-height:1.5}
+.pfstep .no{font-family:var(--serif);color:var(--gold);font-size:12px}
+@media (max-width:820px){.pfsteps{grid-template-columns:1fr}}
 /* ===== 自选股卡片 ===== */
 .stk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .stk{font:inherit;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:11px 13px;cursor:pointer;display:flex;flex-direction:column;gap:6px;color:var(--text);min-width:0}
@@ -1248,6 +1258,18 @@ body.demo main{padding-bottom:96px}
   <div class="card" style="margin-top:14px">
     <h3 class="ct">影响链 <small>实线 = 已有证据，虚线 = 待验证；每条带验证节点，到期进入推演复盘</small></h3>
     <div class="chainrows" id="shipChains"></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 class="ct">运价到利润：五步传导 <small>运价涨不等于船公司赚钱 · 推演会按这五步判断</small></h3>
+    <div class="pfsteps">
+      <div class="pfstep"><span class="no">1</span><b>承运量</b><span>航线中断、绕行和港口拥堵先改变能运多少货。</span></div>
+      <div class="pfstep"><span class="no">2</span><b>实现运费</b><span>长约和船期滞后让公司拿到的运费不等于即期指数，两者的比例每季都在变。</span></div>
+      <div class="pfstep"><span class="no">3</span><b>附加费与每箱收入</b><span>每箱收入是运费叠加附加费后的结果，通常高于披露的平均运费。</span></div>
+      <div class="pfstep"><span class="no">4</span><b>变动成本</b><span>燃油、货物处理、港口、代理等随业务量和油价变动。</span></div>
+      <div class="pfstep"><span class="no">5</span><b>准固定成本</b><span>折旧和租入运力的租金不随运价变动，运价涨时放大利润，跌时放大亏损。</span></div>
+    </div>
+    <p class="srcnote" style="margin-top:10px">利润是前三步的收入减去后两步成本的残差。所以同一个事件，对租入运力多的公司和自有船多的公司、长约多的公司和即期多的公司，影响方向和幅度都可能不同。航运类推演会单独给出「运价到利润」一表，验证节点优先用季度运量、平均运费、单箱收入、成本细分和租赁成本。</p>
   </div>
 
   <div class="card" style="margin-top:14px">
@@ -2239,6 +2261,7 @@ const VZ={hit:'成立',miss:'未成立',unclear:'无法判定'};
 const SIM_VARS={freight_dry:'干散货运价',freight_box:'集运运价',freight_tank:'油轮运价',insurance:'战争险与保费',shipowner:'船东股价',supply:'供应链与交付',
  oil:'原油价格',lng:'天然气与 LNG 价格',gold:'黄金价格',silver:'白银价格',copper:'铜价',fx:'汇率',rate:'利率与融资成本',credit:'信用与评级',
  equity_cn:'A 股与港股',equity_us:'美股',equity_asia:'韩股与日股',tariff:'电价与监管费率',concession:'特许权与牌照',stake:'股权与控制权',
+ volume:'承运量',realized_rate:'实现运费',surcharge:'附加费与每箱收入',bunker:'燃油成本',charter:'租金与租赁成本',
  duty:'关税与双反税率',access:'市场准入与认证',subsidy:'补贴资格',export_ctrl:'出口管制与技术限制',plant:'海外工厂审批与投产',orders:'订单与出货',rawmat:'原材料成本',
  sec_semis:'半导体与存储板块',sec_ai:'算力与 AI 硬件板块',sec_ev:'新能源车与电池板块',sec_energy:'油气与电力板块',sec_shipping:'航运与港口板块',sec_airline:'航空与旅游板块',sec_gold:'黄金与有色板块',sec_fin:'银行与券商板块'};
 /* 旧推演没有结构化变量，按情景「影响」里的关键词推断，界面上标「推断」 */
@@ -2345,7 +2368,8 @@ function simFlow(it){const m=it.sim,a=it.ai||{},sc=m.scenarios||[];if(!sc.length
  const structured=sc.some(x=>Array.isArray(x.path)&&x.path.length);
  const depth=structured?Math.max(...sc.map(x=>(x.path||[]).length)):3;
  const lanes=sc.map((x,i)=>{const path=Array.isArray(x.path)&&x.path.length?x.path:null,vs=scenVars(it,x);
-  const nodes=path?path.map((s,j)=>`<div class="sf-n"${j===path.length-1&&path.length<depth?` style="grid-column:span ${depth-path.length+1}"`:''}>${esc(s)}</div>`).join(''):`<div class="sf-n" style="grid-column:span ${depth}">${esc(x.impact)}</div>`;
+  const evs=x.path_ev||[];
+  const nodes=path?path.map((s,j)=>`<div class="sf-n${evs[j]==='f'?' ev-f':evs[j]==='c'?' ev-c':''}"${evs[j]==='f'?' title="已发生的事实"':evs[j]==='c'?' title="公司或官方已披露"':''}${j===path.length-1&&path.length<depth?` style="grid-column:span ${depth-path.length+1}"`:''}>${esc(s)}</div>`).join(''):`<div class="sf-n" style="grid-column:span ${depth}">${esc(x.impact)}</div>`;
   const chips=vs.length?vs.map(v=>{const w=wmin(v.k),hit=w&&probs[v.k+'|'+v.dir]>=w;
    return `<span class="vchip ${v.dir}${w?' watch':''}${hit?' hit':''}" title="${w?'你关注的变量'+(hit?'，已过门槛':''):''}">${esc(VN(v.k))} <b>${arrow(v.dir)}</b>${v.note?`<small>${esc(v.note)}</small>`:''}</span>`;}).join(''):'<em>无明显变动</em>';
   return `<div class="sf-lane sv-${x.sev||'n'}"><div class="sf-n sf-scen">情景 ${'ABC'[i]} · ${esc(x.name)}<small>约 ${+x.prob||0}%${x.window?' · '+esc(x.window):''}</small></div>${nodes}<div class="sf-vars">${chips}</div></div>`;}).join('');
@@ -2355,8 +2379,18 @@ function simFlow(it){const m=it.sim,a=it.ai||{},sc=m.scenarios||[];if(!sc.length
   ${hits.length?`<div class="sf-alert" style="margin-bottom:10px">触及你关注的变量：${hits.map(e=>`${esc(VN(e.k))} ${arrow(e.dir)} 合计约 <b>${Math.min(100,e.prob)}%</b>（${esc(e.scen.join(' + '))}，门槛 ${wmin(e.k)}%）`).join('；')}</div>`:''}
   <div class="sf-head" style="--d:${depth}"><div>触发事件</div><div><span>情景与概率</span>${heads}<span>影响变量</span></div></div>
   <div class="sflow" style="--d:${depth}"><div class="sf-ev">${esc(a.title_zh||it.title)}</div><div class="sf-lanes">${lanes}</div></div>
-  <div class="sf-sum"><span><span class="edge-key dash"></span>推演路径（待验证）</span><span class="vchip watch">你关注的变量</span><span class="vchip watch hit">已过门槛</span><span><b style="color:var(--red)">↑</b> 上行 <b style="color:var(--green)">↓</b> 下行</span>${structured?'':'<span>· 这条推演生成较早，变量由关键词推断、未判断方向；下次自动更新后会补上逐层传导</span>'}</div>
-  ${m.affected?`<div class="cver" style="margin-top:8px">影响对象：${esc(m.affected)}</div>`:''}</div>`;}
+  <div class="sf-sum"><span><span class="edge-key dash"></span>研究判断（待验证）</span>${sc.some(x=>(x.path_ev||[]).some(e=>e!=='j'))?'<span><span class="edge-key solid"></span>已发生或已披露</span>':''}<span class="vchip watch">你关注的变量</span><span class="vchip watch hit">已过门槛</span><span><b style="color:var(--red)">↑</b> 上行 <b style="color:var(--green)">↓</b> 下行</span>${structured?'':'<span>· 这条推演生成较早，变量由关键词推断、未判断方向；下次自动更新后会补上逐层传导</span>'}</div>
+  ${m.affected?`<div class="cver" style="margin-top:8px">影响对象：${esc(m.affected)}</div>`:''}</div>${profitTable(it)}`;}
+/* 航运：运价到船公司利润的传导（利润是残差） */
+const PF_COL=[['vol','承运量'],['rate','实现运费'],['surcharge','附加费与每箱收入'],['varcost','燃油等变动成本'],['fixcost','折旧与租金'],['net','利润']];
+function profitTable(it){const sc=(it.sim.scenarios||[]).filter(x=>x.profit);if(!sc.length)return'';
+ const ar={up:'↑',down:'↓',flat:'→'},all=it.sim.scenarios;
+ const cell=(v,k)=>{v=v||{};const good=k==='varcost'||k==='fixcost'?v.dir==='down':v.dir==='up',bad=k==='varcost'||k==='fixcost'?v.dir==='up':v.dir==='down';
+  return `<td class="${k==='net'?'pf-net ':''}${good?'pf-g':bad?'pf-b':''}"><b>${ar[v.dir]||'→'}</b>${v.note?`<small>${esc(v.note)}</small>`:''}</td>`;};
+ return `<div><h3>运价到利润 <small style="font-weight:400;color:var(--muted)">利润是残差：运量 × 每箱收入，减去变动成本和准固定成本</small></h3>
+  <div class="facttab-wrap"><table class="facttab pf"><tr><th>情景</th>${PF_COL.map(c=>`<th>${c[1]}</th>`).join('')}</tr>
+  ${sc.map(x=>`<tr><td><b>情景 ${'ABC'[all.indexOf(x)]} · ${esc(x.name)}</b><br><span class="mute">约 ${+x.prob||0}%</span></td>${PF_COL.map(c=>cell(x.profit[c[0]],c[0])).join('')}</tr>${x.profit.differ?`<tr class="pf-d"><td></td><td colspan="6">谁受益、谁受损：${esc(x.profit.differ)}</td></tr>`:''}`).join('')}</table></div>
+  <p class="sd-note" style="margin-top:6px">实现运费受长约和船期滞后影响，不等于即期运价；折旧与租金不随运价变动，会放大利润的涨跌。箭头为 AI 的方向判断，绿色对利润有利，红色不利。</p></div>`;}
 function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
  const li=xs=>xs&&xs.length?'<ul>'+xs.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':'<p class="sd-note">暂无</p>';
  const chain=(m.chain||[]).map((c,i)=>`<span class="cbox${i===0?' ev':i===m.chain.length-1?' px':''}">${esc(c)}</span>`).join('<span class="carr"></span>');
