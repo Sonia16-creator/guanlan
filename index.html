@@ -598,6 +598,9 @@ body:not(.demo) [data-demo]{display:none!important}
 .side .grp~button[aria-current="page"]::after{left:-2px;top:4px;bottom:4px}
 .backlink{font:inherit;font-size:13px;color:var(--muted);background:none;border:none;padding:0;margin:0 0 6px;cursor:pointer}
 .backlink:hover{color:var(--ink)}
+table.mx{min-width:520px}table.mx td,table.mx th{text-align:center}table.mx td:first-child,table.mx th:first-child{text-align:left}
+table.mx .cell{display:inline-flex;gap:4px;align-items:center;justify-content:center;min-width:54px;border-radius:8px;padding:2px 8px;font-variant-numeric:tabular-nums;font-size:12.5px}
+table.mx .cell.r{background:var(--red-bg);color:var(--red);font-weight:700}table.mx .cell.y{background:var(--yellow-bg);color:var(--yellow);font-weight:600}table.mx .cell.z{color:var(--muted)}
 /* ===== 情景传导图：事件 → 三种情景 → 各自的逐层传导 → 影响变量 ===== */
 .sflow{display:grid;grid-template-columns:150px minmax(0,1fr);align-items:stretch}
 .sf-head{display:grid;grid-template-columns:150px minmax(0,1fr);font-size:11.5px;color:var(--muted);letter-spacing:.06em;margin-bottom:6px}
@@ -707,7 +710,8 @@ body.demo main{padding-bottom:96px}
   <div class="grp">行业看板</div>
   <button data-go="sector-securities"><span>券商</span><span class="nb" id="nb-sec"></span></button>
   <button data-go="sector-energy"><span>海外能源</span><span class="nb" id="nb-energy"></span></button>
-  <button data-go="sector-shipping"><span>航运</span><span class="nb new">新</span></button>
+  <button data-go="sector-shipping"><span>航运</span><span class="nb" id="nb-ship"></span></button>
+  <button data-go="sector-mfg"><span>出海制造</span><span class="nb new" id="nb-mfg">新</span></button>
   <button data-go="sector-commodity"><span>大宗商品</span></button>
   <div class="grp">研判</div>
   <button data-go="foresight"><span>局势推演</span><span class="nb" id="nb-fore"></span></button>
@@ -791,7 +795,8 @@ body.demo main{padding-bottom:96px}
   <div class="sector-grid" id="ovSectors">
     <button type="button" class="sector-card link" data-jump="sector-securities"><span class="ic">券</span><h3>券商</h3><p>上市公司、行业、宏观、人物、自身信用，事件传导到标的。</p><span class="st plan">框架已定</span></button>
     <button type="button" class="sector-card link" data-jump="sector-energy"><span class="ic">能</span><h3>海外能源</h3><p>CGE、CPFL、NGCP 三个境外能源资产的政策、监管与舆情。</p><span class="st on">演示数据</span></button>
-    <button type="button" class="sector-card link gold" data-jump="sector-shipping"><span class="ic">航</span><h3>航运</h3><p>地缘、航道、制裁、运价：事件 → 通道 → 船型 → 运价与股价。</p><span class="st plan">新用例</span></button>
+    <button type="button" class="sector-card link gold" data-jump="sector-shipping"><span class="ic">航</span><h3>航运</h3><p>地缘、航道、制裁、运价：事件 → 通道 → 船型 → 运价与股价。</p><span class="st on">实时数据</span></button>
+    <button type="button" class="sector-card link gold" data-jump="sector-mfg"><span class="ic">造</span><h3>出海制造</h3><p>电池、光伏、汽车、家电：政策 → 市场 → 产品 → 成本与订单 → 产能布局。</p><span class="st plan">新用例</span></button>
     <button type="button" class="sector-card link" data-jump="sector-commodity"><span class="ic">商</span><h3>大宗商品</h3><p>原油、黄金、白银敞口，实线与虚线传导提醒。</p><span class="st on">敞口演示</span></button>
   </div>
 </section>
@@ -1127,6 +1132,59 @@ body.demo main{padding-bottom:96px}
   <h2 id="h-sen">海外能源 <small>国网海投境外能源资产（当前演示数据）</small></h2>
   <div class="banner">这是当前演示版的主数据：智利 CGE、巴西 CPFL、菲律宾 NGCP 三个海外能源项目。相关事件、专题、榜单、传导图均基于此数据。</div>
   <div class="projects" id="projects2"></div>
+</section>
+
+<section data-view="sector-mfg" aria-labelledby="h-smfg">
+  <h2 id="h-smfg">出海制造 <small>电池与储能 / 光伏 / 汽车 / 家电 · 实时信源已接入</small></h2>
+  <p class="banner">出海制造最怕的不是需求变化，而是<b>进入一个市场的成本和资格</b>突然改变：一纸关税终裁、一次扣货、一个工厂审批被否。出海制造版盯各国的贸易救济、准入规则和建厂审批，推出<b>「这件事影响哪个市场的哪类产品」</b>：政策事件 → 目标市场 → 产品 → 成本与订单 → 产能布局。</p>
+  <div class="livebar" id="mfgBar" style="margin-top:14px"><span class="lb-state">正在读取数据…</span></div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 class="ct">选择子画像 <small>最新动态和事件热度按画像切换</small></h3>
+    <div class="board-tabs" id="mfgTabs" role="group" aria-label="出海制造子画像"></div>
+    <div id="mfgPersona"></div>
+  </div>
+
+  <div class="two" style="margin-top:14px;align-items:start">
+    <div class="card">
+      <h3 class="ct" style="margin-top:0">最新动态 <small id="mfgLiveSub">风险优先 · 红色事件可看局势推演</small><button type="button" class="linkbtn" id="mfgAll">全部 →</button></h3>
+      <div class="livelist" id="mfgLive"><p class="srcnote" style="margin:0">正在读取数据…</p></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <div class="card">
+        <h3 class="ct" style="margin-top:0">事件 → 成本与资格 <small>进行中的推演会推动哪些变量</small><button type="button" class="linkbtn" data-jump="exposure">设关注与门槛 →</button></h3>
+        <div id="mfgVars"><p class="srcnote" style="margin:0">正在读取数据…</p></div>
+      </div>
+      <div class="card">
+        <h3 class="ct" style="margin-top:0">验证节点日历 <small>案件的法定日期和推演对账日</small></h3>
+        <ul class="dates" id="mfgCal"><li><time>—</time><div>正在读取…</div></li></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 class="ct">市场 × 产品 <small>近 7 天红色与黄色事件数 · 哪个市场的哪类产品最不太平</small></h3>
+    <div class="srcwrap"><table class="dt mx" id="mfgMatrix"><tr><td>正在读取数据…</td></tr></table></div>
+    <p class="srcnote">这张表现在只统计事件热度。各市场对各类产品的现行税率和在办案件，需要人工逐项核实后再上线，核实前不显示数字。</p>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 class="ct">信源：六层 <small>已接入 15 个免费信源</small></h3>
+    <div class="srcwrap"><table class="dt">
+      <tr><th>层</th><th>看什么</th><th>已接入</th><th>待接入</th></tr>
+      <tr><td>贸易救济与关税</td><td>立案、初裁、终裁、复审、加征</td><td>美国商务部涉华双反公告、美国国际贸易委员会、美国贸易代表办公室</td><td>欧盟委员会贸易总司、印度贸易救济总局、中国商务部贸易救济公告</td></tr>
+      <tr><td>海关与执法</td><td>扣货、原产地裁定、转口调查</td><td>强迫劳动法案与外国实体限制（新闻检索）</td><td>美国海关裁定、欧盟官方公报</td></tr>
+      <tr><td>补贴与产业政策</td><td>补贴资格、本地化要求、电池与能效法规</td><td>涉华新能源关税与双反（新闻检索）</td><td>美国财政部与能源部细则、欧盟电池法规</td></tr>
+      <tr><td>东道国投资审批</td><td>建厂、环评、用工、数据安全审查</td><td>中资海外建厂、墨西哥对华关税、巴西对华车与光伏税（新闻检索）</td><td>匈牙利、印尼、泰国、土耳其当地媒体</td></tr>
+      <tr><td>行业媒体</td><td>各产品线的专业报道</td><td>PV Tech、pv magazine、Energy-Storage.news、electrive、CnEVPost</td><td>家电与储能的中文行业媒体</td></tr>
+      <tr><td>公司披露</td><td>龙头企业公告与海外项目</td><td>—</td><td>龙头企业公告、交易所披露</td></tr>
+    </table></div>
+  </div>
+
+  <div class="plan" style="margin-top:14px">
+    <div class="card"><h3>分级标准（AI 初判）</h3><ul><li><b>红色</b>：税率终裁、加征即时生效、产品被禁止进口或扣货、海外工厂被叫停或否决</li><li><b>黄色</b>：立案调查、初裁、政策草案与谈判、建厂计划重大变化</li><li><b>绿色</b>：一般动态</li><li>新车型、产品评测、企业营销判为无关，不进清单</li></ul></div>
+    <div class="card"><h3>这个行业的特点</h3><ul><li>贸易救济案件有固定流程：立案 → 初裁 → 终裁 → 复审，每一步都有法定日期，天然就是推演的验证节点</li><li>同一事件对不同企业影响相反：在当地已有工厂的受益，靠出口的受损</li><li>正式版中，关注的市场、产品和门槛由客户按自己的出口结构设定</li></ul></div>
+  </div>
 </section>
 
 <section data-view="sector-shipping" aria-labelledby="h-sship">
@@ -2001,7 +2059,7 @@ function renderOverview(){const f=LIVE.feed;if(!f)return;
  const ev=y1.concat(lv(all,'y').filter(it=>!y1.includes(it))).sort(byTime).slice(0,6);
  document.getElementById('ovEvents').innerHTML=ev.length?ev.map(it=>`<li><a class="qitem" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer"><span class="qc">${esc(it.country||SECN[it.sector]||'')}</span><span class="qt">${esc((it.ai&&it.ai.title_zh)||it.title)}</span><span class="qk">${esc(ago(it.published))}</span></a></li>`).join('')
   :'<li class="srcnote">近 7 天没有黄色事件。</li>';
- renderWatch();renderSec();}
+ renderWatch();renderSec();renderMfg();}
 /* ---- 券商页：实时动态、事件 → 板块、验证节点日历 ---- */
 const EQ_VAR=k=>k.startsWith('sec_')||k.startsWith('equity_')||k==='fx'||k==='rate'||k==='credit';
 function renderSec(){const f=LIVE.feed;if(!f||!document.getElementById('secLive'))return;
@@ -2029,6 +2087,50 @@ function renderSec(){const f=LIVE.feed;if(!f||!document.getElementById('secLive'
  cal.sort((a,b)=>a.k.localeCompare(b.k));
  document.getElementById('secCal').innerHTML=cal.length?cal.slice(0,8).map(c=>`<li><time>${esc(c.when)}</time><div>${esc(c.what)}<small>${esc(c.t)}</small></div></li>`).join('')
   :'<li><time>—</time><div>暂无券商类推演<small>红色事件推演后会自动登记验证节点</small></div></li>';}
+/* ---- 出海制造页 ---- */
+const MFG={battery:{name:'电池与储能',users:'动力电池、储能系统与材料企业',care:'关税、补贴资格、外国实体限制、关键矿产来源规则',mkt:'美国、欧盟、韩国'},
+ pv:{name:'光伏',users:'组件、电池片、硅料与逆变器企业',care:'反倾销反补贴、强迫劳动法案扣货、东南亚转口调查',mkt:'美国、欧盟、印度'},
+ auto:{name:'汽车',users:'整车与零部件企业',care:'电动车加征关税、最低限价谈判、本地化要求、数据安全审查',mkt:'欧盟、墨西哥、巴西、土耳其'},
+ appliance:{name:'家电',users:'白电、小家电与零部件企业',care:'反倾销、能效与认证新规、海运成本',mkt:'美国、拉美、东南亚'}};
+const MFG_VAR=['duty','access','subsidy','export_ctrl','plant','orders','rawmat'];
+let mfgP='all';
+function renderMfg(){const f=LIVE.feed;if(!f||!document.getElementById('mfgLive'))return;
+ const o={r:0,y:1,g:2},lvl=it=>it.ai&&it.ai.level,has=(it,k)=>(it.persona||[]).includes(k);
+ const all=liveItems().filter(it=>it.sector==='manufacturing'),n=l=>all.filter(it=>lvl(it)===l).length;
+ const srcs=(f.health||[]).filter(x=>x.sector==='manufacturing');
+ document.getElementById('mfgBar').innerHTML=`<span class="lb-state ok"><span class="live"></span>最近更新 ${esc(fmtTime(f.generated_at))}（${esc(ago(f.generated_at))}）</span>
+  <span>出海制造信源 <b>${srcs.filter(x=>x.ok).length}/${srcs.length}</b> 可用</span>
+  <span>近 7 天 <b>${all.length}</b> 条：${pill('r','红 '+n('r'),1)} ${pill('y','黄 '+n('y'),1)} ${pill('g','绿 '+n('g'),1)}${all.some(it=>!it.ai)?` <span class="pill w">未分级 ${all.filter(it=>!it.ai).length}</span>`:''}</span>`;
+ const nb=document.getElementById('nb-mfg');if(all.length){nb.classList.remove('new');nb.textContent=n('r')?n('r')+' 红':(n('y')?n('y')+' 黄':'');}
+ document.getElementById('mfgTabs').innerHTML=`<button type="button" data-p="all" aria-pressed="${mfgP==='all'}">全部</button>`+Object.entries(MFG).map(([k,v])=>`<button type="button" data-p="${k}" aria-pressed="${k===mfgP}">${esc(v.name)}</button>`).join('');
+ const P=MFG[mfgP];
+ document.getElementById('mfgPersona').innerHTML=P?`<dl class="kv"><dt>典型用户</dt><dd>${esc(P.users)}</dd><dt>最关心</dt><dd>${esc(P.care)}</dd><dt>主要市场</dt><dd>${esc(P.mkt)}</dd></dl>`:'<p class="srcnote" style="margin:0">四类产品共用同一套信源和规则；选一个画像只看和它相关的事件。</p>';
+ const mine=all.filter(it=>mfgP==='all'||has(it,mfgP));
+ const list=mine.filter(it=>lvl(it)==='r'||lvl(it)==='y').sort((a,b)=>(o[lvl(a)]-o[lvl(b)])||String(b.published).localeCompare(String(a.published))).slice(0,6);
+ document.getElementById('mfgLiveSub').textContent=(P?P.name:'全部画像')+' · 风险优先 · 红色事件可看局势推演';
+ document.getElementById('mfgLive').innerHTML=list.length?list.map(liveCard).join(''):`<p class="srcnote" style="margin:0">${all.length?'近 7 天该画像没有红色或黄色事件。':'出海制造信源刚接入，下次自动更新后这里会显示事件。'}</p>`;
+ const rows=[];openSims().filter(it=>it.sector==='manufacturing'&&(mfgP==='all'||has(it,mfgP))).forEach(it=>varProbs(it).forEach(e=>{if(MFG_VAR.includes(e.k)&&!e.auto)rows.push(Object.assign({it},e));}));
+ rows.sort((a,b)=>b.prob-a.prob);
+ document.getElementById('mfgVars').innerHTML=rows.length?rows.slice(0,8).map(h=>{const t=(h.it.ai&&h.it.ai.title_zh)||h.it.title,w=WATCH[h.k];
+   return `<div class="ralert"><div class="rp" style="font-size:19px">${Math.min(100,h.prob)}%<small>${w?'门槛 '+w+'%':'未关注'}</small></div>
+    <div class="rt"><b>${esc(SIM_VARS[h.k])} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''}<span>← ${esc(t)} · ${esc(h.scen.join(' + '))}</span></div>
+    <button type="button" class="simbtn" data-sim="${esc(h.it.id)}">传导图 →</button></div>`;}).join('')
+  :'<p class="srcnote" style="margin:0">还没有出海制造的推演。出现红色事件后会自动推演，并列出对关税、准入、工厂审批等变量的影响。</p>';
+ const cal=[];openSims().filter(it=>it.sector==='manufacturing'&&(mfgP==='all'||has(it,mfgP))).forEach(it=>{const t=(it.ai&&it.ai.title_zh)||it.title,d=reviewBy(it);
+  (it.sim.watch||[]).slice(0,2).forEach(w=>cal.push({when:w.when||'持续',what:w.what,t,k:'5'}));if(d)cal.push({when:d.slice(5),what:'推演到期对账',t,k:'1'+d});});
+ cal.sort((a,b)=>a.k.localeCompare(b.k));
+ document.getElementById('mfgCal').innerHTML=cal.length?cal.slice(0,8).map(c=>`<li><time>${esc(c.when)}</time><div>${esc(c.what)}<small>${esc(c.t)}</small></div></li>`).join('')
+  :'<li><time>—</time><div>暂无验证节点<small>推演生成后自动登记案件日期和对账日</small></div></li>';
+ /* 市场 × 产品：按国家和画像数红黄事件 */
+ const hot=all.filter(it=>lvl(it)==='r'||lvl(it)==='y'),mk={};
+ hot.forEach(it=>{const c=it.country||'未标注';mk[c]=mk[c]||{tot:0};mk[c].tot++;(it.persona||[]).forEach(k=>{const x=mk[c][k]=mk[c][k]||{r:0,y:0};x[lvl(it)]++;});});
+ const cs=Object.keys(mk).sort((a,b)=>mk[b].tot-mk[a].tot).slice(0,10);
+ const cell=x=>!x?'<span class="cell z">—</span>':`<span class="cell ${x.r?'r':'y'}">${x.r?'红 '+x.r:''}${x.r&&x.y?' · ':''}${x.y?'黄 '+x.y:''}</span>`;
+ document.getElementById('mfgMatrix').innerHTML=cs.length?'<tr><th>市场</th>'+Object.values(MFG).map(v=>`<th>${esc(v.name)}</th>`).join('')+'<th>合计</th></tr>'+
+   cs.map(c=>`<tr><td>${esc(c)}</td>${Object.keys(MFG).map(k=>`<td>${cell(mk[c][k])}</td>`).join('')}<td>${mk[c].tot}</td></tr>`).join('')
+  :'<tr><td>近 7 天还没有红色或黄色事件。下次自动更新后这里会按市场和产品显示。</td></tr>';}
+document.getElementById('mfgTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;mfgP=b.dataset.p;renderMfg();});
+document.getElementById('mfgAll').addEventListener('click',()=>{LIVE.sector='manufacturing';LIVE.level='all';LIVE.persona=mfgP;go('live');renderLiveFilters();renderLiveList();});
 document.getElementById('secAll').addEventListener('click',()=>{LIVE.sector='securities';LIVE.level='all';go('live');renderLiveFilters();renderLiveList();});
 function renderShipLive(){const box=document.getElementById('shipLive');if(!LIVE.feed)return;
  const o={r:0,y:1,g:2};
