@@ -335,7 +335,7 @@ table.ledger .st.pending{outline:1.5px dashed currentColor;outline-offset:1px}
 .sector-card .items{display:flex;flex-wrap:wrap;gap:6px}
 .sector-card .it{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--text);background:var(--bg)}
 .sector-card.gold{border-color:var(--gold-line);background:var(--gold-soft)}
-/* ===== 问雷达 ===== */
+/* ===== 问小观 ===== */
 .ask-wrap{display:grid;grid-template-columns:1fr;gap:14px}
 .ask-box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
 .ask-input{display:flex;gap:10px}
@@ -602,6 +602,10 @@ body:not(.demo) [data-demo]{display:none!important}
 .side .grp~button[aria-current="page"]::after{left:-2px;top:4px;bottom:4px}
 .backlink{font:inherit;font-size:13px;color:var(--muted);background:none;border:none;padding:0;margin:0 0 6px;cursor:pointer}
 .backlink:hover{color:var(--ink)}
+.ask-set summary{cursor:pointer;font-size:14px;color:var(--ink);font-weight:600}
+.ask-state{font-size:12px;font-weight:400;margin-left:10px;color:var(--muted)}.ask-state.on{color:var(--green)}
+.ask-llm{border:1px dashed var(--brand-2);border-radius:10px;padding:12px 14px;background:var(--bg);font-size:14px;line-height:1.7;color:var(--ink);white-space:pre-wrap}
+.ask-llm-tag{display:inline-block;font-size:11.5px;border-radius:999px;padding:1px 10px;border:1px solid var(--yellow);color:var(--yellow);background:var(--yellow-bg);margin-bottom:8px}
 /* ===== 按用户类型的入口页 ===== */
 .who-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
 .who-step{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);font-size:13.5px;min-width:0;display:flex;flex-direction:column;gap:6px}
@@ -763,7 +767,7 @@ body.demo main{padding-bottom:96px}
   <button data-go="who-global"><span>出海企业</span><span class="nb" id="nb-energy"></span><span class="nb new" id="nb-mfg" hidden>新</span></button>
   <div class="grp">研判</div>
   <button data-go="foresight"><span>局势推演</span><span class="nb" id="nb-fore"></span></button>
-  <button data-go="ask"><span>问雷达</span></button>
+  <button data-go="ask"><span>问小观</span></button>
   <div class="grp">复盘</div>
   <button data-go="cases"><span>案例库</span></button>
   <button data-demo data-go="backtest"><span>历史回测</span><span class="nb mute">示意</span></button>
@@ -785,7 +789,7 @@ body.demo main{padding-bottom:96px}
   </div>
   <div class="hero-act">
     <button type="button" class="btn-pri" data-jump="live">查看实时信源</button>
-    <button type="button" class="btn-sec" data-jump="ask">问雷达</button>
+    <button type="button" class="btn-sec" data-jump="ask">问小观</button>
   </div>
 </section>
 
@@ -1113,12 +1117,12 @@ body.demo main{padding-bottom:96px}
   <p class="srcnote" style="margin-top:12px">红黄绿为 AI 初判，未经人工复核；摘要为 AI 对原文的中文整理，请以原文链接为准。Google News 链接会跳转到原媒体。</p>
 </section>
 
-<!-- ===== 问雷达 ===== -->
+<!-- ===== 问小观 ===== -->
 <section data-view="ask" aria-labelledby="h-ask">
-  <h2 id="h-ask">问雷达 <small>自然语言追问，回答只基于已采集、已分级的数据，每句带来源和事实分级</small></h2>
+  <h2 id="h-ask">问小观 <small>Ask Hori · 先查已采集、已分级的数据，每条带来源和事实分级；查不到再由大模型作答，并明确标注</small></h2>
   <div class="ask-box">
     <div class="ask-input">
-      <input type="text" id="askInput" placeholder="例如：霍尔木兹海峡现在什么情况？英伟达最近有什么消息？" aria-label="问雷达输入">
+      <input type="text" id="askInput" placeholder="例如：霍尔木兹海峡现在什么情况？英伟达最近有什么消息？" aria-label="问小观输入" lang="zh">
       <button type="button" id="askSend">提问</button>
     </div>
     <div class="ask-chips" id="askChips">
@@ -1130,11 +1134,22 @@ body.demo main{padding-bottom:96px}
     </div>
     <div class="ask-ans" id="askAns" hidden></div>
   </div>
+  <details class="ask-box ask-set" style="margin-top:14px" id="askSet">
+    <summary>大模型设置（DeepSeek）<span id="askLlmState" class="ask-state"></span></summary>
+    <p class="ask-note" style="margin:10px 0 8px">填入后，小观在已采集数据里查不到时，会请 DeepSeek 用通用知识作答。密钥只保存在这台电脑的这个浏览器里，不会上传到观澜，也不会写进网站；换一台电脑或换浏览器需要重新填。</p>
+    <form class="wl-form" id="askKeyForm" style="margin-top:0" autocomplete="off">
+      <input type="password" name="k" placeholder="DeepSeek API 密钥（sk- 开头）" aria-label="DeepSeek API 密钥" autocomplete="off" style="flex:3 1 260px">
+      <button type="submit" class="btn-add">保存</button>
+      <button type="button" class="btn-add" id="askKeyClear" style="background:transparent;color:var(--brand-2)">清除</button>
+    </form>
+    <p class="ask-note" style="margin-top:8px">不要在别人的电脑或公用电脑上保存密钥。给客户用的正式版会改成由服务器保管密钥，客户不需要填。</p>
+  </details>
   <div class="ask-box" style="margin-top:14px">
     <h2 style="margin:0 0 8px">回答的固定结构 <small>五段式</small></h2>
     <p style="font-size:13.5px;color:var(--text)">① 一句结论 → ② 事实分级 → ③ 传导链条 → ④ 待验证节点 → ⑤ 原文来源链接。</p>
-    <p class="ask-note" style="margin-top:8px">边界：不回答"该买还是该卖"；检索不到相关报道时会直接说明没有，并给出可以问的问题，不靠模型的常识猜。</p>
-    <p class="ask-note" style="margin-top:6px">当前版本：在浏览器里检索近 7 天已采集的事件和推演，按五段式拼出回答，不调用大模型。正式版会接入大模型来理解更口语化的问法，但仍只允许引用检索到的条目。</p>
+    <p class="ask-note" style="margin-top:8px">边界：不回答"该买还是该卖"。回答分两种，界面上分开标注：</p>
+    <p class="ask-note" style="margin-top:6px"><b>有数据</b>：在近 7 天已采集的事件和推演里检索，按五段式拼出回答，每条带来源和事实分级。</p>
+    <p class="ask-note" style="margin-top:6px"><b>没有数据</b>：由 DeepSeek 用通用知识作答，标为「大模型通用回答」。这类回答没有来源，可能过时，不能当作观澜的研判。</p>
   </div>
 </section>
 
@@ -2633,7 +2648,7 @@ document.getElementById('simArcFilters').addEventListener('click',e=>{const b=e.
   .catch(()=>liveUnavailable('还没有实时数据：GitHub Actions 第一次运行完成后会自动出现。'));
 })();
 
-/* ---- 问雷达：可交互对话演示 ---- */
+/* ---- 问小观：可交互对话演示 ---- */
 var ASK_DB = {
   "sk 海力士": {concl:"SK 海力士下跌主因是 AI 资本开支疑虑传导到 HBM 订单预期，叠加外资集中抛售。",
     fact:[["已确认","11-06 KOSPI 盘中跌 8.8% 触发熔断，SK 海力士跌 10.44%（行情）"],["已确认","外资当日净卖约 2.77 万亿韩元（交易所数据）"],["待验证","英伟达财报（11-17）是否印证 HBM 需求"]],
@@ -2661,7 +2676,7 @@ var ASK_DB = {
     node:"后续各语言媒体情绪差变化",
     src:"观澜多语言采集框架（上线后自动计算）"}
 };
-/* 问雷达：先在已采集、已分级的实时数据里检索，按「结论 → 事实分级 → 推演 → 验证节点 → 来源」拼出回答；
+/* 问小观：先在已采集、已分级的实时数据里检索，按「结论 → 事实分级 → 推演 → 验证节点 → 来源」拼出回答；
    不调用大模型生成新内容，检索不到就说明没有，并给出可以问的问题 */
 const ASK_SYN={'英伟达':'nvidia','黄仁勋':'huang','海力士':'hynix','三星':'samsung','霍尔木兹':'hormuz','红海':'red sea','苏伊士':'suez','特许权':'concession','关税':'tariff','布伦特':'brent','油价':'oil','运价':'freight','油轮':'tanker','集运':'container','干散货':'dry bulk','黄金':'gold','比亚迪':'byd','宁德时代':'catl','光伏':'solar','美联储':'fed','韩股':'kospi','制裁':'sanction','巴西':'brazil','智利':'chile','菲律宾':'philippine'};
 const ASK_STOP=/什么|怎么|怎样|如何|为何|为什么|是否|是不是|有没有|哪些|哪个|多少|会不会|能不能|可以|现在|目前|最近|最新|今天|昨天|情况|消息|新闻|影响|发生|一下|请问|告诉|关于|对于|我的|我们|这个|这次|真的|的吗|了吗|吗|呢|吧|的|了|和|与|及|在|对|是|有|会|要|说|上周|网上|股价|价格|会涨|会跌|上涨|下跌|涨了|跌了|市场|公司|事件|红色|黄色|重大|发展|走势|分析|看法|风险/g;
@@ -2674,7 +2689,32 @@ function askScore(it,terms){const a=it.ai||{},T=((a.title_zh||'')+' '+it.title).
  const has=(H,t)=>/^[a-z0-9.\- ]+$/.test(t)?new RegExp('(^|[^a-z0-9])'+t.replace(/[.\-]/g,'\\$&')+'([^a-z0-9]|$)').test(H):H.includes(t);
  let s=0,inT=0,strong=false;terms.forEach(t=>{const w=t.length>=3?1.5:1;if(has(T,t)){s+=3*w;inT++;if(t.length>=3)strong=true;}else if(has(S,t))s+=1*w;});return {s,inT,strong};}
 function askFact(it){const a=it.ai||{};if(a.unverified)return['未证实','r'];if(it.official)return['已确认 · 官方原文','v'];return[(it.also||[]).length?`媒体报道 · ${it.also.length+1} 个信源`:'媒体报道 · 单一信源','w'];}
-function askAnswer(q){q=(q||'').trim();const box=document.getElementById('askAns');box.hidden=false;if(!q){box.innerHTML='<p class="concl">请输入问题。</p>';return;}
+/* 查不到数据时的兜底：DeepSeek 通用知识回答。密钥只存在使用者自己的浏览器里；ASK_PROXY 填了代理地址则走代理、不需要密钥 */
+const ASK_PROXY='';
+const askKey=()=>{try{return localStorage.getItem('guanlan-llm-key')||''}catch(e){return''}};
+let askSeq=0;
+function askLLM(q,box,suggest){const key=askKey();if(!key&&!ASK_PROXY)return false;const seq=++askSeq;
+ box.innerHTML='<p class="concl">已采集的数据里没有直接相关的内容，正在请大模型作答…</p>';
+ const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
+ const sys=`你是「小观」（Hori），锋睿观澜 Horizon 全球舆情雷达的问答助手。今天是 ${today}。观澜已采集的数据里没有这个问题的相关报道，所以请你用通用知识作答。
+要求：简体中文，250 字以内；先给一句结论，再给两到四个要点；涉及最近发生的事，如果不确定就直说不确定，不要编造具体数字、日期或人名；不给买入卖出的建议；最后用一句话提醒哪些地方需要用最新消息核实。不要使用 Markdown 符号。`;
+ fetch(ASK_PROXY||'https://api.deepseek.com/chat/completions',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},key?{Authorization:'Bearer '+key}:{}),
+   body:JSON.stringify({model:'deepseek-chat',temperature:0.3,max_tokens:700,messages:[{role:'system',content:sys},{role:'user',content:q}]})})
+  .then(r=>r.json().catch(()=>({})).then(d=>({ok:r.ok,status:r.status,d})))
+  .then(({ok,status,d})=>{if(seq!==askSeq)return;
+   const txt=ok&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
+   if(!txt){box.innerHTML=`<p class="concl">已采集的数据里没有直接相关的内容，大模型这次也没有答上来。</p><p>${status===401?'DeepSeek 密钥无效，请在下方「大模型设置」里重新填写。':status===402?'DeepSeek 账户余额不足。':status===429?'请求太频繁，稍后再试。':'调用失败（状态 '+status+'）。'}</p>${suggest()}`;return;}
+   box.innerHTML=`<p class="concl">已采集的数据里没有和这个问题直接相关的内容，以下由大模型作答。</p>
+    <span class="ask-llm-tag">大模型通用回答 · 不是观澜数据 · 没有来源</span><div class="ask-llm">${esc(txt.trim())}</div>
+    <p class="ask-note" style="margin-top:8px">这段话来自 DeepSeek 的通用知识，没有经过观澜的采集、分级和核实，可能过时或有误，不能当作研判依据。想让小观用真实数据回答，可以把相关公司或机构加进关注清单。</p>${suggest()}`;})
+  .catch(()=>{if(seq!==askSeq)return;box.innerHTML=`<p class="concl">已采集的数据里没有直接相关的内容，连接大模型也失败了。</p><p>请检查网络后再试。</p>${suggest()}`;});
+ return true;}
+function askKeyState(){const e=document.getElementById('askLlmState');if(!e)return;const on=!!askKey()||!!ASK_PROXY;e.textContent=on?'已启用':'未启用';e.classList.toggle('on',on);}
+document.getElementById('askKeyForm').addEventListener('submit',e=>{e.preventDefault();const v=String(new FormData(e.target).get('k')||'').trim();if(!v)return;
+ try{localStorage.setItem('guanlan-llm-key',v)}catch(x){}e.target.reset();askKeyState();});
+document.getElementById('askKeyClear').addEventListener('click',()=>{try{localStorage.removeItem('guanlan-llm-key')}catch(x){}askKeyState();});
+askKeyState();
+function askAnswer(q){q=(q||'').trim();askSeq++;const box=document.getElementById('askAns');box.hidden=false;if(!q){box.innerHTML='<p class="concl">请输入问题。</p>';return;}
  const o={r:0,y:1,g:2},lvl=it=>it.ai&&it.ai.level,ttl=it=>(it.ai&&it.ai.title_zh)||it.title;
  const pool=LIVE.feed?liveItems().filter(it=>it.ai):[],terms=askTerms(q);
  const wantRed=/红色|重大|最严重|要上报/.test(q),wantNew=/今天|最新|最近|现在/.test(q);
@@ -2689,10 +2729,12 @@ function askAnswer(q){q=(q||'').trim();const box=document.getElementById('askAns
  if(!top.length){let key=null;const ql=q.toLowerCase();for(const k in ASK_DB){if(k.split('|').some(x=>ql.includes(x))){key=k;break;}}
   if(key){const d=ASK_DB[key];box.innerHTML='<p class="concl">'+esc(d.concl)+'</p><p class="ask-note" style="margin-bottom:6px">实时数据里没有检索到相关条目，以下来自案例库的演示数据。</p>'
     +'<h4>事实分级</h4><ol>'+d.fact.map(f=>'<li><b>'+esc(f[0])+'</b>：'+esc(f[1])+'</li>').join('')+'</ol><h4>传导链条</h4><p>'+esc(d.chain)+'</p><h4>待验证节点</h4><p>'+esc(d.node)+'</p><h4>来源</h4><p class="src">'+esc(d.src)+'</p>';return;}
+  if(askLLM(q,box,suggest))return;
   const by={};pool.forEach(it=>by[it.sector]=(by[it.sector]||0)+1);
   box.innerHTML=`<p class="concl">已采集的数据里没有和这个问题直接相关的内容，所以不作回答。</p>
    <p>观澜只依据采集到并分过级的报道作答，不靠模型的常识猜。${LIVE.feed?`目前可检索 ${pool.length} 条近 7 天的事件：${Object.keys(by).map(k=>esc(SECN[k]||k)+' '+by[k]).join('、')}。`:'实时数据还没有读到。'}</p>
-   <p style="margin-top:6px">可以换一个更具体的说法，比如带上公司名、地名或事件名；或者把这家公司、这个机构加进关注清单，下次采集就会有数据。</p>${suggest()}`;return;}
+   <p style="margin-top:6px">可以换一个更具体的说法，比如带上公司名、地名或事件名；或者把这家公司、这个机构加进关注清单，下次采集就会有数据。</p>
+   <p class="ask-note" style="margin-top:6px">在下方「大模型设置」里填入 DeepSeek 密钥后，查不到数据的问题会由大模型用通用知识作答。</p>${suggest()}`;return;}
  const r=top.filter(it=>lvl(it)==='r').length,y=top.filter(it=>lvl(it)==='y').length,sim=listing?null:(top.slice(0,3).find(it=>it.sim)||null);
  const simIt=sim?(ARC.items.find(x=>x.id===sim.id)||sim):null,m=simIt&&simIt.sim,s0=m&&(m.scenarios||[])[0];
  const vars=simIt?varProbs(simIt).filter(e=>!e.auto).sort((a,b)=>b.prob-a.prob).slice(0,5):[];
