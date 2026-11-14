@@ -69,6 +69,13 @@
     {"id": "rss-yna-econ", "name": "韩联社 经济", "sector": "securities", "country": "韩国", "type": "rss", "url": "https://www.yna.co.kr/rss/economy.xml"},
     {"id": "rss-nvda-news", "name": "英伟达官方新闻稿", "sector": "securities", "country": "美国", "type": "rss", "url": "https://nvidianews.nvidia.com/releases.xml", "official": true},
     {"id": "gn-nvda-ceo", "name": "Google News · 英伟达 CEO 与治理", "sector": "securities", "country": "美国", "type": "gnews", "lang": "en", "q": "Nvidia (CEO OR board OR successor OR \"8-K\" OR investigation OR \"export controls\")"},
+    {"id": "rss-nikkei-asia", "name": "Nikkei Asia", "sector": "securities", "country": "日本", "type": "rss", "url": "https://asia.nikkei.com/rss/feed/nar"},
+    {"id": "rss-cnbc-markets", "name": "CNBC Markets", "sector": "securities", "country": "美国", "type": "rss", "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664"},
+    {"id": "rss-kherald-biz", "name": "Korea Herald 商业", "sector": "securities", "country": "韩国", "type": "rss", "url": "https://www.koreaherald.com/rss/kh_Business"},
+    {"id": "rss-hkex-news", "name": "港交所新闻稿", "sector": "securities", "country": "中国香港", "type": "rss", "url": "https://www.hkex.com.hk/Services/RSS-Feeds/News-Releases?sc_lang=en", "official": true},
+    {"id": "rss-sec-press", "name": "美国证监会 SEC 新闻稿", "sector": "securities", "country": "美国", "type": "rss", "url": "https://www.sec.gov/news/pressreleases.rss", "official": true},
+    {"id": "gn-zh-ashare", "name": "Google News · A 股港股异动", "sector": "securities", "country": "中国", "type": "gnews", "lang": "zh", "q": "(A股 OR 港股) (暴跌 OR 熔断 OR 立案 OR 停牌 OR 退市 OR 跌停)"},
+    {"id": "gn-ko-kospi", "name": "Google News · 韩股异动", "sector": "securities", "country": "韩国", "type": "gnews", "lang": "ko", "q": "코스피 (급락 OR 서킷브레이커 OR \"외국인 순매도\" OR 급등)"},
     {"id": "gn-self-template", "name": "模板 · 自家机构舆情（改名后启用）", "sector": "securities", "type": "gnews", "lang": "zh", "q": "\"机构名称\" (处罚 OR 罚单 OR 故障 OR 投诉 OR 立案)", "disabled": true}
   ]
 }

@@ -705,7 +705,7 @@ body.demo main{padding-bottom:96px}
   <button data-go="exposure"><span>敞口监控</span><span class="nb r" id="nb-expo"></span></button>
   <button data-go="timeline"><span>事件线</span></button>
   <div class="grp">行业看板</div>
-  <button data-go="sector-securities"><span>券商</span></button>
+  <button data-go="sector-securities"><span>券商</span><span class="nb" id="nb-sec"></span></button>
   <button data-go="sector-energy"><span>海外能源</span><span class="nb" id="nb-energy"></span></button>
   <button data-go="sector-shipping"><span>航运</span><span class="nb new">新</span></button>
   <button data-go="sector-commodity"><span>大宗商品</span></button>
@@ -1086,8 +1086,25 @@ body.demo main{padding-bottom:96px}
 
 <!-- ===== 子目录：四行业 ===== -->
 <section data-view="sector-securities" aria-labelledby="h-ssec">
-  <h2 id="h-ssec">券商 <small>面向研究所 / 自营 / 资管 / 财富管理 · 框架已定，演示数据待接入</small></h2>
+  <h2 id="h-ssec">券商 <small>面向研究所 / 自营 / 资管 / 财富管理 · 实时信源已接入</small></h2>
   <p class="banner">两条线共用同一套引擎：<b>市场雷达</b>由锋睿定义全球重大事件库；<b>主动监控</b>由客户自己添加股票池、行业、人物、关键词、自家机构和发债主体。</p>
+  <div class="livebar" id="secBar" style="margin-top:14px"><span class="lb-state">正在读取数据…</span></div>
+  <div class="two" style="margin-top:14px;align-items:start">
+    <div class="card">
+      <h3 class="ct" style="margin-top:0">最新动态 <small>券商信源 · 风险优先 · 红色事件可看局势推演</small><button type="button" class="linkbtn" id="secAll">全部 →</button></h3>
+      <div class="livelist" id="secLive"><p class="srcnote" style="margin:0">正在读取数据…</p></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <div class="card">
+        <h3 class="ct" style="margin-top:0">事件 → 板块 <small>进行中的推演会推动哪些市场和板块</small><button type="button" class="linkbtn" data-jump="exposure">设关注与门槛 →</button></h3>
+        <div id="secVars"><p class="srcnote" style="margin:0">正在读取数据…</p></div>
+      </div>
+      <div class="card">
+        <h3 class="ct" style="margin-top:0">验证节点日历 <small>推演里要盯的时间点，到期对账</small></h3>
+        <ul class="dates" id="secCal"><li><time>—</time><div>正在读取…</div></li></ul>
+      </div>
+    </div>
+  </div>
   <div class="card" style="margin-top:14px">
     <h3 class="ct">监控对象：五层</h3>
     <div class="srcwrap"><table class="dt">
@@ -1102,7 +1119,7 @@ body.demo main{padding-bottom:96px}
   </div>
   <div class="plan" style="margin-top:14px">
     <div class="card"><h3>主动监控怎么添加</h3><ul><li>选对象类型：公司、行业、人物、关键词、自家机构、发债主体</li><li>输入或批量导入代码与名称，自动对齐 A/H/美/韩/日多地代码</li><li>设阈值：只推红色、红+黄或全部</li><li>选推送渠道：企业微信、飞书、邮件、API</li></ul></div>
-    <div class="card"><h3>演示案例</h3><ul><li><button type="button" class="linkbtn" data-jump="cases">韩股崩盘</button>：熔断、资金流、政府应对已兑现，可对账</li><li><button type="button" class="linkbtn" data-jump="cases">黄仁勋辞去英伟达 CEO</button>：治理 + 国安 + 出口管制的深度传导</li><li>种子客户：长桥（港美股互联网券商）可优先洽谈试点</li></ul></div>
+    <div class="card"><h3>演示案例</h3><ul><li><button type="button" class="linkbtn simopen" data-sim="case-kr">韩股崩盘 · 看推演</button>：熔断、资金流、政府应对已兑现，可对账</li><li><button type="button" class="linkbtn simopen" data-sim="case-nvda">黄仁勋辞去英伟达 CEO · 看推演</button>：治理 + 国安 + 出口管制的深度传导</li><li>种子客户：长桥（港美股互联网券商）可优先洽谈试点</li></ul></div>
   </div>
 </section>
 
@@ -1983,7 +2000,35 @@ function renderOverview(){const f=LIVE.feed;if(!f)return;
  const ev=y1.concat(lv(all,'y').filter(it=>!y1.includes(it))).sort(byTime).slice(0,6);
  document.getElementById('ovEvents').innerHTML=ev.length?ev.map(it=>`<li><a class="qitem" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer"><span class="qc">${esc(it.country||SECN[it.sector]||'')}</span><span class="qt">${esc((it.ai&&it.ai.title_zh)||it.title)}</span><span class="qk">${esc(ago(it.published))}</span></a></li>`).join('')
   :'<li class="srcnote">近 7 天没有黄色事件。</li>';
- renderWatch();}
+ renderWatch();renderSec();}
+/* ---- 券商页：实时动态、事件 → 板块、验证节点日历 ---- */
+const EQ_VAR=k=>k.startsWith('sec_')||k.startsWith('equity_')||k==='fx'||k==='rate'||k==='credit';
+function renderSec(){const f=LIVE.feed;if(!f||!document.getElementById('secLive'))return;
+ const o={r:0,y:1,g:2},lvl=it=>it.ai&&it.ai.level;
+ const all=liveItems().filter(it=>it.sector==='securities'),n=l=>all.filter(it=>lvl(it)===l).length;
+ const srcs=(f.health||[]).filter(x=>x.sector==='securities');
+ document.getElementById('secBar').innerHTML=`<span class="lb-state ok"><span class="live"></span>最近更新 ${esc(fmtTime(f.generated_at))}（${esc(ago(f.generated_at))}）</span>
+  <span>券商信源 <b>${srcs.filter(x=>x.ok).length}/${srcs.length}</b> 可用</span>
+  <span>近 7 天 <b>${all.length}</b> 条：${pill('r','红 '+n('r'),1)} ${pill('y','黄 '+n('y'),1)} ${pill('g','绿 '+n('g'),1)}${all.some(it=>!it.ai)?` <span class="pill w">未分级 ${all.filter(it=>!it.ai).length}</span>`:''}</span>`;
+ document.getElementById('nb-sec').textContent=n('r')?n('r')+' 红':(n('y')?n('y')+' 黄':'');
+ const list=all.filter(it=>lvl(it)==='r'||lvl(it)==='y').sort((a,b)=>(o[lvl(a)]-o[lvl(b)])||String(b.published).localeCompare(String(a.published))).slice(0,6);
+ document.getElementById('secLive').innerHTML=list.length?list.map(liveCard).join(''):'<p class="srcnote" style="margin:0">近 7 天没有红色或黄色的券商事件。</p>';
+ /* 事件 → 板块：所有进行中的推演里，落到股票市场、板块、汇率利率的变量 */
+ const rows=[];openSims().forEach(it=>varProbs(it).forEach(e=>{if(EQ_VAR(e.k)&&!e.auto)rows.push(Object.assign({it},e));}));
+ rows.sort((a,b)=>b.prob-a.prob||String(b.it.published).localeCompare(String(a.it.published)));
+ document.getElementById('secVars').innerHTML=rows.length?rows.slice(0,8).map(h=>{const t=(h.it.ai&&h.it.ai.title_zh)||h.it.title,w=WATCH[h.k];
+   return `<div class="ralert"><div class="rp" style="font-size:19px${h.dir==='down'?';color:var(--green)':''}">${Math.min(100,h.prob)}%<small>${w?'门槛 '+w+'%':'未关注'}</small></div>
+    <div class="rt"><b>${esc(SIM_VARS[h.k])} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''}<span>← ${esc(t)} · ${esc(h.scen.join(' + '))}</span></div>
+    <button type="button" class="simbtn" data-sim="${esc(h.it.id)}">传导图 →</button></div>`;}).join('')+(rows.length>8?`<p class="srcnote" style="margin:8px 0 0">共 ${rows.length} 条，这里显示概率最高的 8 条。红色为上行，绿色为下行。</p>`:'')
+  :'<p class="srcnote" style="margin:0">进行中的推演还没有落到市场或板块的变量。下次自动更新后，新推演会给出板块级影响。</p>';
+ /* 验证节点日历：券商类推演的对账日和要盯的节点 */
+ const cal=[];openSims().filter(it=>it.sector==='securities').forEach(it=>{const t=(it.ai&&it.ai.title_zh)||it.title,d=reviewBy(it);
+  (it.sim.watch||[]).slice(0,2).forEach(w=>cal.push({when:w.when||'持续',what:w.what,t,id:it.id,k:/^\d{1,2}-\d{1,2}/.test(w.when||'')?'0'+w.when:'5'}));
+  if(d)cal.push({when:d.slice(5),what:'推演到期对账',t,id:it.id,k:'1'+d});});
+ cal.sort((a,b)=>a.k.localeCompare(b.k));
+ document.getElementById('secCal').innerHTML=cal.length?cal.slice(0,8).map(c=>`<li><time>${esc(c.when)}</time><div>${esc(c.what)}<small>${esc(c.t)}</small></div></li>`).join('')
+  :'<li><time>—</time><div>暂无券商类推演<small>红色事件推演后会自动登记验证节点</small></div></li>';}
+document.getElementById('secAll').addEventListener('click',()=>{LIVE.sector='securities';LIVE.level='all';go('live');renderLiveFilters();renderLiveList();});
 function renderShipLive(){const box=document.getElementById('shipLive');if(!LIVE.feed)return;
  const o={r:0,y:1,g:2};
  const list=liveItems().filter(it=>it.sector==='shipping'&&(!(it.persona||[]).length||it.persona.includes(shipP)))
@@ -2003,10 +2048,12 @@ const VZ={hit:'成立',miss:'未成立',unclear:'无法判定'};
 /* ---- 影响变量、客户关注规则、风险提醒 ---- */
 const SIM_VARS={freight_dry:'干散货运价',freight_box:'集运运价',freight_tank:'油轮运价',insurance:'战争险与保费',shipowner:'船东股价',supply:'供应链与交付',
  oil:'原油价格',lng:'天然气与 LNG 价格',gold:'黄金价格',silver:'白银价格',copper:'铜价',fx:'汇率',rate:'利率与融资成本',credit:'信用与评级',
- equity_cn:'A 股与港股',equity_us:'美股',equity_asia:'韩股与日股',tariff:'电价与监管费率',concession:'特许权与牌照',stake:'股权与控制权'};
+ equity_cn:'A 股与港股',equity_us:'美股',equity_asia:'韩股与日股',tariff:'电价与监管费率',concession:'特许权与牌照',stake:'股权与控制权',
+ sec_semis:'半导体与存储板块',sec_ai:'算力与 AI 硬件板块',sec_ev:'新能源车与电池板块',sec_energy:'油气与电力板块',sec_shipping:'航运与港口板块',sec_airline:'航空与旅游板块',sec_gold:'黄金与有色板块',sec_fin:'银行与券商板块'};
 /* 旧推演没有结构化变量，按情景「影响」里的关键词推断，界面上标「推断」 */
 const VAR_KW={freight_tank:/油轮.{0,6}运价|油轮运费|VLCC|油运/,freight_dry:/干散货.{0,6}运价|散货运价|BDI|海岬型/,freight_box:/集运.{0,6}运价|集装箱.{0,6}运价|SCFI|箱运/,
  insurance:/战争险|保费|保险费/,shipowner:/船东股|航运股|船公司股价/,supply:/供应链|交付|延误|绕行|断供/,oil:/油价|原油|布伦特|WTI/,lng:/LNG|天然气/,gold:/黄金|金价/,silver:/白银|银价/,copper:/铜价|铜矿|铜供应/,
+ sec_semis:/半导体|存储|芯片|HBM/,sec_ai:/算力|光模块|服务器|AI 硬件/,sec_ev:/新能源车|电动车|锂电|电池/,sec_energy:/油气股|能源股|电力股|能源板块/,sec_shipping:/航运股|港口股|航运板块/,sec_airline:/航空|旅游/,sec_gold:/黄金股|有色/,sec_fin:/银行股|券商股|金融股|银行板块/,
  fx:/汇率|贬值|升值|美元指数/,rate:/利率|融资成本|加息|降息|收益率/,credit:/评级|信用利差|违约/,equity_cn:/A ?股|港股|沪深|恒生/,equity_us:/美股|纳指|标普|道指/,equity_asia:/韩股|日股|KOSPI|日经/,
  tariff:/电价|费率/,concession:/特许权|牌照|特许经营/,stake:/股权|国有化|减持|控制权/};
 const WATCH_DEFAULT={freight_tank:30,freight_dry:30,freight_box:50,oil:50,concession:30,stake:30};
@@ -2145,7 +2192,7 @@ function openSim(id){const it=ARC.items.find(x=>x.id===id)||(LIVE.feed&&LIVE.fee
  if(!d){d=document.createElement('dialog');d.id='simDlg';d.className='simdlg';document.body.appendChild(d);
   d.addEventListener('click',e=>{if(e.target===d||e.target.closest('.sd-x'))d.close();});}
  d.innerHTML=simHTML(it);d.showModal();d.scrollTop=0;}
-document.addEventListener('click',e=>{const b=e.target.closest('.simbtn');if(b)openSim(b.dataset.sim);});
+document.addEventListener('click',e=>{const b=e.target.closest('.simbtn,.simopen');if(b)openSim(b.dataset.sim);});
 document.getElementById('liveMore').addEventListener('click',()=>{LIVE.limit+=40;renderLiveList();});
 /* ---- 推演档案：读取 data/sims.json（只增不删），到对账日自动转为待对账 ---- */
 const ARC={items:[],sector:'all'};

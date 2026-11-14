@@ -372,7 +372,7 @@ def analyze(items: list[dict], ts: datetime) -> int:
 SIM_FOCUS = {
     "energy": "国网海外能源资产（智利 CGE、巴西 CPFL、菲律宾 NGCP）的特许权、股权、电价与监管、融资，以及对中资股东的影响",
     "shipping": "事件 → 通道 → 船型 → 运价与船东股价的传导，涉及干散货、集运、油轮三类船东和经纪人",
-    "securities": "对 A 股、港股、美股、韩股、日股相关板块与公司的传导，以及利率、汇率、资金面",
+    "securities": "对 A 股、港股、美股、韩股、日股相关板块与公司的传导，以及利率、汇率、资金面；影响变量优先落到具体板块（sec_ 开头的变量），再写市场整体",
     "commodity": "对原油、黄金、白银、铜、LNG 价格与供需的传导，以及持有这些敞口的企业",
 }
 
@@ -384,6 +384,10 @@ SIM_VARS = {
     "fx": "汇率", "rate": "利率与融资成本", "credit": "信用与评级",
     "equity_cn": "A 股与港股", "equity_us": "美股", "equity_asia": "韩股与日股",
     "tariff": "电价与监管费率", "concession": "特许权与牌照", "stake": "股权与控制权",
+    # 股票板块：券商用户按板块关注
+    "sec_semis": "半导体与存储板块", "sec_ai": "算力与 AI 硬件板块", "sec_ev": "新能源车与电池板块",
+    "sec_energy": "油气与电力板块", "sec_shipping": "航运与港口板块", "sec_airline": "航空与旅游板块",
+    "sec_gold": "黄金与有色板块", "sec_fin": "银行与券商板块",
 }
 WATCH = ROOT / "pipeline" / "watch.json"
 
