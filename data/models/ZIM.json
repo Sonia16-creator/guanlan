@@ -3,32 +3,98 @@
  "stock": "ZIM",
  "name": "ZIM Integrated Shipping Services",
  "sector": "shipping",
- "persona": ["box"],
+ "persona": [
+  "box"
+ ],
  "model_version": "v42",
  "updated_at": "2026-11-09T13:34:09Z",
  "currency": "USD",
- "price": 28.30,
+ "price": 28.3,
  "valuation_year": "FY2026E",
  "rating": "中性",
  "scenarios": {
-  "bull": {"eps": 9.93, "target_pe": 5, "target_price": 49.64},
-  "base": {"eps": 8.01, "target_pe": 4, "target_price": 32.05, "revenue": 7672, "gross_margin": 0.236, "net_income": 967},
-  "bear": {"eps": 5.12, "target_pe": 3, "target_price": 15.37}
+  "bull": {
+   "eps": 9.93,
+   "target_pe": 5,
+   "target_price": 49.64
+  },
+  "base": {
+   "eps": 8.01,
+   "target_pe": 4,
+   "target_price": 32.05,
+   "revenue": 7672,
+   "gross_margin": 0.236,
+   "net_income": 967
+  },
+  "bear": {
+   "eps": 5.12,
+   "target_pe": 3,
+   "target_price": 15.37
+  }
  },
  "drivers": [
-  {"key": "voyages_growth", "name": "收入增长率（估值年）", "bull": 0.415, "base": 0.378, "bear": 0.342, "evidence": "judgment"},
-  {"key": "cost_bunker_fraction", "name": "燃油与润滑油占收入", "bull": 0.126, "base": 0.1365, "bear": 0.1543, "evidence": "history"},
-  {"key": "cost_cargo_handling_fraction", "name": "货物处理费用占收入", "bull": 0.231, "base": 0.2503, "bear": 0.2828, "evidence": "history"},
-  {"key": "cost_port_fraction", "name": "港口费用占收入", "bull": 0.0559, "base": 0.0606, "bear": 0.0685, "evidence": "history"},
-  {"key": "lease_additions", "name": "新增租赁资产（百万美元）", "bull": 1000, "base": 900, "bear": 800, "evidence": "company"}
+  {
+   "key": "voyages_growth",
+   "name": "收入增长率（估值年）",
+   "bull": 0.415,
+   "base": 0.378,
+   "bear": 0.342,
+   "evidence": "judgment"
+  },
+  {
+   "key": "cost_bunker_fraction",
+   "name": "燃油与润滑油占收入",
+   "bull": 0.126,
+   "base": 0.1365,
+   "bear": 0.1543,
+   "evidence": "history"
+  },
+  {
+   "key": "cost_cargo_handling_fraction",
+   "name": "货物处理费用占收入",
+   "bull": 0.231,
+   "base": 0.2503,
+   "bear": 0.2828,
+   "evidence": "history"
+  },
+  {
+   "key": "cost_port_fraction",
+   "name": "港口费用占收入",
+   "bull": 0.0559,
+   "base": 0.0606,
+   "bear": 0.0685,
+   "evidence": "history"
+  },
+  {
+   "key": "lease_additions",
+   "name": "新增租赁资产（百万美元）",
+   "bull": 1000,
+   "base": 900,
+   "bear": 800,
+   "evidence": "company"
+  }
  ],
  "watch": [
-  {"what": "季度承运量、平均运费、单箱收入", "next_date": "下次季报"},
-  {"what": "营业成本五条线与折旧摊销", "next_date": "下次季报"},
-  {"what": "使用权资产折旧和租赁利息", "next_date": "下次季报"}
+  {
+   "what": "季度承运量、平均运费、单箱收入",
+   "next_date": "下次季报"
+  },
+  {
+   "what": "营业成本五条线与折旧摊销",
+   "next_date": "下次季报"
+  },
+  {
+   "what": "使用权资产折旧和租赁利息",
+   "next_date": "下次季报"
+  }
  ],
  "invalidation": "某季度实现运费相对同期公开指数明显偏离历史关系，同时单箱收入放大倍数与营业成本同步恶化",
- "checks": {"passed": 37, "warnings": 6, "usable": true},
+ "checks": {
+  "passed": 37,
+  "warnings": 6,
+  "usable": true
+ },
  "memo_url": "",
- "source": "Agenta 财务模型 ZIM v42，人工摘录；Agenta 接口就绪后改为自动读取"
+ "source": "Agenta 财务模型 ZIM v42，人工摘录；Agenta 接口就绪后改为自动读取",
+ "caveat": "ZIM 已于 2026-02-16 宣布被赫伯罗特（Hapag-Lloyd）以每股 35 美元现金收购，预计 2026 年底前完成，股价主要跟随收购价。这里的目标价只用来演示「事件 → 利润 → 估值」的传导方法。"
 }

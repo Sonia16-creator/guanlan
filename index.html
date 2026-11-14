@@ -592,13 +592,29 @@ body:not(.demo) [data-demo]{display:none!important}
 /* 侧栏层级：分组标题 = 深色小标题 + 金色竖条 + 分隔线；菜单项缩进，挂在左侧细线下 */
 .side .grp{display:flex;align-items:center;gap:7px;color:var(--ink);font-size:12.5px;font-weight:700;letter-spacing:.06em;padding:14px 10px 6px;margin-top:6px;border-top:1px solid var(--line)}
 .side .grp::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--gold-bright);flex:none}
-.side .grp:first-child,body:not(.demo) .side .grp:nth-child(4){border-top:none;margin-top:0;padding-top:4px}
+.side button.who{font-size:14.5px;font-weight:700;color:var(--ink);padding:8px 10px}
+.side button.who::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold-bright);flex:none;margin-right:2px}
+.side button.who{justify-content:flex-start}.side button.who[aria-current="page"]{background:var(--brand);color:var(--on-brand)}
+.side button.who[aria-current="page"]::after{display:none}
 .side .grp~button{margin-left:12px;width:calc(100% - 12px);font-size:13.5px;color:var(--muted);border-left:1px solid var(--line);border-radius:0 8px 8px 0;padding-left:12px}
 .side .grp~button:hover{color:var(--text)}
 .side .grp~button[aria-current="page"]{color:var(--ink)}
 .side .grp~button[aria-current="page"]::after{left:-2px;top:4px;bottom:4px}
 .backlink{font:inherit;font-size:13px;color:var(--muted);background:none;border:none;padding:0;margin:0 0 6px;cursor:pointer}
 .backlink:hover{color:var(--ink)}
+/* ===== 按用户类型的入口页 ===== */
+.who-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
+.who-step{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);font-size:13.5px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.who-step .no{font-family:var(--serif);font-size:12.5px;color:var(--gold);letter-spacing:.06em}
+.who-step h4{margin:0;font-size:14.5px;color:var(--ink)}
+.who-step p{margin:0;line-height:1.55}.who-step ul{margin:0;padding-left:16px}.who-step li{margin:2px 0}
+.who-step .big{font-family:var(--serif);font-size:20px;color:var(--ink);line-height:1.25}
+.who-step .vchip{white-space:normal}
+.who-case-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.who-case-h h3{margin:0}.who-tag{font-size:11.5px;border-radius:999px;padding:1px 9px;border:1px dashed var(--muted);color:var(--muted)}
+.who-caveat{background:var(--yellow-bg);border-left:4px solid var(--yellow);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--ink);margin-bottom:10px}
+.who-next{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:820px){.who-steps{grid-template-columns:1fr}}
 .mdl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
 .mdl-kpi{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--bg);display:flex;flex-direction:column;gap:1px}
 .mdl-kpi.hot{border-color:var(--gold);background:var(--gold-soft)}
@@ -729,6 +745,9 @@ body.demo main{padding-bottom:96px}
 <main><div class="wrap">
 <div class="shell">
 <nav class="side" aria-label="功能菜单" id="side">
+  <button class="who" data-go="who-fin"><span>金融机构</span></button>
+  <button class="who" data-go="who-price"><span>价格波动型行业</span></button>
+  <button class="who" data-go="who-global"><span>出海企业</span></button>
   <div class="grp" data-demo>认识观澜</div>
   <button data-demo data-go="productline"><span>产品线</span></button>
   <button data-demo data-go="arch"><span>体系架构</span></button>
@@ -1124,6 +1143,36 @@ body.demo main{padding-bottom:96px}
 </section>
 
 <!-- ===== 子目录：四行业 ===== -->
+<section data-view="who-fin" aria-labelledby="h-who-fin">
+  <h2 id="h-who-fin">金融机构 <small>券商 / 基金 / 家办</small></h2>
+  <p class="banner">全球重大事件发生后，你要回答的是：<b>它会传导到哪个板块、哪只股票，盈利和估值会不会变</b>。观澜把事件推演成三种走向，落到板块、个股，再接到财务模型的每股收益和目标价。</p>
+  <div class="card" style="margin-top:14px">
+    <div class="board-tabs" id="who-fin-tabs" role="group" aria-label="金融机构细分"></div>
+    <div id="who-fin-intro"></div>
+  </div>
+  <div id="who-fin-body"></div>
+</section>
+
+<section data-view="who-price" aria-labelledby="h-who-price">
+  <h2 id="h-who-price">价格波动型行业 <small>航运 / 大宗商品 / 矿业</small></h2>
+  <p class="banner">你的利润跟着一个价格走：运价、油价、矿价。<b>一条海峡出事、一个产地停产，价格当天就动</b>。观澜盯地缘、航道、制裁和供给，推演价格往哪走、概率多大，过了你设的门槛就提醒。</p>
+  <div class="card" style="margin-top:14px">
+    <div class="board-tabs" id="who-price-tabs" role="group" aria-label="价格波动型行业细分"></div>
+    <div id="who-price-intro"></div>
+  </div>
+  <div id="who-price-body"></div>
+</section>
+
+<section data-view="who-global" aria-labelledby="h-who-global">
+  <h2 id="h-who-global">出海企业 <small>海外资产持有企业 / 出海制造企业</small></h2>
+  <p class="banner">你在海外有资产、工厂或市场，最怕的是<b>当地规则突然改变</b>：特许权被审查、关税终裁、工厂审批被否。观澜用当地语言盯监管、议会、法院和媒体，推演这件事会不会碰到你的资产和订单。</p>
+  <div class="card" style="margin-top:14px">
+    <div class="board-tabs" id="who-global-tabs" role="group" aria-label="出海企业细分"></div>
+    <div id="who-global-intro"></div>
+  </div>
+  <div id="who-global-body"></div>
+</section>
+
 <section data-view="sector-securities" aria-labelledby="h-ssec">
   <h2 id="h-ssec">券商 <small>面向研究所 / 自营 / 资管 / 财富管理 · 实时信源已接入</small></h2>
   <p class="banner">两条线共用同一套引擎：<b>市场雷达</b>由锋睿定义全球重大事件库；<b>主动监控</b>由客户自己添加股票池、行业、人物、关键词、自家机构和发债主体。</p>
@@ -1835,7 +1884,7 @@ function go(v,opts){
    let p=b.previousElementSibling;while(p&&!p.classList.contains('grp'))p=p.previousElementSibling;grp=p?p.textContent:'';}
   else b.removeAttribute('aria-current')});
  if(nv!==v)name+=' / '+(SP_NAME[v]||'专题');
- document.getElementById('crumb').innerHTML=v==='overview'?'':`<span>${esc(grp)}</span><span class="sep">/</span><b>${esc(name)}</b>`;
+ document.getElementById('crumb').innerHTML=v==='overview'?'':(grp?`<span>${esc(grp)}</span><span class="sep">/</span>`:'')+`<b>${esc(name)}</b>`;
  document.title=(v==='overview'?'':name+' · ')+'观澜 Horizon · 全球舆情雷达';
  if(!(opts&&opts.fromHash)&&location.hash!=='#'+v){try{history.pushState(null,'','#'+v)}catch(e){location.hash=v}}
  try{sessionStorage.setItem('radar-view',v)}catch(e){}
@@ -2134,7 +2183,7 @@ function renderOverview(){const f=LIVE.feed;if(!f)return;
  const ev=y1.concat(lv(all,'y').filter(it=>!y1.includes(it))).sort(byTime).slice(0,6);
  document.getElementById('ovEvents').innerHTML=ev.length?ev.map(it=>`<li><a class="qitem" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer"><span class="qc">${esc(it.country||SECN[it.sector]||'')}</span><span class="qt">${esc((it.ai&&it.ai.title_zh)||it.title)}</span><span class="qk">${esc(ago(it.published))}</span></a></li>`).join('')
   :'<li class="srcnote">近 7 天没有黄色事件。</li>';
- renderWatch();renderSec();renderMfg();}
+ renderWatch();renderSec();renderMfg();['fin','price','global'].forEach(renderWho);}
 /* ---- 券商页：实时动态、事件 → 板块、验证节点日历 ---- */
 const EQ_VAR=k=>k.startsWith('stock:')||k.startsWith('sec_')||k.startsWith('equity_')||k==='fx'||k==='rate'||k==='credit';
 const SEC_ROLE={research:{name:'研究所',users:'宏观、策略与行业分析师',care:'政策与数据超预期、行业景气变化、全球事件往哪个板块传导',use:'晨会素材和点评选题：先看「事件 → 板块」，再打开传导图核对每一层的依据'},
@@ -2232,7 +2281,7 @@ function renderStocks(){const f=LIVE.feed,box=document.getElementById('secStocks
    <div class="stk-top"><b>${esc(s.name)}</b><span>${esc(s.code)}${s.issue?' · 自己添加':''}</span></div>
    ${q.last!=null?`<div class="stk-px"><span class="px">${q.last.toLocaleString('en-US')}<small>${esc(q.cur||'')}</small></span><span class="chg ${up?'up':'dn'}">${up?'+':''}${q.chg}%${big?' · 异动':''}</span></div>${spark(q.closes,q.closes[q.closes.length-1]>=q.closes[0])}`:'<div class="stk-meta">行情暂不可用</div>'}
    <div class="stk-meta">${q.date?`<span>${esc(q.date.slice(5))} 收盘</span>`:''}<span>近 7 天消息 ${news.length}</span>${r?pill('r','红 '+r,1):''}${y?pill('y','黄 '+y,1):''}</div>
-   ${(()=>{const md=Object.values(f.models||{}).find(x=>(x.stock||x.name)===s.name);if(!md)return'';
+   ${(()=>{const md=Object.values(allModels()).find(x=>(x.stock||x.name)===s.name);if(!md)return'';
      let best=null;openSims().forEach(it=>modelLinks(it).forEach(l=>{if(l.ticker===md.ticker&&(!best||Math.abs(l.target_price-l.base_target)>Math.abs(best.target_price-best.base_target)))best=l;}));
      return `<div class="stk-imp">模型（${esc(md.model_version)}）中性目标价 <b>${md.scenarios.base.target_price}</b>${best&&best.target_price!==best.base_target?` → 事件加权 <b class="${best.target_price<best.base_target?'up':'dn'}" style="color:${best.target_price<best.base_target?'var(--red)':'var(--green)'}">${best.target_price}</b>`:''}</div>`;})()}
    ${m?`<div class="stk-imp">推演：<b class="${m.dir==='down'?'dn':'up'}">${arrow(m.dir)} 约 ${Math.min(100,m.prob)}%</b>${hit?'（已过门槛 '+(+s.min||30)+'%）':''} ← ${esc((m.it.ai&&m.it.ai.title_zh)||m.it.title)}</div>`:''}</button>`;}).join('')
@@ -2247,6 +2296,76 @@ document.getElementById('stockForm').addEventListener('submit',e=>{e.preventDefa
  window.open(GH_NEW+'&title='+encodeURIComponent('个股：'+v('n')+' '+v('c').toUpperCase()+(v('q')?' '+v('q'):''))+'&body='+encodeURIComponent('由观澜网站「添加自选股」生成。提交后下次自动更新生效；关闭本条即移除。'),'_blank','noopener');});
 document.getElementById('instForm').addEventListener('submit',e=>{e.preventDefault();const n=String(new FormData(e.target).get('n')||'').trim();if(!n)return;
  window.open(GH_NEW+'&title='+encodeURIComponent('机构：'+n)+'&body='+encodeURIComponent('由观澜网站「自家机构舆情」生成。提交后下次自动更新开始采集该机构的负面舆情；关闭本条即停止。'),'_blank','noopener');});
+/* ---- 按用户类型的入口页：金融机构 / 价格波动型行业 / 出海企业 ---- */
+const isSec=k=>k.startsWith('sec_')||k.startsWith('equity_')||k.startsWith('stock:');
+const WHO={
+ fin:{tabs:{
+  broker:{name:'券商',pain:'晨会前要知道昨夜哪件事会动今天的板块，还要有一套能对客户讲清楚的口径。',users:'研究所、自营、财富管理、合规风控',
+   fixed:'case-nvda',live:it=>it.sector==='securities',num:e=>isSec(e.k)||e.k==='fx'||e.k==='rate',rules:['sec_semis','sec_ai','equity_us','equity_asia','equity_cn','fx'],
+   next:[['sector-securities','券商工作台'],['exposure','设关注与门槛'],['cases','更多案例']]},
+  fund:{name:'基金',pain:'持仓里的公司，盈利和目标价会不会因为这件事改变，改变多少。',users:'基金经理、行业研究员、风控',
+   fixed:'case-zim',model:true,live:it=>(it.stocks||[]).length>0,num:e=>e.k.startsWith('stock:')||['realized_rate','surcharge','freight_box','bunker'].includes(e.k),rules:['realized_rate','surcharge','volume','bunker','charter'],
+   next:[['sector-securities','自选股与行情'],['sector-shipping','运价到利润：五步传导'],['foresight','推演档案']]},
+  fo:{name:'家办',pain:'不追单只股票，关心的是大类资产：黄金、原油、汇率、利率，这件事该不该调配置。',users:'家族办公室的投资负责人、资产配置顾问',
+   fixed:'case-oil',live:it=>it.sector==='commodity',num:e=>['oil','gold','silver','lng','fx','rate','copper'].includes(e.k),rules:['gold','oil','fx','rate','equity_us'],
+   next:[['sector-commodity','大宗商品看板'],['exposure','设关注与门槛']]}}},
+ price:{tabs:{
+  ship:{name:'航运',pain:'一条海峡出事，运价、航线和保费当天就变。要比同行早知道，还要知道对哪种船型影响最大。',users:'船东、船舶经纪人、货代、船舶融资方',
+   pick:it=>it.sector==='shipping',prefer:/霍尔木兹/,live:it=>it.sector==='shipping',num:e=>e.k.startsWith('freight_')||['insurance','oil','supply','realized_rate','bunker'].includes(e.k),rules:['freight_tank','freight_dry','freight_box','insurance','bunker'],
+   next:[['sector-shipping','航运工作台'],['exposure','设关注与门槛'],['live','实时信源']]},
+  commodity:{name:'大宗商品',pain:'手上有原油、黄金、铜的敞口，供给一中断价格就跳。要知道这次是一次性冲击还是会持续。',users:'大宗贸易商、有原料敞口的制造企业、套保负责人',
+   pick:it=>it.sector==='commodity',fixed:'case-oil',live:it=>it.sector==='commodity',num:e=>['oil','gold','silver','lng','copper','freight_tank','rate'].includes(e.k),rules:['oil','lng','gold','copper','freight_tank'],
+   next:[['sector-commodity','大宗商品看板'],['exposure','设关注与门槛']]},
+  mining:{name:'矿业',planned:true,pain:'资源国一纸出口禁令、一次矿山罢工、一个环评否决，矿价和矿权都会变。',users:'矿业公司、金属贸易商、下游冶炼与电池材料企业',
+   live:it=>(it.asset||[]).includes('copper')||/矿|铜|锂|镍|稀土/.test((it.ai&&it.ai.title_zh)||''),num:e=>['copper','concession','stake'].includes(e.k),rules:['copper','concession','stake'],
+   next:[['sector-commodity','大宗商品看板（含铜）'],['sector-energy','海外能源：特许权的做法']]}}},
+ global:{tabs:{
+  asset:{name:'海外资产持有企业',pain:'在海外持有电网、电厂、港口这类资产，最怕特许权被审查、股权被要求减持、监管处罚升级。',users:'海外投资部门、项目公司、风控与法务',
+   pick:it=>it.sector==='energy',prefer:/特许权/,live:it=>it.sector==='energy',num:e=>['concession','stake','tariff','credit','rate'].includes(e.k),rules:['concession','stake','tariff','credit'],
+   extra:[['special-ngcp','NGCP 特许权专题（完整样例）']],next:[['sector-energy','海外能源看板'],['projects','项目档案'],['exposure','设关注与门槛']]},
+  mfg:{name:'出海制造企业',pain:'一纸关税终裁、一次扣货、一个工厂审批被否，进入一个市场的成本和资格就变了。',users:'电池、光伏、汽车、家电企业的战略、法务、海外销售',
+   pick:it=>it.sector==='manufacturing',live:it=>it.sector==='manufacturing',num:e=>['duty','access','subsidy','export_ctrl','plant','orders','rawmat'].includes(e.k),rules:['duty','access','subsidy','plant','orders'],
+   next:[['sector-mfg','出海制造工作台'],['exposure','设关注与门槛']]}}}
+};
+const whoTab={fin:'broker',price:'ship',global:'asset'};
+function whoCase(t){const pool=openSims().filter(it=>it.sim&&(it.sim.scenarios||[]).length);
+ if(t.pick){const c=pool.filter(t.pick).sort((a,b)=>(+(t.prefer?t.prefer.test((b.ai&&b.ai.title_zh)||b.title):0)-+(t.prefer?t.prefer.test((a.ai&&a.ai.title_zh)||a.title):0))
+   ||(+!!(b.sim.scenarios[0].path||[]).length-+!!(a.sim.scenarios[0].path||[]).length)||String(b.published).localeCompare(String(a.published)));if(c.length)return c[0];}
+ return t.fixed?(ARC.items.find(x=>x.id===t.fixed)||CASE_SIMS.find(x=>x.id===t.fixed)):null;}
+function whoCaseHTML(t){const it=whoCase(t);
+ if(!it)return `<div class="card" style="margin-top:14px"><div class="who-case-h"><h3>主打案例</h3><span class="who-tag">${t.planned?'规划中':'数据接入中'}</span></div><p class="srcnote" style="margin:0">${t.planned?'这个方向还没有单独的信源和规则，下面先显示现有数据里和它相关的事件。':'信源刚接入，出现第一条红色事件后，这里会自动换成它的完整推演。'}</p></div>`;
+ const m=it.sim,ttl=(it.ai&&it.ai.title_zh)||it.title,sc=m.scenarios||[];
+ const nums=varProbs(it).filter(e=>!e.auto&&t.num(e)).sort((a,b)=>b.prob-a.prob).slice(0,4);
+ const ml=t.model?modelLinks(it)[0]:null,md=ml?allModels()[ml.ticker]:null;
+ const kind=it.hypo?'假设情景 · 方法演示':it.demo||it.manual?'案例库 · 人工推演':'实时事件 · AI 推演';
+ const step3=ml?`<p class="big">${ml.base_target} → ${ml.target_price} <small style="font-size:13px;color:var(--red)">${Math.round((ml.target_price/ml.base_target-1)*100)}%</small></p><p>${esc(ml.name)} 中性目标价 → 按情景概率加权后的目标价；加权每股收益 ${ml.eps}。来自 Agenta 财务模型 ${esc(ml.model_version)}。</p>`
+   :nums.length?nums.map(e=>`<span class="vchip ${e.dir}${wmin(e.k)?' watch':''}">${esc(VN(e.k))} <b>${arrow(e.dir)}</b> 约 ${Math.min(100,e.prob)}%</span>`).join(' ')+'<p style="margin-top:4px">把会推动同一个变量的各情景概率相加，过了你设的门槛就提醒。</p>'
+   :`<p>${esc(m.affected||sc[0].impact||'')}</p><p class="mute" style="font-size:12.5px">这条推演生成较早，下次自动更新后会补上逐层传导和影响变量。</p>`;
+ return `<div class="card" style="margin-top:14px"><div class="who-case-h"><h3>主打案例：${esc(ttl)}</h3><span class="who-tag">${kind}</span></div>
+  ${md&&md.caveat?`<div class="who-caveat">${esc(md.caveat)}</div>`:''}
+  <div class="who-steps">
+   <div class="who-step"><span class="no">第一步</span><h4>发生了什么</h4><ul>${(m.facts||[]).slice(0,3).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+   <div class="who-step"><span class="no">第二步</span><h4>会往哪几个方向走</h4><ul>${sc.map((x,i)=>`<li>情景 ${'ABC'[i]} · ${esc(x.name)} <b>约 ${+x.prob||0}%</b></li>`).join('')}</ul><p class="mute" style="font-size:12.5px">三种走向互斥，概率合计 100%。</p></div>
+   <div class="who-step"><span class="no">第三步</span><h4>落到你关心的数字</h4>${step3}</div>
+   <div class="who-step"><span class="no">第四步</span><h4>到期对账</h4><p class="big">${esc(m.review_by||reviewBy(it)||'—')}</p><p>${it.hypo?'假设情景不进档案；真实事件到这一天会自动检索后续报道，判断哪种走向成立，对错都留痕。':'到这一天系统自动检索后续报道，判断哪种走向成立，对错都留痕。'}</p>${(m.watch||[]).slice(0,2).map(w=>`<p class="mute" style="font-size:12.5px">盯：${esc(w.what)}（${esc(w.when)}）</p>`).join('')}</div>
+  </div>
+  <div class="who-next" style="margin-top:12px"><button type="button" class="simbtn" data-sim="${esc(it.id)}" style="margin-top:0">打开完整推演和传导图 →</button>${(t.extra||[]).map(x=>`<button type="button" class="linkbtn" data-jump="${x[0]}">${esc(x[1])} →</button>`).join('')}</div></div>`;}
+function renderWho(k){const W=WHO[k],box=document.getElementById('who-'+k+'-body');if(!box)return;const tk=whoTab[k],t=W.tabs[tk];
+ document.getElementById('who-'+k+'-tabs').innerHTML=Object.entries(W.tabs).map(([id,x])=>`<button type="button" data-p="${id}" aria-pressed="${id===tk}">${esc(x.name)}${x.planned?' <span class="cnt">规划中</span>':''}</button>`).join('');
+ document.getElementById('who-'+k+'-intro').innerHTML=`<dl class="kv"><dt>你最关心</dt><dd>${esc(t.pain)}</dd><dt>典型用户</dt><dd>${esc(t.users)}</dd></dl>`;
+ const o={r:0,y:1,g:2},lvl=it=>it.ai&&it.ai.level;
+ const live=LIVE.feed?liveItems().filter(it=>(lvl(it)==='r'||lvl(it)==='y')&&t.live(it)).sort((a,b)=>(o[lvl(a)]-o[lvl(b)])||String(b.published).localeCompare(String(a.published))).slice(0,3):[];
+ box.innerHTML=whoCaseHTML(t)+`
+  <div class="two" style="margin-top:14px;align-items:start">
+   <div class="card"><h3 class="ct" style="margin-top:0">今天和你有关的事 <small>实时信源 · 风险优先</small></h3>
+    <div class="livelist">${live.length?live.map(liveCard).join(''):`<p class="srcnote" style="margin:0">${LIVE.feed?'近 7 天没有相关的红色或黄色事件。':'正在读取数据…'}</p>`}</div></div>
+   <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+    <div class="card"><h3 class="ct" style="margin-top:0">你可以自己定的规则 <small>关注什么、概率多大才提醒</small></h3>
+     <div class="who-next">${t.rules.map(r=>`<span class="vchip${WATCH[r]?' watch':''}">${esc(SIM_VARS[r]||r)}${WATCH[r]?' ≥ '+WATCH[r]+'%':''}</span>`).join('')}</div>
+     <p class="srcnote" style="margin-top:8px">金色是已经在关注的变量和门槛。在「敞口监控」里勾选和修改；正式版由你的业务部门来定红黄标准和上报规则。</p></div>
+    <div class="card"><h3 class="ct" style="margin-top:0">下一步</h3><div class="who-next">${t.next.map(x=>`<button type="button" class="btn-add" data-jump="${x[0]}">${esc(x[1])}</button>`).join('')}</div></div>
+   </div></div>`;}
+['fin','price','global'].forEach(k=>{document.getElementById('who-'+k+'-tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;whoTab[k]=b.dataset.p;renderWho(k);});});
 document.getElementById('secTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;secP=b.dataset.p;renderSec();});
 document.getElementById('secAll').addEventListener('click',()=>{LIVE.sector='securities';LIVE.level='all';LIVE.persona=secP;go('live');renderLiveFilters();renderLiveList();});
 function renderShipLive(){const box=document.getElementById('shipLive');if(!LIVE.feed)return;
@@ -2342,7 +2461,23 @@ const CASE_SIMS=[
   {name:'封锁升级',prob:20,sev:'r',trigger:'霍尔木兹实质封锁，或主要出口设施受损',impact:'油价再上一个台阶，全球滞胀交易，中东主权基金放缓对外投资',window:'数周内',better:'多国护航恢复通行',worse:'封锁持续超过两周',
    path:['霍尔木兹实质封锁','油价冲向 120 美元以上','全球滞胀交易、央行被迫偏紧','中东主权基金放缓对外投资'],vars:[{k:"oil",dir:"up",note:"120 美元以上"},{k:"lng",dir:"up",note:""},{k:"freight_tank",dir:"up",note:"运力错配"},{k:"gold",dir:"up",note:"避险"},{k:"rate",dir:"up",note:"滞胀压力"}]}],
  watch:[{what:'霍尔木兹日通行量',when:'每日',good:'回升',bad:'继续下滑'},{what:'OPEC+ 2027 配额评估',when:'11 月中旬',good:'增产补缺口',bad:'维持现状'},{what:'战争险保费',when:'每周',good:'回落',bad:'继续加费'},{what:'布伦特月差',when:'每日',good:'近月升水收窄',bad:'升水扩大'}],
- review_by:'2026-12-31'}}
+ review_by:'2026-12-31'}},
+{id:'case-zim',demo:true,hypo:true,sector:'shipping',persona:['box'],country:'红海',title:'假设情景：红海航线恢复通行，集运运力释放',sim:{
+ conclusion:'这是一条用来演示方法的假设情景。绕行好望角占用的运力一旦释放，即期运价先回落；船公司利润怎么变，要看运量、实现运费、附加费和准固定成本各自往哪走。',
+ facts:['假设：主要班轮公司宣布恢复经苏伊士运河的亚欧航线','ZIM 的收入由运量与每箱收入构成，租入运力形成准固定成本（取自 Agenta 研究报告）'],
+ unknowns:['复航的节奏：一次性恢复还是分批','长约运价何时重新议定','附加费（绕行、战争险）取消的速度'],
+ chain:['红海复航','绕行里程消失、运力释放','即期运价回落','实现运费与附加费下行','准固定成本不变，利润收缩'],
+ affected:'集运班轮公司，尤其是租入运力占比高、即期敞口大的公司',
+ comparable:{case:'2023 年运价自疫情高位回落',lesson:'运力过剩时运价下行快于成本下行，租金和折旧不变，利润的跌幅大于收入的跌幅。'},
+ scenarios:[
+  {name:'全面复航',prob:55,sev:'r',trigger:'主要联盟一个季度内全部改回苏伊士航线',impact:'有效运力释放，即期运价明显回落，附加费取消',window:'1–2 个季度',better:'复航分批、运价缓降',worse:'运价跌破成本线',
+   path:['绕行运力一次性释放','即期运价与附加费回落','实现运费滞后一个季度下行','租金刚性，利润收缩'],path_ev:['j','j','j','j'],vars:[{k:"freight_box",dir:"down",note:"亚欧线即期"},{k:"realized_rate",dir:"down",note:"滞后一个季度"},{k:"surcharge",dir:"down",note:"绕行附加费取消"},{k:"bunker",dir:"down",note:"里程缩短"}],stocks:[],profit:{vol:{dir:"up",note:"周转加快"},rate:{dir:"down",note:"即期先跌，长约滞后"},surcharge:{dir:"down",note:"绕行附加费取消"},varcost:{dir:"down",note:"燃油随里程下降"},fixcost:{dir:"flat",note:"租金合同已锁定"},net:{dir:"down",note:"成本刚性放大跌幅"},differ:"租入运力多、即期敞口大的公司受损更重；长约占比高的滞后体现"}},
+  {name:'分批复航',prob:30,sev:'y',trigger:'部分船公司复航，其余观望',impact:'运价温和回落，长约价基本维持',window:'2–3 个季度',better:'旺季需求接住运力',worse:'观望方跟进复航',
+   path:['部分运力释放','即期运价温和回落','长约与附加费基本维持'],path_ev:['j','j','j'],vars:[{k:"freight_box",dir:"down",note:"温和"},{k:"surcharge",dir:"down",note:"部分取消"}],stocks:[],profit:{vol:{dir:"flat",note:""},rate:{dir:"flat",note:"长约基本维持"},surcharge:{dir:"flat",note:""},varcost:{dir:"flat",note:""},fixcost:{dir:"flat",note:""},net:{dir:"flat",note:"量价大致相抵"},differ:"各公司差异不大"}},
+  {name:'再度中断',prob:15,sev:'g',trigger:'复航后再次发生袭船，航线重新绕行',impact:'运力再度吃紧，运价和附加费反弹',window:'数周内',better:'护航恢复',worse:'中断长期化',
+   path:['航线重新绕行','运力吃紧、附加费恢复','运价反弹，利润改善'],path_ev:['j','j','j'],vars:[{k:"freight_box",dir:"up",note:"反弹"},{k:"surcharge",dir:"up",note:"附加费恢复"},{k:"insurance",dir:"up",note:""}],stocks:[],profit:{vol:{dir:"down",note:"绕行占用运力"},rate:{dir:"up",note:"运力吃紧"},surcharge:{dir:"up",note:"附加费恢复"},varcost:{dir:"up",note:"里程与保费上升"},fixcost:{dir:"flat",note:""},net:{dir:"up",note:"价的上涨压过成本"},differ:"有闲置运力可投放的公司受益更多"}}],
+ watch:[{what:'主要联盟的航线公告',when:'每周',good:'分批复航',bad:'集中复航'},{what:'上海出口集装箱运价指数',when:'每周',good:'缓降',bad:'急跌'},{what:'ZIM 季度承运量、平均运费、单箱收入',when:'下次季报',good:'单箱收入倍数稳定',bad:'实现运费低于按指数推算的水平'}],
+ review_by:'2027-02-28'}}
 ];
 function openSims(){const seen=new Set(),out=[];
  ARC.items.concat(LIVE.feed?LIVE.feed.items.filter(x=>x.sim):[]).forEach(x=>{if(seen.has(x.id))return;seen.add(x.id);if(['hit','miss','unclear'].includes(x.status))return;out.push(x);});return out;}
@@ -2391,8 +2526,9 @@ function simFlow(it){const m=it.sim,a=it.ai||{},sc=m.scenarios||[];if(!sc.length
   ${m.affected?`<div class="cver" style="margin-top:8px">影响对象：${esc(m.affected)}</div>`:''}</div>${profitTable(it)}${modelBox(it)}`;}
 /* 模型联动：推演情景概率 → Agenta 财务模型三档 → 加权每股收益与目标价 */
 const TIERN={bull:'乐观',base:'中性',bear:'悲观'};
+const allModels=()=>(LIVE.feed&&LIVE.feed.models)||LIVE.models||{};
 function modelLinks(it){const m=it.sim;if(Array.isArray(m.models))return m.models;
- const ms=(LIVE.feed&&LIVE.feed.models)||{},sc=m.scenarios||[],out=[];
+ const ms=allModels(),sc=m.scenarios||[],out=[];
  Object.values(ms).forEach(md=>{if(md.checks&&md.checks.usable===false)return;const name=md.stock||md.name;
   const named=sc.some(x=>(x.stocks||[]).some(s=>s.n===name));
   const same=it.sector===md.sector&&(it.persona||[]).some(q=>(md.persona||[]).includes(q))&&sc.some(x=>x.profit);
@@ -2405,10 +2541,11 @@ function modelLinks(it){const m=it.sim;if(Array.isArray(m.models))return m.model
   const tot=w.bull+w.base+w.bear||1,mix=k=>Math.round(['bull','base','bear'].reduce((s,t)=>s+w[t]*md.scenarios[t][k],0)/tot*100)/100;
   out.push({ticker:md.ticker,name,model_version:md.model_version,weights:w,map,eps:mix('eps'),target_price:mix('target_price'),base_target:md.scenarios.base.target_price,price:md.price,currency:md.currency});});
  return out;}
-function modelBox(it){const ls=modelLinks(it);if(!ls.length)return'';const sc=it.sim.scenarios||[],ms=(LIVE.feed&&LIVE.feed.models)||{};
+function modelBox(it){const ls=modelLinks(it);if(!ls.length)return'';const sc=it.sim.scenarios||[],ms=allModels();
  return ls.map(l=>{const md=ms[l.ticker]||{},s=md.scenarios||{},d=l.base_target?Math.round((l.target_price/l.base_target-1)*100):0,sp=l.price?Math.round((l.target_price/l.price-1)*100):null;
   return `<div><h3>模型联动 · ${esc(l.name)} <small style="font-weight:400;color:var(--muted)">Agenta 财务模型 ${esc(l.model_version)} · 情景概率加权</small></h3>
   <div class="mdl">
+   ${md.caveat?`<div class="who-caveat" style="grid-column:1/-1;margin:0">${esc(md.caveat)}</div>`:''}
    <div class="mdl-kpi"><span>事件前 · 中性目标价</span><b>${l.base_target}</b><small>${esc(l.currency||'')}</small></div>
    <div class="mdl-kpi hot"><span>事件后 · 加权目标价</span><b>${l.target_price}</b><small class="${d<0?'dn':d>0?'up':''}">${d>0?'+':''}${d}%</small></div>
    <div class="mdl-kpi"><span>加权每股收益</span><b>${l.eps}</b><small>${esc(md.valuation_year||'')}</small></div>
@@ -2436,7 +2573,7 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
   <div class="scen-v"><b>验证节点</b><ul><li><span class="g">好转</span> ${esc(x.better)}</li><li><span class="b">恶化</span> ${esc(x.worse)}</li></ul></div></div></div>`).join('');
  const watch=(m.watch||[]).length?`<div class="facttab-wrap"><table class="facttab"><tr><th>观察什么</th><th>时间</th><th>好转信号</th><th>恶化信号</th></tr>${m.watch.map(w=>`<tr><td>${esc(w.what)}</td><td>${esc(w.when)}</td><td>${esc(w.good)}</td><td>${esc(w.bad)}</td></tr>`).join('')}</table></div>`:'';
  const cp=m.comparable||{};
- return `<div class="sd-head"><div><div class="eyebrow">局势推演 · ${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''} · ${it.demo||it.manual?'案例库 · 人工推演':'红色初判'}</div><h2>${esc(a.title_zh||it.title)}</h2></div><button type="button" class="sd-x" aria-label="关闭">×</button></div>
+ return `<div class="sd-head"><div><div class="eyebrow">局势推演 · ${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''} · ${it.hypo?'假设情景 · 方法演示':it.demo||it.manual?'案例库 · 人工推演':'红色初判'}</div><h2>${esc(a.title_zh||it.title)}</h2></div><button type="button" class="sd-x" aria-label="关闭">×</button></div>
  <div class="sd-body">
   <div class="sd-concl">${esc(m.conclusion)}</div>
   <div class="sd-two"><div class="sd-box"><h3>已知事实（来自原文）</h3>${li(m.facts)}</div><div class="sd-box"><h3>待补取核实</h3>${li(m.unknowns)}</div></div>
@@ -2449,7 +2586,7 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
    <p style="margin:0 0 6px">${esc(it.review.explain||'')}</p>${it.review.note?`<p class="sd-note">${esc(it.review.note)}</p>`:''}
    ${(it.review.evidence||[]).length?'<ul>'+it.review.evidence.map(e=>`<li><a href="${esc(safeUrl(e.link))}" target="_blank" rel="noopener noreferrer">${esc(e.title)}</a> <span class="mute">${esc(e.outlet||'')} ${esc(String(e.published||'').slice(0,10))}</span></li>`).join('')+'</ul>':''}
    <p class="sd-note">${it.confirmed?(it.override?'负责人已人工改判，以人工判断为准。':'负责人已确认 AI 初判。'):'AI 对账初判，待负责人确认。'}对账时间 ${esc(fmtTime(it.review.at))}（首尔时间）</p></div>`:''}
-  ${it.demo||it.manual?`<p class="sd-note">这是案例库的人工推演：事实取自案例卡，情景、传导路径和概率为人工整理的示意值，不构成投资建议。${it.no?`已于 ${esc(fmtTime(it.archived_at))}（首尔时间）登记进推演档案，编号 ${esc(it.no)}，`:'已登记进推演档案，'}对账日 ${esc(m.review_by||'')}，到期与 AI 推演一样对账并计入命中率。</p>`:`<p class="sd-note">原文：<a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>（${esc(it.outlet||it.source)}）</p>
+  ${it.hypo?`<p class="sd-note">这是用来演示方法的假设情景，事件并未发生；情景、传导和概率为人工整理的示意值，不进推演档案、不计入命中率，不构成投资建议。</p>`:it.demo||it.manual?`<p class="sd-note">这是案例库的人工推演：事实取自案例卡，情景、传导路径和概率为人工整理的示意值，不构成投资建议。${it.no?`已于 ${esc(fmtTime(it.archived_at))}（首尔时间）登记进推演档案，编号 ${esc(it.no)}，`:'已登记进推演档案，'}对账日 ${esc(m.review_by||'')}，到期与 AI 推演一样对账并计入命中率。</p>`:`<p class="sd-note">原文：<a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>（${esc(it.outlet||it.source)}）</p>
   <p class="sd-note">本推演由 AI（${esc(m.model||'')}）于 ${esc(fmtTime(m.at))}（首尔时间）根据公开报道自动生成，情景概率为示意值；风险等级为 AI 初判，未经人工复核，以原文为准，不构成投资建议。</p>`}
  </div>`;}
 function openSim(id){const it=ARC.items.find(x=>x.id===id)||(LIVE.feed&&LIVE.feed.items.find(x=>x.id===id&&x.sim))||CASE_SIMS.find(x=>x.id===id);if(!it||!it.sim)return; /* 档案里的版本带对账结果，优先用 */
@@ -2486,6 +2623,8 @@ document.getElementById('simArcFilters').addEventListener('click',e=>{const b=e.
   .then(a=>{ARC.items=(a&&Array.isArray(a.items)?a.items:[]).filter(x=>x&&x.sim);renderArc();renderOverview();})
   .catch(()=>renderArc());
 })();
+(function loadModels(){['fin','price','global'].forEach(renderWho);if(location.protocol==='file:')return;
+ fetch('data/models/ZIM.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(m=>{if(m&&m.ticker){LIVE.models={[m.ticker]:m};['fin','price','global'].forEach(renderWho);}}).catch(()=>{});})();
 (function loadFeed(){
  if(location.protocol==='file:'){liveUnavailable('本地打开时读不到实时数据；发布到 GitHub Pages 后，第一次自动采集完成即会显示。');return;}
  fetch('data/feed.json?t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
