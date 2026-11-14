@@ -321,6 +321,7 @@ table.ledger .st.open{background:var(--yellow-bg);color:var(--yellow)}
 table.ledger .st.hit{background:var(--green-bg);color:var(--green)}
 table.ledger .st.miss{background:var(--red-bg);color:var(--red)}
 table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
+table.ledger .mute{color:var(--muted);font-size:12.5px}
 /* ===== 子目录（四行业）===== */
 .sector-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .sector-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px;text-align:left;cursor:default}
@@ -824,7 +825,14 @@ dialog.simdlg::backdrop{background:rgba(10,20,28,.55)}
     <div class="lstat"><b id="f-miss">0</b><span>已验证未成立</span></div>
     <div class="lstat gold"><b id="f-rate">—</b><span>历史命中率（滚动）</span></div>
   </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="margin-top:0">推演档案 <small>红色事件自动推演 · 只增不删 · 到对账日自动转为「待对账」</small></h3>
+    <div class="filters" id="simArcFilters" role="group" aria-label="推演档案筛选"></div>
+    <div class="srcwrap"><table class="ledger" id="simLedger"></table></div>
+    <p class="srcnote" id="simArcNote">正在读取推演档案…</p>
+  </div>
   <div class="card">
+    <h3 style="margin-top:0">示范台账 <small>人工整理的示范记录，演示对账口径</small></h3>
     <div class="srcwrap"><table class="ledger" id="ledger">
       <tr><th>编号</th><th>推演判断</th><th>依据</th><th>验证节点</th><th>到期</th><th>状态</th></tr>
       <tr><td class="no">T-001</td><td>NGCP 特许权最可能走向「情景 B：到期不续/部分收回」</td><td>历史可比（水务特许权事件）+ 听证升级</td><td>特许权修正案是否成法；续期谈判是否启动</td><td>2027 续期节点</td><td><span class="st open">进行中</span></td></tr>
@@ -1873,13 +1881,40 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
   <p class="sd-note">原文：<a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>（${esc(it.outlet||it.source)}）</p>
   <p class="sd-note">本推演由 AI（${esc(m.model||'')}）于 ${esc(fmtTime(m.at))}（首尔时间）根据公开报道自动生成，情景概率为示意值；风险等级为 AI 初判，未经人工复核，以原文为准，不构成投资建议。</p>
  </div>`;}
-function openSim(id){const it=LIVE.feed&&LIVE.feed.items.find(x=>x.id===id);if(!it||!it.sim)return;
+function openSim(id){const it=(LIVE.feed&&LIVE.feed.items.find(x=>x.id===id&&x.sim))||ARC.items.find(x=>x.id===id);if(!it||!it.sim)return;
  let d=document.getElementById('simDlg');
  if(!d){d=document.createElement('dialog');d.id='simDlg';d.className='simdlg';document.body.appendChild(d);
   d.addEventListener('click',e=>{if(e.target===d||e.target.closest('.sd-x'))d.close();});}
  d.innerHTML=simHTML(it);d.showModal();d.scrollTop=0;}
 document.addEventListener('click',e=>{const b=e.target.closest('.simbtn');if(b)openSim(b.dataset.sim);});
 document.getElementById('liveMore').addEventListener('click',()=>{LIVE.limit+=40;renderLiveList();});
+/* ---- 推演档案：读取 data/sims.json（只增不删），到对账日自动转为待对账 ---- */
+const ARC={items:[],sector:'all'};
+const ARC_ST={open:['open','进行中'],watch:['watch','待对账'],hit:['hit','已验证成立 ✓'],miss:['miss','已验证未成立 ✗']};
+const todaySeoul=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
+function arcStatus(x){if(x.status==='hit'||x.status==='miss')return x.status;const d=x.sim&&x.sim.review_by;return d&&d<=todaySeoul()?'watch':'open';}
+function renderArc(){const all=ARC.items,note=document.getElementById('simArcNote');
+ const cnt=k=>all.filter(x=>x.sector===k).length;
+ const btn=(v,label,n)=>`<button type="button" data-v="${v}" aria-pressed="${ARC.sector===v}">${label}<span class="cnt"> ${n}</span></button>`;
+ document.getElementById('simArcFilters').innerHTML=all.length?btn('all','全部',all.length)+Object.keys(SECN).filter(cnt).map(k=>btn(k,SECN[k],cnt(k))).join(''):'';
+ const list=all.filter(x=>ARC.sector==='all'||x.sector===ARC.sector).slice().reverse();
+ document.getElementById('simLedger').innerHTML='<tr><th>编号</th><th>事件</th><th>推演判断</th><th>验证节点</th><th>到期对账</th><th>状态</th><th></th></tr>'+list.map(x=>{
+  const m=x.sim,a=x.ai||{},top=(m.scenarios||[])[0]||{},w=(m.watch||[])[0];const st=ARC_ST[arcStatus(x)];
+  return `<tr><td class="no">${esc(x.no||'')}<br>${esc(String(m.at||'').slice(0,10))}</td>
+   <td><b>${esc(a.title_zh||x.title)}</b><br><span class="mute">${esc(SECN[x.sector]||x.sector)}${x.country?' · '+esc(x.country):''}</span></td>
+   <td>最可能：情景 A · ${esc(top.name||'')}（约 ${+top.prob||0}%）<br><span class="mute">${esc(m.conclusion)}</span></td>
+   <td>${esc(w?w.what:(top.worse||''))}</td><td>${esc(m.review_by||'')}</td>
+   <td><span class="st ${st[0]}">${st[1]}</span>${x.outcome?`<br><span class="mute">${esc(x.outcome)}</span>`:''}</td>
+   <td><button type="button" class="simbtn" data-sim="${esc(x.id)}" style="margin-top:0;white-space:nowrap">查看推演 →</button></td></tr>`;}).join('');
+ note.textContent=all.length?`共 ${all.length} 条推演。状态为系统按对账日自动标注；「已验证成立 / 未成立」需对照实际结果回填。情景概率为 AI 示意值，不构成投资建议。`:'还没有推演档案：红色事件的第一批推演生成后，会自动收进这里。';
+ recountLedger();}
+document.getElementById('simArcFilters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;ARC.sector=b.dataset.v;renderArc();});
+(function loadArc(){
+ if(location.protocol==='file:'){document.getElementById('simArcNote').textContent='本地打开时读不到推演档案。';return;}
+ fetch('data/sims.json?t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
+  .then(a=>{ARC.items=(a&&Array.isArray(a.items)?a.items:[]).filter(x=>x&&x.sim);renderArc();})
+  .catch(()=>renderArc());
+})();
 (function loadFeed(){
  if(location.protocol==='file:'){liveUnavailable('本地打开时读不到实时数据；发布到 GitHub Pages 后，第一次自动采集完成即会显示。');return;}
  fetch('data/feed.json?t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
@@ -1962,7 +1997,7 @@ renderBoard('proj');
 
 /* ---- 局势推演计数 ---- */
 /* 从台账表格实时统计，避免数字与表格不一致 */
-(function(){const st=[...document.querySelectorAll('#ledger .st')];const n=c=>st.filter(x=>x.classList.contains(c)).length;
+function recountLedger(){const st=[...document.querySelectorAll('#ledger .st, #simLedger .st')];const n=c=>st.filter(x=>x.classList.contains(c)).length;
  const open=n('open'),hit=n('hit'),miss=n('miss'),watch=n('watch');
  document.getElementById('f-total').textContent=open;document.getElementById('f-watch').textContent=watch;
  document.getElementById('f-hit').textContent=hit;document.getElementById('f-miss').textContent=miss;
@@ -1970,7 +2005,8 @@ renderBoard('proj');
  document.querySelector('#f-rate+span').textContent=done?`历史命中率（${done} 条已到期）`:'历史命中率（暂无到期）';
  document.getElementById('nb-fore').textContent=open+watch;
  document.getElementById('ov-fore').textContent=st.length+' 条';
- document.getElementById('ov-fore-sub').textContent=`进行中 ${open} · 待对账 ${watch} · 已成立 ${hit} · 未成立 ${miss}`;})();
+ document.getElementById('ov-fore-sub').textContent=`进行中 ${open} · 待对账 ${watch} · 已成立 ${hit} · 未成立 ${miss}`;}
+recountLedger();
 
 /* ---- 一键复制日报摘要 ---- */
 function buildSummary(){

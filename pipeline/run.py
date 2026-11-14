@@ -28,6 +28,7 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 SOURCES = ROOT / "pipeline" / "sources.json"
 FEED = ROOT / "data" / "feed.json"
+SIMS = ROOT / "data" / "sims.json"                   # 局势推演档案：长期保留，不随 feed 过期
 
 KEEP_DAYS = int(os.getenv("KEEP_DAYS", "14"))        # 库里保留多少天
 SHOW_DAYS = int(os.getenv("SHOW_DAYS", "7"))         # 网页展示多少天
@@ -392,7 +393,8 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
  "scenarios": [
   {{"name": "情景名，10 字以内", "prob": 50, "trigger": "触发条件", "impact": "影响", "window": "时间窗口", "better": "好转信号", "worse": "恶化信号"}}
  ],
- "watch": [{{"what": "要跟踪的验证节点", "when": "时间或频率", "good": "好转信号", "bad": "恶化信号"}}]
+ "watch": [{{"what": "要跟踪的验证节点", "when": "时间或频率", "good": "好转信号", "bad": "恶化信号"}}],
+ "review_by": "到期对账日 YYYY-MM-DD：到这一天应该能看出哪种情景成立，按最可能情景的时间窗口估计，不早于今天后 7 天、不晚于 1 年"
 }}"""
 
 
@@ -454,8 +456,48 @@ def simulate_one(it: dict, ts: datetime) -> dict | None:
         "watch": [{"what": _txt(w.get("what"), 80), "when": _txt(w.get("when"), 30),
                    "good": _txt(w.get("good"), 80), "bad": _txt(w.get("bad"), 80)}
                   for w in (d.get("watch") or [])[:4] if isinstance(w, dict) and w.get("what")],
+        "review_by": _review_by(d.get("review_by"), ts),
         "model": DEEPSEEK_MODEL, "at": iso(ts),
     }
+
+
+def _review_by(v, ts: datetime) -> str:
+    """对账日限定在 7 天到 1 年之间；模型没给或格式不对时默认 30 天后。"""
+    lo, hi = ts + timedelta(days=7), ts + timedelta(days=365)
+    try:
+        d = datetime.strptime(str(v)[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except ValueError:
+        d = ts + timedelta(days=30)
+    return min(max(d, lo), hi).strftime("%Y-%m-%d")
+
+
+ARCHIVE_KEYS = ("id", "title", "link", "outlet", "source", "sector", "country", "persona", "asset", "official", "published", "ai", "sim")
+
+
+def archive_sims(items: list[dict], ts: datetime) -> int:
+    """把生成过推演的事件收进 data/sims.json。档案只增不删，对账结果（status/outcome）由人工或后续流程回填。"""
+    arc = {"items": []}
+    if SIMS.exists():
+        try:
+            arc = json.loads(SIMS.read_text(encoding="utf-8"))
+        except ValueError:
+            print("sims.json 损坏，未写入档案（请检查文件）")
+            return 0
+    have = {x["id"] for x in arc["items"]}
+    seq = max((int(x["no"].split("-")[1]) for x in arc["items"] if x.get("no", "").startswith("A-")), default=0)
+    added = 0
+    for it in sorted((i for i in items if i.get("sim") and i["id"] not in have), key=lambda i: i["sim"].get("at", "")):
+        seq += 1
+        rec = {k: it[k] for k in ARCHIVE_KEYS if k in it}
+        rec.update(no=f"A-{seq:04d}", archived_at=iso(ts), status="open", outcome="")
+        arc["items"].append(rec)
+        added += 1
+    arc["updated_at"] = iso(ts)
+    SIMS.parent.mkdir(parents=True, exist_ok=True)
+    tmp = SIMS.with_suffix(".tmp")
+    tmp.write_text(json.dumps(arc, ensure_ascii=False, indent=1), encoding="utf-8")
+    tmp.replace(SIMS)
+    return added
 
 
 def simulate(items: list[dict], ts: datetime) -> int:
@@ -492,6 +534,8 @@ def main() -> int:
     items, added = merge(old.get("items", []), new_items, ts)
     n_ai = analyze(items, ts)
     n_sim = simulate(items, ts)
+    n_arc = archive_sims(items, ts)
+    print(f"局势推演：本次生成 {n_sim} 条，新归档 {n_arc} 条")
 
     show_cut = ts - timedelta(days=SHOW_DAYS)
     shown = [it for it in items if (parse_iso(it.get("published")) or ts) >= show_cut
