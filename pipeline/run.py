@@ -296,7 +296,7 @@ SYSTEM_PROMPT = f"""你是锋睿「观澜 Horizon」舆情雷达的分析员。�
   · securities：r=超预期的利率或货币政策决定、重大监管处罚或市场规则突变、可能引发市场剧烈波动的事件；y=政策信号或表态、重要数据发布、行业政策草案；g=一般动态
   · commodity：r=供给突然中断（产油国减产超预期、要道封锁、主要矿山停产）或价格单日剧烈波动；y=库存与产量数据显著变化、央行购金、政策预期变化；g=一般动态
   · manufacturing：r=关税或双反税率终裁、加征即时生效、产品被禁止进口或扣货、海外工厂被叫停或否决；y=立案调查、初裁、政策草案与谈判、建厂计划重大变化；g=一般动态
-- persona：shipping 填 dry（干散货·海岬型）/ box（集运与货代）/ tank（油轮）；manufacturing 填 battery（电池与储能）/ pv（光伏）/ auto（汽车）/ appliance（家电）；数组，可多选，都不相关则空数组；其余子目录给空数组
+- persona：shipping 填 dry（干散货·海岬型）/ box（集运与货代）/ tank（油轮）；manufacturing 填 battery（电池与储能）/ pv（光伏）/ auto（汽车）/ appliance（家电）；securities 填这条消息哪些岗位需要看：research（研究所：宏观、行业、政策）/ prop（自营与资管：会直接影响持仓标的价格）/ wealth（财富管理：市场大幅波动或普通投资者会问到的事）/ compliance（合规风控：监管处罚、规则变化、金融机构自身的负面与故障）；数组，可多选，都不相关则空数组；其余子目录给空数组
 - asset：仅 commodity 填，数组，可多选 oil / gold / silver / copper / lng，都不相关则空数组
 - country：energy 填 智利 / 巴西 / 菲律宾 / 其他；manufacturing 填出台政策或工厂所在的国家或地区（如 美国、欧盟、墨西哥）；其余子目录留空字符串
 - reason_zh：分级理由，30 字以内
@@ -360,6 +360,8 @@ def analyze(items: list[dict], ts: datetime) -> int:
             if it["sector"] == "shipping":
                 ps = [p for p in (r.get("persona") or []) if p in ("dry", "box", "tank")]
                 it["persona"] = sorted(set(ps) | set(it.get("persona") or []))
+            elif it["sector"] == "securities":
+                it["persona"] = sorted({p for p in (r.get("persona") or []) if p in ("research", "prop", "wealth", "compliance")})
             elif it["sector"] == "manufacturing":
                 ps = [p for p in (r.get("persona") or []) if p in ("battery", "pv", "auto", "appliance")]
                 it["persona"] = sorted(set(ps) | set(it.get("persona") or []))

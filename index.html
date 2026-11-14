@@ -81,6 +81,7 @@ h2 small{font-family:var(--sans);font-weight:400;font-size:13px;color:var(--mute
 .filters button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:4px 14px;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--brand-2);border-color:var(--brand-2);color:#fff}
 .filters button .cnt{opacity:.7;font-size:12px}
+.board-tabs button .cnt{opacity:.7;font-size:12px;margin-left:2px}
 .filters button:focus-visible,.ev summary:focus-visible,a:focus-visible,.tools button:focus-visible,.tgroup button:focus-visible,.search input:focus-visible,.sel:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
 .filters .sep{width:1px;background:var(--line);margin:0 4px;align-self:stretch}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
@@ -1094,9 +1095,14 @@ body.demo main{padding-bottom:96px}
   <h2 id="h-ssec">券商 <small>面向研究所 / 自营 / 资管 / 财富管理 · 实时信源已接入</small></h2>
   <p class="banner">两条线共用同一套引擎：<b>市场雷达</b>由锋睿定义全球重大事件库；<b>主动监控</b>由客户自己添加股票池、行业、人物、关键词、自家机构和发债主体。</p>
   <div class="livebar" id="secBar" style="margin-top:14px"><span class="lb-state">正在读取数据…</span></div>
+  <div class="card" style="margin-top:14px">
+    <h3 class="ct">选择岗位 <small>同一件事，不同岗位看的角度不一样</small></h3>
+    <div class="board-tabs" id="secTabs" role="group" aria-label="券商岗位"></div>
+    <div id="secRole"></div>
+  </div>
   <div class="two" style="margin-top:14px;align-items:start">
     <div class="card">
-      <h3 class="ct" style="margin-top:0">最新动态 <small>券商信源 · 风险优先 · 红色事件可看局势推演</small><button type="button" class="linkbtn" id="secAll">全部 →</button></h3>
+      <h3 class="ct" style="margin-top:0">最新动态 <small id="secLiveSub">券商信源 · 风险优先 · 红色事件可看局势推演</small><button type="button" class="linkbtn" id="secAll">全部 →</button></h3>
       <div class="livelist" id="secLive"><p class="srcnote" style="margin:0">正在读取数据…</p></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
@@ -1970,8 +1976,12 @@ renderShip();
 const LIVE={feed:null,sector:'all',level:'all',persona:'all',q:'',limit:40};
 const SECN={energy:'海外能源',shipping:'航运',securities:'券商',commodity:'大宗商品',manufacturing:'出海制造'};
 const ASSETN={oil:'原油',gold:'黄金',silver:'白银',copper:'铜',lng:'LNG'};
-const PERSEC={shipping:['dry','box','tank'],manufacturing:['battery','pv','auto','appliance']};
-const PERN={dry:'干散货',box:'集运',tank:'油轮',battery:'电池与储能',pv:'光伏',auto:'汽车',appliance:'家电'};
+const PERSEC={shipping:['dry','box','tank'],manufacturing:['battery','pv','auto','appliance'],securities:['research','prop','wealth','compliance']};
+/* 券商岗位：新数据由 AI 打标签；旧数据没有标签，按事件类型和等级推断 */
+const ROLE_BY_TYPE={'政策':['research'],'运营与市场':['research','prop'],'业绩':['research','prop'],'高管与治理':['prop'],'股权与资本':['prop'],'信用':['prop','compliance'],'监管与司法':['compliance'],'舆情发酵':['compliance','wealth'],'地缘与黑天鹅':['research','prop','wealth']};
+function personaOf(it){const ps=it.persona||[];if(it.sector!=='securities'||ps.length||!it.ai)return ps;
+ const r=new Set(ROLE_BY_TYPE[it.ai.type]||['research']);if(it.ai.level==='r')r.add('wealth');return [...r];}
+const PERN={research:'研究所',prop:'自营与资管',wealth:'财富管理',compliance:'合规风控',dry:'干散货',box:'集运',tank:'油轮',battery:'电池与储能',pv:'光伏',auto:'汽车',appliance:'家电'};
 const safeUrl=u=>/^https?:\/\//i.test(u||'')?u:'#';
 function fmtTime(s){if(!s)return'';const d=new Date(s);if(isNaN(d))return'';
  return d.toLocaleString('zh-CN',{timeZone:'Asia/Seoul',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-');}
@@ -1984,7 +1994,7 @@ function liveCard(it){const a=it.ai||{};const lv=a.level;
  tags.push(lv?pill(lv,RN[lv]+'色初判',1):'<span class="pill w">未分级</span>');
  tags.push(it.official?pill('v','官方原文'):pill('w','媒体'));
  if(a.unverified)tags.push('<span class="pill r" style="background:transparent;border:1px dashed var(--red)">未证实</span>');
- tags.push(`<span>${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''}${(it.persona||[]).length?' · '+it.persona.map(p=>esc(PERN[p]||p)).join('/'):''}${(it.asset||[]).length?' · '+it.asset.map(x=>esc(ASSETN[x]||x)).join('/'):''}${a.type?' · '+esc(a.type):''}</span>`);
+ tags.push(`<span>${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''}${it.sector!=='securities'&&(it.persona||[]).length?' · '+it.persona.map(p=>esc(PERN[p]||p)).join('/'):''}${(it.asset||[]).length?' · '+it.asset.map(x=>esc(ASSETN[x]||x)).join('/'):''}${a.type?' · '+esc(a.type):''}</span>`);
  const also=(it.also||[]).length?`<span class="also">另见 ${it.also.length} 个信源</span>`:'';
  return `<article class="litem lv-${lv||'n'}"><div class="meta">${tags.join('')}</div>
   <a class="lt" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(title)}</a>
@@ -1995,7 +2005,7 @@ function liveCard(it){const a=it.ai||{};const lv=a.level;
   ${lv==='r'?(it.sim?`<button type="button" class="simbtn" data-sim="${esc(it.id)}">局势推演 →</button>`:'<p class="simwait">局势推演将在下次自动更新时生成</p>'):''}</article>`;}
 function renderLiveFilters(){const all=liveItems();
  const btn=(k,v,label,n)=>`<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${LIVE[k]===v}">${label}<span class="cnt"> ${n}</span></button>`;
- const cs=(k,v)=>all.filter(it=>k==='sector'?it.sector===v:k==='level'?(v==='n'?!it.ai:it.ai&&it.ai.level===v):(it.persona||[]).includes(v)).length;
+ const cs=(k,v)=>all.filter(it=>k==='sector'?it.sector===v:k==='level'?(v==='n'?!it.ai:it.ai&&it.ai.level===v):personaOf(it).includes(v)).length;
  let h=btn('sector','all','全部',all.length)+Object.keys(SECN).filter(k=>cs('sector',k)).map(k=>btn('sector',k,SECN[k],cs('sector',k))).join('');
  h+='<span class="sep"></span>'+btn('level','all','全部级别',all.length)+['r','y','g'].map(l=>btn('level',l,RN[l]+'色',cs('level',l))).join('')+(all.some(it=>!it.ai)?btn('level','n','未分级',cs('level','n')):'');
  if(PERSEC[LIVE.sector])h+='<span class="sep"></span>'+btn('persona','all','全部画像',cs('sector',LIVE.sector))+PERSEC[LIVE.sector].map(p=>btn('persona',p,PERN[p],cs('persona',p))).join('');
@@ -2003,7 +2013,7 @@ function renderLiveFilters(){const all=liveItems();
 function renderLiveList(){const q=LIVE.q.trim().toLowerCase();const o={r:0,y:1,g:2};
  let list=liveItems().filter(it=>(LIVE.sector==='all'||it.sector===LIVE.sector)
   &&(LIVE.level==='all'||(LIVE.level==='n'?!it.ai:it.ai&&it.ai.level===LIVE.level))
-  &&(LIVE.persona==='all'||!PERSEC[LIVE.sector]||(it.persona||[]).includes(LIVE.persona))
+  &&(LIVE.persona==='all'||!PERSEC[LIVE.sector]||personaOf(it).includes(LIVE.persona))
   &&(!q||[it.title,it.source,it.outlet,it.ai&&it.ai.title_zh,it.ai&&it.ai.summary_zh].join(' ').toLowerCase().includes(q)));
  list.sort((a,b)=>((o[a.ai&&a.ai.level]??3)-(o[b.ai&&b.ai.level]??3))||String(b.published).localeCompare(String(a.published)));
  document.getElementById('liveCount').textContent=`共 ${list.length} 条 · 近 7 天 · 按风险和时间排序`;
@@ -2062,6 +2072,11 @@ function renderOverview(){const f=LIVE.feed;if(!f)return;
  renderWatch();renderSec();renderMfg();}
 /* ---- 券商页：实时动态、事件 → 板块、验证节点日历 ---- */
 const EQ_VAR=k=>k.startsWith('sec_')||k.startsWith('equity_')||k==='fx'||k==='rate'||k==='credit';
+const SEC_ROLE={research:{name:'研究所',users:'宏观、策略与行业分析师',care:'政策与数据超预期、行业景气变化、全球事件往哪个板块传导',use:'晨会素材和点评选题：先看「事件 → 板块」，再打开传导图核对每一层的依据'},
+ prop:{name:'自营与资管',users:'投资经理、交易员、风控',care:'会直接推动持仓标的价格的事：业绩、治理、股权变动、信用事件、黑天鹅',use:'在「敞口监控」里勾选自己持有的板块并设概率门槛，过门槛才提醒，减少噪音'},
+ wealth:{name:'财富管理',users:'投资顾问、客户经理',care:'市场大幅波动和普通投资者会来问的事，需要一个说得清的解释',use:'红色事件的推演给出三种情景和验证节点，可以直接改写成给客户的提示口径'},
+ compliance:{name:'合规风控',users:'合规、风控、品牌与公关',care:'监管处罚与规则变化、同业负面、自家机构的舆情与系统故障',use:'自家机构舆情需要启用专属检索（填入机构名称）；启用后自家负面会单独置顶'}};
+let secP='all';
 function renderSec(){const f=LIVE.feed;if(!f||!document.getElementById('secLive'))return;
  const o={r:0,y:1,g:2},lvl=it=>it.ai&&it.ai.level;
  const all=liveItems().filter(it=>it.sector==='securities'),n=l=>all.filter(it=>lvl(it)===l).length;
@@ -2070,8 +2085,13 @@ function renderSec(){const f=LIVE.feed;if(!f||!document.getElementById('secLive'
   <span>券商信源 <b>${srcs.filter(x=>x.ok).length}/${srcs.length}</b> 可用</span>
   <span>近 7 天 <b>${all.length}</b> 条：${pill('r','红 '+n('r'),1)} ${pill('y','黄 '+n('y'),1)} ${pill('g','绿 '+n('g'),1)}${all.some(it=>!it.ai)?` <span class="pill w">未分级 ${all.filter(it=>!it.ai).length}</span>`:''}</span>`;
  document.getElementById('nb-sec').textContent=n('r')?n('r')+' 红':(n('y')?n('y')+' 黄':'');
- const list=all.filter(it=>lvl(it)==='r'||lvl(it)==='y').sort((a,b)=>(o[lvl(a)]-o[lvl(b)])||String(b.published).localeCompare(String(a.published))).slice(0,6);
- document.getElementById('secLive').innerHTML=list.length?list.map(liveCard).join(''):'<p class="srcnote" style="margin:0">近 7 天没有红色或黄色的券商事件。</p>';
+ const hot=all.filter(it=>lvl(it)==='r'||lvl(it)==='y'),cnt=k=>hot.filter(it=>personaOf(it).includes(k)).length;
+ document.getElementById('secTabs').innerHTML=`<button type="button" data-p="all" aria-pressed="${secP==='all'}">全部 <span class="cnt">${hot.length}</span></button>`+Object.entries(SEC_ROLE).map(([k,v])=>`<button type="button" data-p="${k}" aria-pressed="${k===secP}">${esc(v.name)} <span class="cnt">${cnt(k)}</span></button>`).join('');
+ const RP=SEC_ROLE[secP];
+ document.getElementById('secRole').innerHTML=RP?`<dl class="kv"><dt>典型用户</dt><dd>${esc(RP.users)}</dd><dt>最关心</dt><dd>${esc(RP.care)}</dd><dt>怎么用</dt><dd>${esc(RP.use)}</dd></dl>`:'<p class="srcnote" style="margin:0">四个岗位共用同一批事件；选一个岗位只看它需要处理的事。数字是近 7 天该岗位的红色和黄色事件数。</p>';
+ document.getElementById('secLiveSub').textContent=(RP?RP.name+'视角':'全部岗位')+' · 风险优先 · 红色事件可看局势推演';
+ const list=hot.filter(it=>secP==='all'||personaOf(it).includes(secP)).sort((a,b)=>(o[lvl(a)]-o[lvl(b)])||String(b.published).localeCompare(String(a.published))).slice(0,6);
+ document.getElementById('secLive').innerHTML=list.length?list.map(liveCard).join(''):`<p class="srcnote" style="margin:0">近 7 天${RP?'没有需要'+RP.name+'处理的':'没有'}红色或黄色事件。</p>`;
  /* 事件 → 板块：所有进行中的推演里，落到股票市场、板块、汇率利率的变量 */
  const rows=[];openSims().forEach(it=>varProbs(it).forEach(e=>{if(EQ_VAR(e.k)&&!e.auto)rows.push(Object.assign({it},e));}));
  rows.sort((a,b)=>b.prob-a.prob||String(b.it.published).localeCompare(String(a.it.published)));
@@ -2131,7 +2151,8 @@ function renderMfg(){const f=LIVE.feed;if(!f||!document.getElementById('mfgLive'
   :'<tr><td>近 7 天还没有红色或黄色事件。下次自动更新后这里会按市场和产品显示。</td></tr>';}
 document.getElementById('mfgTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;mfgP=b.dataset.p;renderMfg();});
 document.getElementById('mfgAll').addEventListener('click',()=>{LIVE.sector='manufacturing';LIVE.level='all';LIVE.persona=mfgP;go('live');renderLiveFilters();renderLiveList();});
-document.getElementById('secAll').addEventListener('click',()=>{LIVE.sector='securities';LIVE.level='all';go('live');renderLiveFilters();renderLiveList();});
+document.getElementById('secTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;secP=b.dataset.p;renderSec();});
+document.getElementById('secAll').addEventListener('click',()=>{LIVE.sector='securities';LIVE.level='all';LIVE.persona=secP;go('live');renderLiveFilters();renderLiveList();});
 function renderShipLive(){const box=document.getElementById('shipLive');if(!LIVE.feed)return;
  const o={r:0,y:1,g:2};
  const list=liveItems().filter(it=>it.sector==='shipping'&&(!(it.persona||[]).length||it.persona.includes(shipP)))
