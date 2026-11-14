@@ -381,6 +381,7 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
 
 要求：
 - 事实只能来自输入的标题和摘要，不要编造数字、人名、日期；输入里没有的写进「待补取」。
+- 「已知事实」只写事件本身的内容，不要写「由某媒体报道」「发布时间」「被初判为红色」这类关于信源或系统的说明。
 - 推演、历史可比属于分析判断，可以用你的背景知识，但要写得克制、可验证。
 - 三种情景互斥，概率为整数且加起来等于 100，按概率从高到低排列。
 - 每个情景给出可观察的好转信号和恶化信号，便于业务人员跟踪。
@@ -495,7 +496,9 @@ def archive_sims(items: list[dict], ts: datetime) -> int:
     added = 0
     for it in sorted((i for i in items if i.get("sim") and i["id"] not in have), key=lambda i: i["sim"].get("at", "")):
         seq += 1
-        rec = {k: it[k] for k in ARCHIVE_KEYS if k in it}
+        rec = json.loads(json.dumps({k: it[k] for k in ARCHIVE_KEYS if k in it}))  # 深拷贝，档案独立于 feed
+        if not rec["sim"].get("review_by"):  # 早期推演没有对账日：默认推演后 30 天
+            rec["sim"]["review_by"] = _review_by(None, parse_iso(rec["sim"].get("at")) or ts)
         rec.update(no=f"A-{seq:04d}", archived_at=iso(ts), status="open", outcome="")
         arc["items"].append(rec)
         added += 1
