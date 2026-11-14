@@ -35,6 +35,7 @@ LOOKBACK = os.getenv("LOOKBACK", "2d")               # 每次向搜索类信源�
 PER_SOURCE = int(os.getenv("PER_SOURCE", "40"))      # 每个信源最多取几条
 MAX_AI = int(os.getenv("MAX_AI", "300"))             # 每次最多送多少条给 AI，控制成本
 AI_BATCH = 10
+MAX_SIM = int(os.getenv("MAX_SIM", "20"))         # 每次最多给多少条红色事件生成局势推演
 TIMEOUT = 25
 UA = "Mozilla/5.0 (compatible; GuanlanRadar/1.0; +https://sonia16-creator.github.io/guanlan/)"
 
@@ -362,6 +363,117 @@ def analyze(items: list[dict], ts: datetime) -> int:
     return done
 
 
+# ---------------- 红色事件局势推演 ----------------
+
+SIM_FOCUS = {
+    "energy": "国网海外能源资产（智利 CGE、巴西 CPFL、菲律宾 NGCP）的特许权、股权、电价与监管、融资，以及对中资股东的影响",
+    "shipping": "事件 → 通道 → 船型 → 运价与船东股价的传导，涉及干散货、集运、油轮三类船东和经纪人",
+    "securities": "对 A 股、港股、美股、韩股、日股相关板块与公司的传导，以及利率、汇率、资金面",
+    "commodity": "对原油、黄金、白银、铜、LNG 价格与供需的传导，以及持有这些敞口的企业",
+}
+
+SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分析员。输入是一条已被初判为红色的事件。
+今天是 {today}。请输出简体中文的局势推演，重点关注：{focus}。
+
+要求：
+- 事实只能来自输入的标题和摘要，不要编造数字、人名、日期；输入里没有的写进「待补取」。
+- 推演、历史可比属于分析判断，可以用你的背景知识，但要写得克制、可验证。
+- 三种情景互斥，概率为整数且加起来等于 100，按概率从高到低排列。
+- 每个情景给出可观察的好转信号和恶化信号，便于业务人员跟踪。
+
+只输出 JSON，结构如下：
+{{
+ "conclusion": "一句话核心判断，80 字以内",
+ "facts": ["已知事实，只来自输入，最多 4 条"],
+ "unknowns": ["需要补取核实的信息，最多 4 条"],
+ "chain": ["事件", "一级影响", "二级影响", "最终影响到的资产或标的"],
+ "affected": "最可能受影响的对象（资产、板块、标的或敞口），50 字以内",
+ "comparable": {{"case": "最接近的历史可比事件，没有就写空字符串", "lesson": "可借鉴的规律，60 字以内"}},
+ "scenarios": [
+  {{"name": "情景名，10 字以内", "prob": 50, "trigger": "触发条件", "impact": "影响", "window": "时间窗口", "better": "好转信号", "worse": "恶化信号"}}
+ ],
+ "watch": [{{"what": "要跟踪的验证节点", "when": "时间或频率", "good": "好转信号", "bad": "恶化信号"}}]
+}}"""
+
+
+def _txt(v, n):
+    return clean(str(v or ""), n)
+
+
+def simulate_one(it: dict, ts: datetime) -> dict | None:
+    a = it.get("ai", {})
+    focus = SIM_FOCUS.get(it["sector"], SIM_FOCUS["securities"])
+    event = {"sector": it["sector"], "country": it.get("country") or "", "source": it.get("outlet") or it["source"],
+             "published": it.get("published"), "title": it["title"], "title_zh": a.get("title_zh", ""),
+             "summary_zh": a.get("summary_zh", ""), "snippet": it.get("snippet", "")[:400],
+             "red_reason": a.get("reason_zh", "")}
+    payload = {
+        "model": DEEPSEEK_MODEL,
+        "messages": [{"role": "system", "content": SIM_PROMPT.format(today=ts.strftime("%Y-%m-%d"), focus=focus)},
+                     {"role": "user", "content": json.dumps(event, ensure_ascii=False)}],
+        "response_format": {"type": "json_object"},
+        "temperature": 0.3,
+    }
+    for attempt in range(2):
+        try:
+            r = session.post(DEEPSEEK_URL, json=payload, timeout=180,
+                             headers={"Authorization": f"Bearer {DEEPSEEK_KEY}"})
+            r.raise_for_status()
+            d = json.loads(r.json()["choices"][0]["message"]["content"])
+            break
+        except Exception as e:
+            print(f"  推演失败（第 {attempt + 1} 次）：{str(e)[:160]}", flush=True)
+            time.sleep(5)
+    else:
+        return None
+    scen = []
+    for x in (d.get("scenarios") or [])[:3]:
+        try:
+            prob = max(0, min(100, int(round(float(x.get("prob", 0))))))
+        except (TypeError, ValueError):
+            prob = 0
+        scen.append({"name": _txt(x.get("name"), 30), "prob": prob, "trigger": _txt(x.get("trigger"), 160),
+                     "impact": _txt(x.get("impact"), 160), "window": _txt(x.get("window"), 40),
+                     "better": _txt(x.get("better"), 100), "worse": _txt(x.get("worse"), 100)})
+    if not scen or not d.get("conclusion"):
+        return None
+    total = sum(x["prob"] for x in scen)
+    if total and total != 100:  # 概率归一到 100
+        for x in scen:
+            x["prob"] = round(x["prob"] * 100 / total)
+    scen.sort(key=lambda x: -x["prob"])
+    comp = d.get("comparable") or {}
+    return {
+        "conclusion": _txt(d.get("conclusion"), 160),
+        "facts": [_txt(x, 120) for x in (d.get("facts") or [])[:4] if x],
+        "unknowns": [_txt(x, 120) for x in (d.get("unknowns") or [])[:4] if x],
+        "chain": [_txt(x, 40) for x in (d.get("chain") or [])[:5] if x],
+        "affected": _txt(d.get("affected"), 100),
+        "comparable": {"case": _txt(comp.get("case"), 80), "lesson": _txt(comp.get("lesson"), 120)},
+        "scenarios": scen,
+        "watch": [{"what": _txt(w.get("what"), 80), "when": _txt(w.get("when"), 30),
+                   "good": _txt(w.get("good"), 80), "bad": _txt(w.get("bad"), 80)}
+                  for w in (d.get("watch") or [])[:4] if isinstance(w, dict) and w.get("what")],
+        "model": DEEPSEEK_MODEL, "at": iso(ts),
+    }
+
+
+def simulate(items: list[dict], ts: datetime) -> int:
+    if not DEEPSEEK_KEY:
+        return 0
+    recent = ts - timedelta(days=3)
+    todo = [it for it in items if it.get("ai", {}).get("level") == "r" and it["ai"].get("relevant", True)
+            and "sim" not in it and (parse_iso(it.get("published")) or ts) >= recent][:MAX_SIM]
+    done = 0
+    for k, it in enumerate(todo, 1):
+        res = simulate_one(it, ts)
+        if res:
+            it["sim"] = res
+            done += 1
+        print(f"  推演 {k}/{len(todo)}：{'完成' if res else '失败'} · {it['ai'].get('title_zh') or it['title'][:40]}", flush=True)
+    return done
+
+
 # ---------------- 主流程 ----------------
 
 def main() -> int:
@@ -379,6 +491,7 @@ def main() -> int:
         chokepoints = old.get("chokepoints", [])  # PortWatch 偶尔失败时保留上一次数据
     items, added = merge(old.get("items", []), new_items, ts)
     n_ai = analyze(items, ts)
+    n_sim = simulate(items, ts)
 
     show_cut = ts - timedelta(days=SHOW_DAYS)
     shown = [it for it in items if (parse_iso(it.get("published")) or ts) >= show_cut
@@ -386,7 +499,7 @@ def main() -> int:
     lv = lambda l: sum(1 for it in shown if it.get("ai", {}).get("level") == l)
     feed = {
         "generated_at": iso(ts),
-        "ai": {"enabled": bool(DEEPSEEK_KEY), "model": DEEPSEEK_MODEL if DEEPSEEK_KEY else None, "processed_this_run": n_ai},
+        "ai": {"enabled": bool(DEEPSEEK_KEY), "model": DEEPSEEK_MODEL if DEEPSEEK_KEY else None, "processed_this_run": n_ai, "simulated_this_run": n_sim},
         "stats": {
             "sources_total": len(health), "sources_ok": sum(1 for h in health if h["ok"]),
             "fetched_this_run": len(new_items), "items_shown": len(shown),
