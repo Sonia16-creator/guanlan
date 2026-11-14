@@ -121,17 +121,32 @@ _last_gdelt = 0.0
 
 def fetch_gdelt(q: str) -> list[dict]:
     global _last_gdelt
-    wait = 6 - (time.time() - _last_gdelt)  # GDELT 要求两次请求间隔 5 秒以上
+    wait = 10 - (time.time() - _last_gdelt)  # GDELT 要求两次请求间隔 5 秒以上，留足余量
     if wait > 0:
         time.sleep(wait)
     _last_gdelt = time.time()
     url = ("https://api.gdeltproject.org/api/v2/doc/doc?mode=artlist&format=json&sort=datedesc"
            f"&maxrecords={PER_SOURCE}&timespan={LOOKBACK}&query={quote_plus(q)}")
-    r = session.get(url, timeout=TIMEOUT)
-    if r.status_code == 429:  # 被限速时等一会儿再试一次
-        time.sleep(15)
+    # GDELT 自 2026-11 起限速很严（实测间隔 7 秒仍常返回 429，与 IP、UA 无关），只当补充信源：
+    # 被限速就等 30 秒、60 秒各再试一次，仍不行就跳过，同类话题由 Google News 检索覆盖。
+    r = None
+    for attempt, backoff in enumerate([30, 60, 0]):
+        try:
+            r = session.get(url, timeout=TIMEOUT)
+            if r.status_code != 429 and r.status_code < 500:
+                break
+            reason = f"HTTP {r.status_code}"
+        except requests.RequestException as e:
+            reason = type(e).__name__
+        if not backoff:
+            break
+        print(f"  GDELT {reason}，{backoff} 秒后重试（第 {attempt + 2} 次）", flush=True)
+        time.sleep(backoff)
         _last_gdelt = time.time()
-        r = session.get(url, timeout=TIMEOUT)
+    if r is None:
+        raise ValueError("GDELT 连续 3 次请求失败")
+    if r.status_code == 429:
+        raise ValueError("GDELT 限速（429），本次跳过，下次运行再试；同类话题有 Google News 覆盖")
     r.raise_for_status()
     try:
         data = r.json()
