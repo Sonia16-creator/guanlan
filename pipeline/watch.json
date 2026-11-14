@@ -1,11 +1,41 @@
 {
  "_说明": "客户关注的影响变量和概率门槛。一条推演里，会推动该变量的各情景概率相加，达到 min 就发风险提醒。k 的可选值见 run.py 里的 SIM_VARS；加 \"off\": true 可暂停某一条。",
  "rules": [
-  {"k": "freight_tank", "min": 30},
-  {"k": "freight_dry", "min": 30},
-  {"k": "freight_box", "min": 50},
-  {"k": "oil", "min": 50},
-  {"k": "concession", "min": 30},
-  {"k": "stake", "min": 30}
+  {
+   "k": "freight_tank",
+   "min": 30
+  },
+  {
+   "k": "freight_dry",
+   "min": 30
+  },
+  {
+   "k": "freight_box",
+   "min": 50
+  },
+  {
+   "k": "oil",
+   "min": 50
+  },
+  {
+   "k": "concession",
+   "min": 30
+  },
+  {
+   "k": "stake",
+   "min": 30
+  },
+  {
+   "k": "duty",
+   "min": 30
+  },
+  {
+   "k": "access",
+   "min": 30
+  },
+  {
+   "k": "plant",
+   "min": 50
+  }
  ]
 }

@@ -34,7 +34,7 @@ KEEP_DAYS = int(os.getenv("KEEP_DAYS", "14"))        # 库里保留多少天
 SHOW_DAYS = int(os.getenv("SHOW_DAYS", "7"))         # 网页展示多少天
 LOOKBACK = os.getenv("LOOKBACK", "2d")               # 每次向搜索类信源要多久的新闻
 PER_SOURCE = int(os.getenv("PER_SOURCE", "40"))      # 每个信源最多取几条
-MAX_AI = int(os.getenv("MAX_AI", "300"))             # 每次最多送多少条给 AI，控制成本
+MAX_AI = int(os.getenv("MAX_AI", "500"))             # 每次最多送多少条给 AI，控制成本
 AI_BATCH = 10
 MAX_SIM = int(os.getenv("MAX_SIM", "20"))         # 每次最多给多少条红色事件生成局势推演
 MAX_REVIEW = int(os.getenv("MAX_REVIEW", "10"))   # 每次最多对账多少条到期推演
@@ -286,6 +286,7 @@ SYSTEM_PROMPT = f"""你是锋睿「观澜 Horizon」舆情雷达的分析员。�
   · shipping=航运、港口、要道、船舶、运价、船舶融资、造船、制裁船舶
   · securities=对 A 股、港股、美股、韩股、日股有影响的宏观政策、央行与金融监管、重要公司与行业事件
   · commodity=影响原油、黄金、白银、铜、LNG 价格或供需的事件
+  · manufacturing=影响中国电池与储能、光伏、汽车、家电企业出海的事件：关税、反倾销反补贴、市场准入与认证、补贴资格、出口管制、海外建厂审批；单纯的新车型、产品评测、企业营销不算
 - title_zh：中文标题，25 字以内
 - summary_zh：一句话中文摘要，60 字以内，写清谁、做了什么、影响什么
 - type：从 {EVENT_TYPES} 里选一个
@@ -294,9 +295,10 @@ SYSTEM_PROMPT = f"""你是锋睿「观澜 Horizon」舆情雷达的分析员。�
   · shipping：r=要道封锁或袭船导致航线中断、新制裁或港口费等重大政策即时生效、重大违约；y=运价大幅波动、政策草案、地缘升级、重要融资或买卖船交易；g=一般动态
   · securities：r=超预期的利率或货币政策决定、重大监管处罚或市场规则突变、可能引发市场剧烈波动的事件；y=政策信号或表态、重要数据发布、行业政策草案；g=一般动态
   · commodity：r=供给突然中断（产油国减产超预期、要道封锁、主要矿山停产）或价格单日剧烈波动；y=库存与产量数据显著变化、央行购金、政策预期变化；g=一般动态
-- persona：仅 shipping 填，数组，可多选 dry（干散货·海岬型）/ box（集运与货代）/ tank（油轮），都不相关则空数组
+  · manufacturing：r=关税或双反税率终裁、加征即时生效、产品被禁止进口或扣货、海外工厂被叫停或否决；y=立案调查、初裁、政策草案与谈判、建厂计划重大变化；g=一般动态
+- persona：shipping 填 dry（干散货·海岬型）/ box（集运与货代）/ tank（油轮）；manufacturing 填 battery（电池与储能）/ pv（光伏）/ auto（汽车）/ appliance（家电）；数组，可多选，都不相关则空数组；其余子目录给空数组
 - asset：仅 commodity 填，数组，可多选 oil / gold / silver / copper / lng，都不相关则空数组
-- country：energy 填 智利 / 巴西 / 菲律宾 / 其他；其余子目录留空字符串
+- country：energy 填 智利 / 巴西 / 菲律宾 / 其他；manufacturing 填出台政策或工厂所在的国家或地区（如 美国、欧盟、墨西哥）；其余子目录留空字符串
 - reason_zh：分级理由，30 字以内
 - unverified：如果标题本身是传闻、未经证实或单一匿名消息，为 true
 
@@ -334,7 +336,8 @@ def analyze(items: list[dict], ts: datetime) -> int:
         print("未设置 DEEPSEEK_API_KEY，跳过 AI 摘要与分级")
         return 0
     recent = ts - timedelta(days=3)
-    todo = [it for it in items if "ai" not in it and (parse_iso(it.get("published")) or ts) >= recent][:MAX_AI]
+    todo = sorted((it for it in items if "ai" not in it and (parse_iso(it.get("published")) or ts) >= recent),
+                  key=lambda it: it.get("published") or "", reverse=True)[:MAX_AI]  # 积压时先处理最新的
     done = 0
     for k in range(0, len(todo), AI_BATCH):
         batch = todo[k:k + AI_BATCH]
@@ -357,6 +360,11 @@ def analyze(items: list[dict], ts: datetime) -> int:
             if it["sector"] == "shipping":
                 ps = [p for p in (r.get("persona") or []) if p in ("dry", "box", "tank")]
                 it["persona"] = sorted(set(ps) | set(it.get("persona") or []))
+            elif it["sector"] == "manufacturing":
+                ps = [p for p in (r.get("persona") or []) if p in ("battery", "pv", "auto", "appliance")]
+                it["persona"] = sorted(set(ps) | set(it.get("persona") or []))
+                if r.get("country") and not it.get("country"):
+                    it["country"] = clean(str(r["country"]), 12)
             elif it["sector"] == "commodity":
                 xs = [x for x in (r.get("asset") or []) if x in ("oil", "gold", "silver", "copper", "lng")]
                 it["asset"] = sorted(set(xs) | set(it.get("asset") or []))
@@ -374,6 +382,7 @@ SIM_FOCUS = {
     "shipping": "事件 → 通道 → 船型 → 运价与船东股价的传导，涉及干散货、集运、油轮三类船东和经纪人",
     "securities": "对 A 股、港股、美股、韩股、日股相关板块与公司的传导，以及利率、汇率、资金面；影响变量优先落到具体板块（sec_ 开头的变量），再写市场整体",
     "commodity": "对原油、黄金、白银、铜、LNG 价格与供需的传导，以及持有这些敞口的企业",
+    "manufacturing": "政策事件 → 目标市场 → 产品 → 成本与订单 → 产能布局的传导，涉及中国电池与储能、光伏、汽车、家电企业的出口和海外工厂；验证节点优先写案件的法定日期（立案、初裁、终裁、生效日）",
 }
 
 # 影响变量：推演里每个情景会推动哪些变量。代码固定，客户按代码设置「关注变量 + 概率门槛」
@@ -384,6 +393,9 @@ SIM_VARS = {
     "fx": "汇率", "rate": "利率与融资成本", "credit": "信用与评级",
     "equity_cn": "A 股与港股", "equity_us": "美股", "equity_asia": "韩股与日股",
     "tariff": "电价与监管费率", "concession": "特许权与牌照", "stake": "股权与控制权",
+    # 出海制造
+    "duty": "关税与双反税率", "access": "市场准入与认证", "subsidy": "补贴资格", "export_ctrl": "出口管制与技术限制",
+    "plant": "海外工厂审批与投产", "orders": "订单与出货", "rawmat": "原材料成本",
     # 股票板块：券商用户按板块关注
     "sec_semis": "半导体与存储板块", "sec_ai": "算力与 AI 硬件板块", "sec_ev": "新能源车与电池板块",
     "sec_energy": "油气与电力板块", "sec_shipping": "航运与港口板块", "sec_airline": "航空与旅游板块",

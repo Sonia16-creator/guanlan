@@ -1910,9 +1910,10 @@ renderShip();
 
 /* ---- 实时信源：读取 GitHub Actions 每天生成的 data/feed.json ---- */
 const LIVE={feed:null,sector:'all',level:'all',persona:'all',q:'',limit:40};
-const SECN={energy:'海外能源',shipping:'航运',securities:'券商',commodity:'大宗商品'};
+const SECN={energy:'海外能源',shipping:'航运',securities:'券商',commodity:'大宗商品',manufacturing:'出海制造'};
 const ASSETN={oil:'原油',gold:'黄金',silver:'白银',copper:'铜',lng:'LNG'};
-const PERN={dry:'干散货',box:'集运',tank:'油轮'};
+const PERSEC={shipping:['dry','box','tank'],manufacturing:['battery','pv','auto','appliance']};
+const PERN={dry:'干散货',box:'集运',tank:'油轮',battery:'电池与储能',pv:'光伏',auto:'汽车',appliance:'家电'};
 const safeUrl=u=>/^https?:\/\//i.test(u||'')?u:'#';
 function fmtTime(s){if(!s)return'';const d=new Date(s);if(isNaN(d))return'';
  return d.toLocaleString('zh-CN',{timeZone:'Asia/Seoul',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-');}
@@ -1939,12 +1940,12 @@ function renderLiveFilters(){const all=liveItems();
  const cs=(k,v)=>all.filter(it=>k==='sector'?it.sector===v:k==='level'?(v==='n'?!it.ai:it.ai&&it.ai.level===v):(it.persona||[]).includes(v)).length;
  let h=btn('sector','all','全部',all.length)+Object.keys(SECN).filter(k=>cs('sector',k)).map(k=>btn('sector',k,SECN[k],cs('sector',k))).join('');
  h+='<span class="sep"></span>'+btn('level','all','全部级别',all.length)+['r','y','g'].map(l=>btn('level',l,RN[l]+'色',cs('level',l))).join('')+(all.some(it=>!it.ai)?btn('level','n','未分级',cs('level','n')):'');
- if(LIVE.sector==='shipping')h+='<span class="sep"></span>'+btn('persona','all','全部画像',cs('sector','shipping'))+Object.keys(PERN).map(p=>btn('persona',p,PERN[p],cs('persona',p))).join('');
+ if(PERSEC[LIVE.sector])h+='<span class="sep"></span>'+btn('persona','all','全部画像',cs('sector',LIVE.sector))+PERSEC[LIVE.sector].map(p=>btn('persona',p,PERN[p],cs('persona',p))).join('');
  document.getElementById('liveFilters').innerHTML=h;}
 function renderLiveList(){const q=LIVE.q.trim().toLowerCase();const o={r:0,y:1,g:2};
  let list=liveItems().filter(it=>(LIVE.sector==='all'||it.sector===LIVE.sector)
   &&(LIVE.level==='all'||(LIVE.level==='n'?!it.ai:it.ai&&it.ai.level===LIVE.level))
-  &&(LIVE.persona==='all'||LIVE.sector!=='shipping'||(it.persona||[]).includes(LIVE.persona))
+  &&(LIVE.persona==='all'||!PERSEC[LIVE.sector]||(it.persona||[]).includes(LIVE.persona))
   &&(!q||[it.title,it.source,it.outlet,it.ai&&it.ai.title_zh,it.ai&&it.ai.summary_zh].join(' ').toLowerCase().includes(q)));
  list.sort((a,b)=>((o[a.ai&&a.ai.level]??3)-(o[b.ai&&b.ai.level]??3))||String(b.published).localeCompare(String(a.published)));
  document.getElementById('liveCount').textContent=`共 ${list.length} 条 · 近 7 天 · 按风险和时间排序`;
@@ -2049,14 +2050,16 @@ const VZ={hit:'成立',miss:'未成立',unclear:'无法判定'};
 const SIM_VARS={freight_dry:'干散货运价',freight_box:'集运运价',freight_tank:'油轮运价',insurance:'战争险与保费',shipowner:'船东股价',supply:'供应链与交付',
  oil:'原油价格',lng:'天然气与 LNG 价格',gold:'黄金价格',silver:'白银价格',copper:'铜价',fx:'汇率',rate:'利率与融资成本',credit:'信用与评级',
  equity_cn:'A 股与港股',equity_us:'美股',equity_asia:'韩股与日股',tariff:'电价与监管费率',concession:'特许权与牌照',stake:'股权与控制权',
+ duty:'关税与双反税率',access:'市场准入与认证',subsidy:'补贴资格',export_ctrl:'出口管制与技术限制',plant:'海外工厂审批与投产',orders:'订单与出货',rawmat:'原材料成本',
  sec_semis:'半导体与存储板块',sec_ai:'算力与 AI 硬件板块',sec_ev:'新能源车与电池板块',sec_energy:'油气与电力板块',sec_shipping:'航运与港口板块',sec_airline:'航空与旅游板块',sec_gold:'黄金与有色板块',sec_fin:'银行与券商板块'};
 /* 旧推演没有结构化变量，按情景「影响」里的关键词推断，界面上标「推断」 */
 const VAR_KW={freight_tank:/油轮.{0,6}运价|油轮运费|VLCC|油运/,freight_dry:/干散货.{0,6}运价|散货运价|BDI|海岬型/,freight_box:/集运.{0,6}运价|集装箱.{0,6}运价|SCFI|箱运/,
  insurance:/战争险|保费|保险费/,shipowner:/船东股|航运股|船公司股价/,supply:/供应链|交付|延误|绕行|断供/,oil:/油价|原油|布伦特|WTI/,lng:/LNG|天然气/,gold:/黄金|金价/,silver:/白银|银价/,copper:/铜价|铜矿|铜供应/,
+ duty:/关税|反倾销|反补贴|双反/,access:/准入|认证|禁止进口|扣货/,subsidy:/补贴资格|税收抵免/,export_ctrl:/出口管制|技术限制/,plant:/建厂|工厂审批|投产/,orders:/订单|出货/,rawmat:/原材料成本|锂价|多晶硅/,
  sec_semis:/半导体|存储|芯片|HBM/,sec_ai:/算力|光模块|服务器|AI 硬件/,sec_ev:/新能源车|电动车|锂电|电池/,sec_energy:/油气股|能源股|电力股|能源板块/,sec_shipping:/航运股|港口股|航运板块/,sec_airline:/航空|旅游/,sec_gold:/黄金股|有色/,sec_fin:/银行股|券商股|金融股|银行板块/,
  fx:/汇率|贬值|升值|美元指数/,rate:/利率|融资成本|加息|降息|收益率/,credit:/评级|信用利差|违约/,equity_cn:/A ?股|港股|沪深|恒生/,equity_us:/美股|纳指|标普|道指/,equity_asia:/韩股|日股|KOSPI|日经/,
  tariff:/电价|费率/,concession:/特许权|牌照|特许经营/,stake:/股权|国有化|减持|控制权/};
-const WATCH_DEFAULT={freight_tank:30,freight_dry:30,freight_box:50,oil:50,concession:30,stake:30};
+const WATCH_DEFAULT={freight_tank:30,freight_dry:30,freight_box:50,oil:50,concession:30,stake:30,duty:30,access:30,plant:50};
 let WATCH=(()=>{try{const w=JSON.parse(localStorage.getItem('guanlan-watch'));if(w&&typeof w==='object')return w;}catch(e){}return Object.assign({},WATCH_DEFAULT);})();
 const saveWatch=()=>{try{localStorage.setItem('guanlan-watch',JSON.stringify(WATCH))}catch(e){}};
 function scenVars(it,x){if(Array.isArray(x.vars))return x.vars.filter(v=>SIM_VARS[v.k]);

@@ -76,6 +76,21 @@
     {"id": "rss-sec-press", "name": "美国证监会 SEC 新闻稿", "sector": "securities", "country": "美国", "type": "rss", "url": "https://www.sec.gov/news/pressreleases.rss", "official": true},
     {"id": "gn-zh-ashare", "name": "Google News · A 股港股异动", "sector": "securities", "country": "中国", "type": "gnews", "lang": "zh", "q": "(A股 OR 港股) (暴跌 OR 熔断 OR 立案 OR 停牌 OR 退市 OR 跌停)"},
     {"id": "gn-ko-kospi", "name": "Google News · 韩股异动", "sector": "securities", "country": "韩国", "type": "gnews", "lang": "ko", "q": "코스피 (급락 OR 서킷브레이커 OR \"외국인 순매도\" OR 급등)"},
+    {"id": "fr-ita-china", "name": "美国商务部 ITA · 涉华反倾销反补贴公告", "sector": "manufacturing", "country": "美国", "type": "rss", "url": "https://www.federalregister.gov/api/v1/documents.rss?conditions[agencies][]=international-trade-administration&conditions[term]=%22People%27s+Republic+of+China%22", "official": true},
+    {"id": "fr-itc-china", "name": "美国国际贸易委员会 ITC · 涉华公告", "sector": "manufacturing", "country": "美国", "type": "rss", "url": "https://www.federalregister.gov/api/v1/documents.rss?conditions[agencies][]=international-trade-commission&conditions[term]=China", "official": true},
+    {"id": "rss-ustr", "name": "美国贸易代表办公室 USTR", "sector": "manufacturing", "country": "美国", "type": "rss", "url": "https://ustr.gov/rss.xml", "official": true},
+    {"id": "rss-pvtech", "name": "PV Tech", "sector": "manufacturing", "persona": "pv", "type": "rss", "url": "https://www.pv-tech.org/feed/"},
+    {"id": "rss-pvmag", "name": "pv magazine", "sector": "manufacturing", "persona": "pv", "type": "rss", "url": "https://www.pv-magazine.com/feed/"},
+    {"id": "rss-esnews", "name": "Energy-Storage.news", "sector": "manufacturing", "persona": "battery", "type": "rss", "url": "https://www.energy-storage.news/feed/"},
+    {"id": "rss-electrive", "name": "electrive", "sector": "manufacturing", "persona": "auto", "type": "rss", "url": "https://www.electrive.com/feed/"},
+    {"id": "rss-cnevpost", "name": "CnEVPost", "sector": "manufacturing", "persona": "auto", "country": "中国", "type": "rss", "url": "https://cnevpost.com/feed/"},
+    {"id": "gn-mfg-tariff", "name": "Google News · 涉华新能源关税与双反", "sector": "manufacturing", "type": "gnews", "lang": "en", "q": "(tariff OR tariffs OR \"anti-dumping\" OR \"anti-subsidy\" OR countervailing) (\"Chinese EVs\" OR \"Chinese electric vehicles\" OR \"Chinese solar\" OR \"Chinese batteries\")"},
+    {"id": "gn-mfg-zh", "name": "Google News · 贸易救济（中文）", "sector": "manufacturing", "country": "中国", "type": "gnews", "lang": "zh", "q": "(反倾销 OR 反补贴 OR 加征关税 OR 贸易救济) (光伏 OR 电池 OR 电动汽车 OR 家电 OR 储能)"},
+    {"id": "gn-mfg-mx", "name": "Google News · 墨西哥对华关税", "sector": "manufacturing", "country": "墨西哥", "type": "gnews", "lang": "es", "q": "aranceles (autos OR vehículos OR acero OR electrodomésticos) (chinos OR China)"},
+    {"id": "gn-mfg-br", "name": "Google News · 巴西对华车与光伏税", "sector": "manufacturing", "country": "巴西", "type": "gnews", "lang": "pt", "q": "(imposto OR tarifa OR antidumping) (carros elétricos OR painéis solares OR BYD OR GWM) (China OR chineses)"},
+    {"id": "gn-mfg-plants", "name": "Google News · 中资海外建厂", "sector": "manufacturing", "type": "gnews", "lang": "en", "q": "(BYD OR CATL OR Gotion OR LONGi OR Jinko OR Midea OR Haier OR Chery OR Geely) (plant OR factory) (Hungary OR Mexico OR Indonesia OR Thailand OR Brazil OR Turkey OR Morocco OR Spain)"},
+    {"id": "gn-mfg-feoc", "name": "Google News · 强迫劳动法案与外国实体限制", "sector": "manufacturing", "country": "美国", "type": "gnews", "lang": "en", "q": "(UFLPA OR \"forced labor\" OR \"foreign entity of concern\" OR FEOC) (solar OR battery OR polysilicon)"},
+    {"id": "gn-mfg-appliance", "name": "Google News · 家电贸易救济", "sector": "manufacturing", "persona": "appliance", "type": "gnews", "lang": "en", "q": "(\"anti-dumping\" OR tariff OR safeguard) (appliances OR \"washing machines\" OR refrigerators OR \"air conditioners\") China"},
     {"id": "gn-self-template", "name": "模板 · 自家机构舆情（改名后启用）", "sector": "securities", "type": "gnews", "lang": "zh", "q": "\"机构名称\" (处罚 OR 罚单 OR 故障 OR 投诉 OR 立案)", "disabled": true}
   ]
 }
