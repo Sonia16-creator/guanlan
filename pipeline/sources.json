@@ -67,6 +67,8 @@
     {"id": "rss-scmp-biz", "name": "SCMP 商业", "sector": "securities", "country": "中国香港", "type": "rss", "url": "https://www.scmp.com/rss/92/feed"},
     {"id": "rss-chinanews-fin", "name": "中新网 财经", "sector": "securities", "country": "中国", "type": "rss", "url": "https://www.chinanews.com.cn/rss/finance.xml"},
     {"id": "rss-yna-econ", "name": "韩联社 经济", "sector": "securities", "country": "韩国", "type": "rss", "url": "https://www.yna.co.kr/rss/economy.xml"},
+    {"id": "rss-nvda-news", "name": "英伟达官方新闻稿", "sector": "securities", "country": "美国", "type": "rss", "url": "https://nvidianews.nvidia.com/releases.xml", "official": true},
+    {"id": "gn-nvda-ceo", "name": "Google News · 英伟达 CEO 与治理", "sector": "securities", "country": "美国", "type": "gnews", "lang": "en", "q": "Nvidia (CEO OR board OR successor OR \"8-K\" OR investigation OR \"export controls\")"},
     {"id": "gn-self-template", "name": "模板 · 自家机构舆情（改名后启用）", "sector": "securities", "type": "gnews", "lang": "zh", "q": "\"机构名称\" (处罚 OR 罚单 OR 故障 OR 投诉 OR 立案)", "disabled": true}
   ]
 }
