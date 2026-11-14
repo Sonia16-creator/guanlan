@@ -460,6 +460,8 @@ li .linkbtn{margin:0}
 .qlist li+li{border-top:1px solid var(--line)}
 .qitem{font:inherit;width:100%;text-align:left;border:none;background:none;cursor:pointer;display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 6px;border-radius:8px;color:var(--text)}
 .qitem:hover{background:var(--tint)}
+a.qitem{text-decoration:none}
+.qt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .qc{font-size:12px;color:var(--yellow);background:var(--yellow-bg);border-radius:999px;text-align:center;padding:1px 0}
 .qt{color:var(--ink);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .qk{font-size:12px;color:var(--muted);white-space:nowrap}
@@ -586,6 +588,16 @@ dialog.simdlg::backdrop{background:rgba(10,20,28,.55)}
 /* 演示模式：链接带 ?demo 时显示「认识观澜」、示意页和演示路线 */
 body:not(.demo) [data-demo]{display:none!important}
 .side .grp-about{margin-top:6px;border-top:1px solid var(--line);padding-top:12px}
+/* 侧栏层级：分组标题 = 深色小标题 + 金色竖条 + 分隔线；菜单项缩进，挂在左侧细线下 */
+.side .grp{display:flex;align-items:center;gap:7px;color:var(--ink);font-size:12.5px;font-weight:700;letter-spacing:.06em;padding:14px 10px 6px;margin-top:6px;border-top:1px solid var(--line)}
+.side .grp::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--gold-bright);flex:none}
+.side .grp:first-child,body:not(.demo) .side .grp:nth-child(4){border-top:none;margin-top:0;padding-top:4px}
+.side .grp~button{margin-left:12px;width:calc(100% - 12px);font-size:13.5px;color:var(--muted);border-left:1px solid var(--line);border-radius:0 8px 8px 0;padding-left:12px}
+.side .grp~button:hover{color:var(--text)}
+.side .grp~button[aria-current="page"]{color:var(--ink)}
+.side .grp~button[aria-current="page"]::after{left:-2px;top:4px;bottom:4px}
+.backlink{font:inherit;font-size:13px;color:var(--muted);background:none;border:none;padding:0;margin:0 0 6px;cursor:pointer}
+.backlink:hover{color:var(--ink)}
 .demobar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:40;width:min(880px,calc(100% - 24px));background:var(--brand);color:var(--on-brand);border:1px solid var(--gold-line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:10px 14px;display:flex;align-items:center;gap:12px}
 .demobar[hidden]{display:none}
 .demobar .db-step{font-size:12px;color:var(--gold);font-weight:700;white-space:nowrap;letter-spacing:.04em}
@@ -643,9 +655,6 @@ body.demo main{padding-bottom:96px}
   <button data-go="sector-shipping"><span>航运</span><span class="nb new">新</span></button>
   <button data-go="sector-commodity"><span>大宗商品</span></button>
   <div class="grp">研判</div>
-  <button data-go="special-overview"><span>重大事件专题</span></button>
-  <button data-go="special" class="sub"><span>CGE 监管处罚</span><span class="nb y">黄</span></button>
-  <button data-go="special-ngcp" class="sub"><span>NGCP 特许权</span><span class="nb r">红</span></button>
   <button data-go="foresight"><span>局势推演</span><span class="nb" id="nb-fore"></span></button>
   <button data-go="ask"><span>问雷达</span></button>
   <div class="grp">复盘</div>
@@ -662,71 +671,60 @@ body.demo main{padding-bottom:96px}
 
 <section data-view="overview" class="hero" aria-labelledby="h-ov">
   <div class="hero-txt">
-    <div class="eyebrow">今日要点 · 2026-11-10 批次</div>
-    <h1 id="h-ov">今天有 <em id="hero-y">8</em> 条事件需要关注，暂无需上报的红色事件</h1>
+    <div class="eyebrow" id="ov-eyebrow">今日要点 · 实时</div>
+    <h1 id="h-ov">正在读取最新数据…</h1>
     <p>全球重大事件发生后，看清它往哪传导、影响哪些标的、盯哪些信号；每个判断追到原文，每次推演到期对账。</p>
     <button type="button" class="hero-live" id="heroLive" data-jump="live" hidden></button>
   </div>
   <div class="hero-act">
-    <button type="button" class="btn-pri" data-jump="events">查看事件清单</button>
+    <button type="button" class="btn-pri" data-jump="live">查看实时信源</button>
     <button type="button" class="btn-sec" data-jump="ask">问雷达</button>
   </div>
 </section>
 
-<section data-view="overview" aria-labelledby="h-funnel">
-  <h2 id="h-funnel">今天系统做了什么 <small>从检索到上报，每一层只做一件事</small></h2>
+<section data-view="overview" data-demo aria-labelledby="h-funnel">
+  <h2 id="h-funnel">系统最近一次运行 <small>从采集到推演，每一层只做一件事 · 实时数字</small></h2>
   <div class="funnel">
-    <div class="fstep"><b>210</b><span>检索记录</span><em>采集：只管抓全</em></div>
-    <div class="fstep"><b>108</b><span>原始材料</span><em>读取正文并保留</em></div>
-    <div class="fstep"><b id="n-all">17</b><span>事件</span><em>同一件事归并为一条</em></div>
-    <div class="fstep gold"><b id="n-y">8</b><span>需关注（黄）</span><em>分级初判，写明理由</em></div>
-    <div class="fstep"><b id="n-r">0</b><span>需上报（红）</span><em>须人工复核后定级</em></div>
+    <div class="fstep"><b id="fn-src">—</b><span>信源可用</span><em>公开免费信源，定时采集</em></div>
+    <div class="fstep"><b id="fn-fetch">—</b><span>本次抓取</span><em>只管抓全，去重归并</em></div>
+    <div class="fstep"><b id="fn-ai">—</b><span>AI 分级</span><em>中文摘要 + 红黄绿初判</em></div>
+    <div class="fstep gold"><b id="fn-ry">—</b><span>红 / 黄（近 7 天）</span><em>写明分级理由</em></div>
+    <div class="fstep"><b id="fn-sim">—</b><span>局势推演</span><em>红色事件自动推演，到期对账</em></div>
   </div>
 </section>
 
 <section data-view="overview" class="two">
   <div class="card" aria-labelledby="h-top">
-    <h2 id="h-top">今日要点 <small>AI 按影响和确定性挑出三条</small></h2>
-    <ol class="top3">
-      <li><span class="n">1</span><div><strong>智利官方通报：CGE 输电被罚 3000 UTM</strong><p>已有官方原文支持。处罚与设施维护缺陷有关；处罚决定、整改期限和申诉进展尚待补取。</p></div></li>
-      <li><span class="n">2</span><div><strong>巴西“Hora Certa”分时电价：媒体称已通过，官方决议未取得</strong><p>目前只有媒体说法，和前一日官方材料的阶段不一致。确认前不按已生效处理。</p></div></li>
-      <li><span class="n">3</span><div><strong>菲律宾：厄尔尼诺供电压力与备用电力限价草案同时出现</strong><p>能源部长称无法保证不停电；监管机构就备用市场限价征求意见。两件事都关系到电网运营。</p></div></li>
-    </ol>
+    <h2 id="h-top">最新红色事件 <small>AI 初判 · 需人工复核</small><button type="button" class="linkbtn" data-jump="live">全部 →</button></h2>
+    <ol class="top3" id="ovTop"><li><span class="n">·</span><div><p>正在读取…</p></div></li></ol>
   </div>
   <div class="card" aria-labelledby="h-dates">
-    <h2 id="h-dates">关键日期 <small>取自各事件原文</small></h2>
-    <ul class="dates">
-      <li><time>11-11</time><div>CGE 输电 Tierra Amarilla 计划检修（13 日还有一次）<small>智利 · 计划性停电</small></div></li>
-      <li><time>11-12</time><div>菲律宾能源部财务评估指引：提前意见截止（17:00）<small>菲律宾 · 公众咨询</small></div></li>
-      <li><time>11-13</time><div>CPFL Santa Cruz 劳动协议：工会表决<small>巴西 · 劳资关系</small></div></li>
-      <li><time>11-13</time><div>ANEEL 三项既有电力拍卖<small>巴西 · 电力采购</small></div></li>
-      <li><time>11-13</time><div>菲律宾备用电力限价草案：意见提交截止<small>菲律宾 · 报道所述期限，待核对原件</small></div></li>
-      <li><time>11-27</time><div>菲律宾备用电力限价草案：公众咨询<small>菲律宾 · 报道所述日期，待核对原件</small></div></li>
-    </ul>
+    <h2 id="h-dates">关键日期 <small>推演到期对账日</small><button type="button" class="linkbtn" data-jump="foresight">推演档案 →</button></h2>
+    <ul class="dates" id="ovDates"><li><time>—</time><div>正在读取…</div></li></ul>
   </div>
 </section>
 
 <section data-view="overview" class="two">
   <div class="card">
-    <h2>需关注事件 <small>黄色初判 · 点击查看依据与原文</small><button type="button" class="linkbtn" data-jump="events">全部 →</button></h2>
+    <h2>需关注事件 <small>近 24 小时 · 黄色初判 · 点击看原文</small><button type="button" class="linkbtn" data-jump="live">全部 →</button></h2>
     <ul class="qlist" id="ovEvents"></ul>
   </div>
   <div class="card">
     <h2>专题与推演 <small>自动触发 · 到期对账</small></h2>
     <div class="ovsp">
       <button type="button" class="ovsp-item" data-jump="special-ngcp"><span class="pill r"><span class="dot"></span>红色</span><span><b>NGCP 特许权审查</b><small>演示样例 · 历史事件线回放，不计入本批次</small></span><span class="arr">→</span></button>
-      <button type="button" class="ovsp-item" data-jump="special"><span class="pill y"><span class="dot"></span>黄色</span><span><b>CGE 监管处罚事件线</b><small>16 个月内二次同类处罚</small></span><span class="arr">→</span></button>
+      <button type="button" class="ovsp-item" data-jump="special"><span class="pill y"><span class="dot"></span>黄色</span><span><b>CGE 监管处罚事件线</b><small>演示样例 · 16 个月内二次同类处罚</small></span><span class="arr">→</span></button>
       <button type="button" class="ovsp-item" data-jump="foresight"><span class="pill v" id="ov-fore">推演</span><span><b>局势推演台账</b><small id="ov-fore-sub">进行中与待对账的判断</small></span><span class="arr">→</span></button>
     </div>
   </div>
 </section>
 
 <section data-view="overview" aria-labelledby="h-ovproj">
-  <h2 id="h-ovproj">项目状态 <small>海外能源 · 当前演示数据</small><button type="button" class="linkbtn" data-jump="projects">项目档案 →</button></h2>
+  <h2 id="h-ovproj">项目状态 <small>海外能源 · 演示样例</small><button type="button" class="linkbtn" data-jump="projects">项目档案 →</button></h2>
   <div class="projects compact" id="projects0"></div>
 </section>
 
-<section data-view="overview" aria-labelledby="h-ovsec">
+<section data-view="overview" data-demo aria-labelledby="h-ovsec">
   <h2 id="h-ovsec">行业子目录 <small>同一套底座，按行业换配置</small></h2>
   <div class="sector-grid" id="ovSectors">
     <button type="button" class="sector-card link" data-jump="sector-securities"><span class="ic">券</span><h3>券商</h3><p>上市公司、行业、宏观、人物、自身信用，事件传导到标的。</p><span class="st plan">框架已定</span></button>
@@ -844,6 +842,27 @@ body.demo main{padding-bottom:96px}
     <div class="lstat"><b id="f-hit">0</b><span>已验证成立</span></div>
     <div class="lstat"><b id="f-miss">0</b><span>已验证未成立</span></div>
     <div class="lstat gold"><b id="f-rate">—</b><span>历史命中率（滚动）</span></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="margin-top:0">重大事件专题 <small>红色事件或事件线连续升级时生成完整专题：结论 → 事实 → 归因 → 传导 → 历史可比 → 情景</small></h3>
+  <div class="spov-grid">
+    <button type="button" class="spov-card" data-jump="special-ngcp">
+      <div class="spov-head"><span class="pill r"><span class="dot"></span>红色 · 特许权</span><span class="spov-status">演示样例 · 不计入本批次</span></div>
+      <h3>NGCP 特许经营权遭审查</h3>
+      <p class="spov-trigger">触发：红色事件 · 直接点名中资股东（国网 40%）</p>
+      <p class="spov-desc">菲律宾国会听证升级，涉及电网可靠性、国家安全与中资持股，触及股权/特许权红线。</p>
+      <div class="spov-meta"><span>3 层传导</span><span>3 情景</span><span>历史可比</span><span>验证节点</span></div>
+      <span class="spov-go">查看专题 →</span>
+    </button>
+    <button type="button" class="spov-card" data-jump="special">
+      <div class="spov-head"><span class="pill y"><span class="dot"></span>黄色 · 监管处罚</span><span class="spov-status">演示样例</span></div>
+      <h3>CGE 监管处罚事件线</h3>
+      <p class="spov-trigger">触发：事件线连续升级 · 16 个月内二次同类处罚</p>
+      <p class="spov-desc">智利阿劳卡尼亚大区同类处罚重复出现（2025 40000 UTM → 2026 3000 UTM），构成升级信号。</p>
+      <div class="spov-meta"><span>时间线</span><span>事实分级</span><span>传导链</span><span>验证节点</span></div>
+      <span class="spov-go">查看专题 →</span>
+    </button>
+  </div>
   </div>
   <div class="card" style="margin-bottom:16px">
     <h3 style="margin-top:0">推演档案 <small>红色事件自动推演 · 只增不删 · 到对账日自动转为「待对账」</small></h3>
@@ -1121,31 +1140,9 @@ body.demo main{padding-bottom:96px}
 </section>
 
 
-<section data-view="special-overview" aria-labelledby="h-spov">
-  <h2 id="h-spov">重大事件专题 <small>红色事件或事件线连续升级时，系统自动生成重大事件专题</small></h2>
-  <div class="spov-grid">
-    <button type="button" class="spov-card" data-jump="special-ngcp">
-      <div class="spov-head"><span class="pill r"><span class="dot"></span>红色 · 特许权</span><span class="spov-status">演示样例 · 不计入本批次</span></div>
-      <h3>NGCP 特许经营权遭审查</h3>
-      <p class="spov-trigger">触发：红色事件 · 直接点名中资股东（国网 40%）</p>
-      <p class="spov-desc">菲律宾国会听证升级，涉及电网可靠性、国家安全与中资持股，触及股权/特许权红线。</p>
-      <div class="spov-meta"><span>3 层传导</span><span>3 情景</span><span>历史可比</span><span>验证节点</span></div>
-      <span class="spov-go">查看专题 →</span>
-    </button>
-    <button type="button" class="spov-card" data-jump="special">
-      <div class="spov-head"><span class="pill y"><span class="dot"></span>黄色 · 监管处罚</span><span class="spov-status">已生成</span></div>
-      <h3>CGE 监管处罚事件线</h3>
-      <p class="spov-trigger">触发：事件线连续升级 · 16 个月内二次同类处罚</p>
-      <p class="spov-desc">智利阿劳卡尼亚大区同类处罚重复出现（2025 40000 UTM → 2026 3000 UTM），构成升级信号。</p>
-      <div class="spov-meta"><span>时间线</span><span>事实分级</span><span>传导链</span><span>验证节点</span></div>
-      <span class="spov-go">查看专题 →</span>
-    </button>
-  </div>
-  <p class="srcnote" style="margin-top:12px">专题由系统自动触发并生成六部分结构：核心结论 → 事实基准 → 冲击归因 → 传导链/图 → 历史可比 → 情景与验证节点。正式版中，触发阈值与分级标准由客户业务部门确定。</p>
-</section>
-
 <section data-view="special" aria-labelledby="h-special">
-  <h2 id="h-special">重大事件专题 · CGE 监管处罚 <small>事件线连续升级触发（黄色事件线 · 二次升级）</small></h2>
+  <button type="button" class="backlink" data-jump="foresight">← 返回局势推演</button>
+  <h2 id="h-special">局势推演 · 专题 · CGE 监管处罚 <small>事件线连续升级触发（黄色事件线 · 二次升级）</small></h2>
   <div class="special-trigger"><span class="ico">⚡</span><div>本专题由<b>事件线连续升级</b>触发：CGE 监管处罚在 2025-08 → 2026-11 之间第二次升级（阿劳卡尼亚大区同类处罚），系统自动聚合该事件线，生成下列六部分专题。正式版中，红色事件或同一条事件线短期内连续升级即自动触发，无需人工发起。</div></div>
 
   <!-- 1 核心结论 -->
@@ -1232,7 +1229,8 @@ body.demo main{padding-bottom:96px}
 </section>
 
 <section data-view="special-ngcp" aria-labelledby="h-special-ngcp">
-  <h2 id="h-special-ngcp">重大事件专题 · NGCP 特许权 <small>演示样例：基于历史公开事件线构建，不计入 11-10 批次的红色数量</small></h2>
+  <button type="button" class="backlink" data-jump="foresight">← 返回局势推演</button>
+  <h2 id="h-special-ngcp">局势推演 · 专题 · NGCP 特许权 <small>演示样例：基于历史公开事件线构建，不计入 11-10 批次的红色数量</small></h2>
   <div class="special-trigger"><span class="ico">🚨</span><div>本专题由<b>红色事件</b>触发：菲律宾国会就 <b>NGCP 特许经营权</b>举行听证，议题涉及电网可靠性、国家安全，并<b>直接点名中资股东（国网持股 40%）</b>，触及「股权 / 特许权」红线。系统自动生成下方传导图与情景推演。正式版中，红色事件或同一条事件线短期连续升级即自动触发，无需人工发起。</div></div>
 
   <!-- 1 核心结论 -->
@@ -1598,7 +1596,7 @@ const DEMO_ROUTE=[
  ['overview','今日要点','打开就知道今天要处理什么：红黄绿分级、重点项目、关键日期。'],
  ['live','实时信源','真实数据、每天自动更新两次：数十个免费公开信源，AI 摘要并写明分级理由。可筛选红色事件。'],
  ['foresight','局势推演','红色事件自动推演三种情景，每条带验证节点和到期对账日；推演档案只增不删，错了也留痕。'],
- ['special-ngcp','重大事件专题','以 NGCP 特许权为例：事实分级、冲击归因、传导图、历史可比、情景推演，一页讲清楚一件大事。'],
+ ['special-ngcp','局势推演 · 专题','以 NGCP 特许权为例：事实分级、冲击归因、传导图、历史可比、情景推演，一页讲清楚一件大事。'],
  ['sector-shipping','换一个行业','同一套底座，换一套信源和事件模板就是航运版：八层信源、三类画像、影响链。'],
  ['sources','信源与方法','全部来自公开信源，信源健康可查；付费信源（Factiva、路透等）签约授权后接入。'],
 ];
@@ -1612,13 +1610,16 @@ document.getElementById('demoBar').addEventListener('click',e=>{const b=e.target
  if(b.dataset.dgo)go(b.dataset.dgo);});
 const side=document.getElementById('side');
 function viewExists(v){return !!document.querySelector('[data-view="'+v+'"]');}
+const VIEW_PARENT={special:"foresight","special-ngcp":"foresight"},SP_NAME={special:"CGE 监管处罚","special-ngcp":"NGCP 特许权"};
 function go(v,opts){
+ if(v==='special-overview')v='foresight'; /* 旧链接：重大事件专题已并入局势推演 */
  if(!viewExists(v))v='overview';
  document.querySelectorAll('[data-view]').forEach(x=>x.hidden=x.dataset.view!==v);
- let grp='',name='';
- side.querySelectorAll('button').forEach(b=>{if(b.dataset.go===v){b.setAttribute('aria-current','page');name=b.querySelector('span').textContent;
+ let grp='',name='';const nv=VIEW_PARENT[v]||v;
+ side.querySelectorAll('button').forEach(b=>{if(b.dataset.go===nv){b.setAttribute('aria-current','page');name=b.querySelector('span').textContent;
    let p=b.previousElementSibling;while(p&&!p.classList.contains('grp'))p=p.previousElementSibling;grp=p?p.textContent:'';}
   else b.removeAttribute('aria-current')});
+ if(nv!==v)name+=' / '+(SP_NAME[v]||'专题');
  document.getElementById('crumb').innerHTML=v==='overview'?'':`<span>${esc(grp)}</span><span class="sep">/</span><b>${esc(name)}</b>`;
  document.title=(v==='overview'?'':name+' · ')+'观澜 Horizon · 全球舆情雷达';
  if(!(opts&&opts.fromHash)&&location.hash!=='#'+v){try{history.pushState(null,'','#'+v)}catch(e){location.hash=v}}
@@ -1736,15 +1737,8 @@ const RN={r:"红",y:"黄",g:"绿"};
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 const pill=(cls,txt,dot)=>`<span class="pill ${cls}">${dot?'<span class="dot"></span>':''}${esc(txt)}</span>`;
 (function(){const y=E.filter(e=>e.r==="y").length,r=E.filter(e=>e.r==="r").length;
- document.getElementById("n-y").textContent=y;document.getElementById("n-r").textContent=r;document.getElementById("n-all").textContent=E.length;
- document.getElementById("hero-y").textContent=y;document.getElementById("nb-events").textContent=E.length;document.getElementById("nb-energy").textContent=y+" 黄";
- document.getElementById("h-ov").innerHTML=`今天有 <em>${y}</em> 条事件需要关注，`+(r?`<em class="r">${r}</em> 条需上报`:'暂无需上报的红色事件');
- document.getElementById("ovEvents").innerHTML=E.filter(e=>e.r==="y").slice(0,6).map(e=>`<li><button type="button" class="qitem" data-ev="${esc(e.t)}"><span class="qc">${esc(e.c)}</span><span class="qt">${esc(e.t)}</span><span class="qk">${esc(e.k)}</span></button></li>`).join("");
+ document.getElementById("nb-events").textContent=E.length;document.getElementById("nb-energy").textContent=y+" 黄";
 })();
-/* 总览事件条目 → 打开事件清单并展开该条 */
-document.getElementById("ovEvents").addEventListener("click",ev=>{const b=ev.target.closest(".qitem");if(!b)return;go("events");
- const el=[...document.querySelectorAll("#events .ev")].find(x=>x.querySelector(".ttl").textContent===b.dataset.ev);
- if(el){el.open=true;setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),60);}});
 function renderProjects(elId,compact){const el=document.getElementById(elId);if(!el)return;
  el.innerHTML=P.map(p=>{const ev=E.filter(e=>e.c===p.c),y=ev.filter(e=>e.r==="y").length,g=ev.filter(e=>e.r==="g").length,r=ev.filter(e=>e.r==="r").length;
   return `<div class="card proj"><h3>${p.c}<span class="co">${esc(p.co)}</span></h3><div class="cnt">${pill("r","红 "+r,1)}${pill("y","黄 "+y,1)}${pill("g","绿 "+g,1)}</div><p>${esc(p.focus)}</p><div class="hist">${esc(p.hist)}</div>${compact?'':`<details><summary>项目档案</summary><dl><dt>监控主体</dt><dd>${esc(p.ent)}</dd><dt>主要监管机构</dt><dd>${esc(p.reg)}</dd><dt>语言与时区</dt><dd>${esc(p.lang)}</dd><dt>股权与特许权</dt><dd>待客户确认后填入</dd><dt>本批次事件</dt><dd>${ev.map(e=>esc(e.t)).join("；")}</dd></dl></details>`}</div>`}).join("");}
@@ -1889,7 +1883,36 @@ function renderLive(){const f=LIVE.feed;const bar=document.getElementById('liveB
  document.getElementById('nb-live').textContent=s.items_shown;
  const hl=document.getElementById('heroLive');hl.hidden=false;
  hl.innerHTML=`<span class="live"></span>实时信源 ${esc(ago(f.generated_at))}更新 · 近 7 天 ${s.items_shown} 条，其中红 ${s.red} 黄 ${s.yellow} →`;
- renderShipLive();}
+ renderShipLive();renderOverview();}
+/* ---- 今日要点：全部取自最新采集（feed.json）和推演档案（sims.json） ---- */
+const addDays=(s,n)=>{const d=new Date(s);if(isNaN(d))return'';d.setDate(d.getDate()+n);return d.toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});};
+const reviewBy=x=>x.sim&&(x.sim.review_by||addDays(x.sim.at||x.published,30));
+function renderOverview(){const f=LIVE.feed;if(!f)return;
+ const o={r:0,y:1,g:2},byTime=(a,b)=>String(b.published).localeCompare(String(a.published));
+ const all=liveItems(),cut=Date.now()-864e5,day=all.filter(it=>new Date(it.published||it.first_seen)>=cut);
+ const lv=(xs,l)=>xs.filter(it=>it.ai&&it.ai.level===l);
+ const r1=lv(day,'r'),y1=lv(day,'y'),s=f.stats;
+ document.getElementById('ov-eyebrow').textContent=`今日要点 · ${fmtTime(f.generated_at)} 更新（首尔时间）`;
+ document.getElementById('h-ov').innerHTML=`近 24 小时 <em class="r">${r1.length}</em> 条红色、<em>${y1.length}</em> 条黄色事件需要关注`;
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+ set('fn-src',s.sources_ok+'/'+s.sources_total);set('fn-fetch',s.fetched_this_run);
+ set('fn-ai',(f.ai&&f.ai.processed_this_run)||0);set('fn-ry',s.red+' / '+s.yellow);
+ set('fn-sim',all.filter(it=>it.sim).length);
+ const top=lv(all,'r').sort((a,b)=>(+!!b.sim-+!!a.sim)||byTime(a,b)).slice(0,3);
+ document.getElementById('ovTop').innerHTML=top.length?top.map((it,i)=>{const a=it.ai||{};
+  return `<li><span class="n">${i+1}</span><div><strong><a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(a.title_zh||it.title)}</a></strong><p>${esc(a.summary_zh||'')}</p><p class="mute" style="font-size:12.5px">${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''} · ${esc(it.outlet||it.source)} · ${esc(ago(it.published))}</p>${it.sim?`<button type="button" class="simbtn" data-sim="${esc(it.id)}">局势推演 →</button>`:''}</div></li>`;}).join('')
+  :'<li><span class="n">✓</span><div><strong>近 7 天没有红色事件</strong><p>有红色事件时会显示在这里，并自动生成局势推演。</p></div></li>';
+ const seen=new Set(),sims=[];
+ ARC.items.concat(f.items.filter(it=>it.sim)).forEach(x=>{if(seen.has(x.id))return;seen.add(x.id);if(['hit','miss','unclear'].includes(x.status))return;const d=reviewBy(x);if(d)sims.push([d,x]);});
+ sims.sort((a,b)=>a[0].localeCompare(b[0]));
+ const g={};sims.forEach(([d,x])=>(g[d]=g[d]||[]).push(x));
+ const ds=Object.keys(g).slice(0,6);
+ document.getElementById('ovDates').innerHTML=ds.length?ds.map(d=>{const xs=g[d];const t=(xs[0].ai&&xs[0].ai.title_zh)||xs[0].title;
+  return `<li><time>${esc(d.slice(5))}</time><div>${xs.length>1?`${xs.length} 条推演到期对账`:'推演到期对账'}<small>${esc(t)}${xs.length>1?` 等`:''}</small></div></li>`;}).join('')
+  :'<li><time>—</time><div>暂无待对账的推演<small>红色事件推演后会自动登记对账日</small></div></li>';
+ const ev=y1.concat(lv(all,'y').filter(it=>!y1.includes(it))).sort(byTime).slice(0,6);
+ document.getElementById('ovEvents').innerHTML=ev.length?ev.map(it=>`<li><a class="qitem" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer"><span class="qc">${esc(it.country||SECN[it.sector]||'')}</span><span class="qt">${esc((it.ai&&it.ai.title_zh)||it.title)}</span><span class="qk">${esc(ago(it.published))}</span></a></li>`).join('')
+  :'<li class="srcnote">近 7 天没有黄色事件。</li>';}
 function renderShipLive(){const box=document.getElementById('shipLive');if(!LIVE.feed)return;
  const o={r:0,y:1,g:2};
  const list=liveItems().filter(it=>it.sector==='shipping'&&(!(it.persona||[]).length||it.persona.includes(shipP)))
@@ -1897,6 +1920,7 @@ function renderShipLive(){const box=document.getElementById('shipLive');if(!LIVE
  document.getElementById('shipLiveSub').textContent=`实时信源 · ${SHIP.persona[shipP].name} · 风险优先`;
  box.innerHTML=list.length?list.map(liveCard).join(''):'<p class="srcnote" style="margin:0">近 7 天暂无该画像的条目。</p>';}
 function liveUnavailable(msg){
+ document.getElementById('h-ov').textContent='实时数据暂不可用';
  document.getElementById('liveBar').innerHTML=`<span class="lb-state">${esc(msg)}</span>`;
  document.getElementById('liveList').innerHTML='';document.getElementById('liveFilters').innerHTML='';
  document.getElementById('liveChoke').innerHTML='';document.getElementById('shipLive').innerHTML=`<p class="srcnote" style="margin:0">${esc(msg)}</p>`;}
@@ -1960,7 +1984,7 @@ document.getElementById('simArcFilters').addEventListener('click',e=>{const b=e.
 (function loadArc(){
  if(location.protocol==='file:'){document.getElementById('simArcNote').textContent='本地打开时读不到推演档案。';return;}
  fetch('data/sims.json?t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
-  .then(a=>{ARC.items=(a&&Array.isArray(a.items)?a.items:[]).filter(x=>x&&x.sim);renderArc();})
+  .then(a=>{ARC.items=(a&&Array.isArray(a.items)?a.items:[]).filter(x=>x&&x.sim);renderArc();renderOverview();})
   .catch(()=>renderArc());
 })();
 (function loadFeed(){
