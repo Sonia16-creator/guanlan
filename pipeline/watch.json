@@ -80,6 +80,12 @@
    "code": "1211.HK",
    "q": "比亚迪",
    "min": 30
+  },
+  {
+   "name": "ZIM",
+   "code": "ZIM",
+   "q": "ZIM Integrated Shipping",
+   "min": 30
   }
  ],
  "institutions": []

@@ -769,6 +769,97 @@ def enrich_sims(items: list[dict], ts: datetime) -> int:
     return done
 
 
+# ---------------- 模型联动：把推演的情景概率对到 Agenta 财务模型的三档 ----------------
+#
+# 模型摘要来源：data/models/<代码>.json（人工放入），或设置 AGENTA_URL + AGENTA_TOKEN 后从 Agenta 读取
+#   GET {AGENTA_URL}/api/models/{ticker}/summary，返回同样格式；读不到时沿用本地文件
+# 对应规则（研究判断，可被分析师改判）：
+#   · 某情景点名了这家公司（stocks）：up → 乐观，down → 悲观
+#   · 否则同行业同画像且有「运价到利润」判断：profit.net up → 乐观，flat → 中性，down → 悲观
+#   · 都没有 → 中性
+# 多个情景对到同一档时概率相加；加权每股收益和目标价 = 各档结果按概率加权
+
+MODELS_DIR = ROOT / "data" / "models"
+AGENTA_URL = os.getenv("AGENTA_URL", "").rstrip("/")
+AGENTA_TOKEN = os.getenv("AGENTA_TOKEN", "")
+MODELS: dict[str, dict] = {}
+
+
+def _model_ok(m) -> bool:
+    try:
+        return all(isinstance(m["scenarios"][k]["target_price"], (int, float)) and isinstance(m["scenarios"][k]["eps"], (int, float))
+                   for k in ("bull", "base", "bear")) and bool(m.get("ticker")) and bool(m.get("model_version"))
+    except (KeyError, TypeError):
+        return False
+
+
+def load_models() -> dict[str, dict]:
+    out = {}
+    for f in sorted(MODELS_DIR.glob("*.json")) if MODELS_DIR.exists() else []:
+        try:
+            m = json.loads(f.read_text(encoding="utf-8"))
+        except ValueError:
+            print(f"模型摘要 {f.name} 不是合法 JSON，跳过")
+            continue
+        if _model_ok(m):
+            out[m["ticker"]] = m
+    if AGENTA_URL and AGENTA_TOKEN:
+        for t in list(out):
+            try:
+                r = session.get(f"{AGENTA_URL}/api/models/{t}/summary", timeout=TIMEOUT, headers={"Authorization": f"Bearer {AGENTA_TOKEN}"})
+                r.raise_for_status()
+                m = r.json()
+                if _model_ok(m) and m.get("ticker") == t:
+                    out[t] = dict(out[t], **m)
+            except Exception as e:
+                print(f"  读取 Agenta 模型 {t} 失败，沿用本地文件：{str(e)[:100]}")
+    return out
+
+
+def model_link(it: dict, m: dict) -> dict | None:
+    """一条推演对一个模型的对应结果；这条推演和这家公司无关时返回 None。"""
+    scen = it["sim"].get("scenarios", [])
+    name = m.get("stock") or m.get("name")
+    named = any(s.get("n") == name for x in scen for s in x.get("stocks") or [])
+    same = it.get("sector") == m.get("sector") and bool(set(it.get("persona") or []) & set(m.get("persona") or [])) \
+        and any(x.get("profit") for x in scen)
+    if not (named or same):
+        return None
+    w, rows = {"bull": 0, "base": 0, "bear": 0}, []
+    for i, x in enumerate(scen):
+        hit = next((s for s in x.get("stocks") or [] if s.get("n") == name), None)
+        if hit:
+            tier, why = ("bull" if hit["dir"] == "up" else "bear"), "推演点名该公司"
+        elif same and x.get("profit"):
+            d = x["profit"]["net"]["dir"]
+            tier, why = {"up": "bull", "down": "bear"}.get(d, "base"), "运价到利润的方向"
+        else:
+            tier, why = "base", "未涉及该公司"
+        w[tier] += x.get("prob", 0)
+        rows.append({"scenario": "ABC"[i], "tier": tier, "why": why})
+    tot = sum(w.values()) or 1
+    s = m["scenarios"]
+    mix = lambda k: round(sum(w[t] * s[t][k] for t in w) / tot, 2)
+    return {"ticker": m["ticker"], "name": name, "model_version": m["model_version"], "weights": w, "map": rows,
+            "eps": mix("eps"), "target_price": mix("target_price"), "base_target": s["base"]["target_price"],
+            "price": m.get("price"), "currency": m.get("currency")}
+
+
+def link_models(items: list[dict], ts: datetime) -> int:
+    """给还没算过的推演算模型联动；算过的不动，保证对账时用的是当时的模型版本。"""
+    done = 0
+    for it in items:
+        sim = it.get("sim")
+        if not sim or "models" in sim or not any("vars" in x for x in sim.get("scenarios", [])):
+            continue
+        links = [l for l in (model_link(it, m) for m in MODELS.values() if (m.get("checks") or {}).get("usable", True)) if l]
+        sim["models"] = links
+        if links:
+            sim["models_at"] = iso(ts)
+            done += 1
+    return done
+
+
 # ---------------- 风险提醒：推演触及客户关注的变量，且概率过门槛 ----------------
 #
 # pipeline/watch.json 写客户关注的变量和概率门槛，例如 {"k": "freight_tank", "min": 30}
@@ -1039,6 +1130,7 @@ def main() -> int:
     except Exception as e:
         print(f"GitHub 标签准备失败：{str(e)[:120]}")
     WATCHLIST.update(load_watchlist())
+    MODELS.update(load_models())
     print(f"关注清单：自选股 {len(WATCHLIST['stocks'])} 只，自家机构 {len(WATCHLIST['institutions'])} 个")
     sources += watch_sources(WATCHLIST)
     new_items, health, chokepoints = collect(sources)
@@ -1049,6 +1141,8 @@ def main() -> int:
     n_ai = analyze(items, ts)
     n_sim = simulate(items, ts)
     n_enr = enrich_sims(items, ts)
+    n_link = link_models(items, ts)
+    print(f"模型联动：{len(MODELS)} 个模型，本次关联 {n_link} 条推演")
     n_arc = archive_sims(items, ts)
     print(f"局势推演：本次生成 {n_sim} 条，补逐层传导 {n_enr} 条，新归档 {n_arc} 条")
     alerts = []
@@ -1080,6 +1174,7 @@ def main() -> int:
         },
         "sim_vars": SIM_VARS,
         "watchlist": WATCHLIST,
+        "models": MODELS,
         "quotes": quotes,
         "alerts_this_run": alerts,
         "health": health,

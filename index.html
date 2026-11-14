@@ -599,6 +599,11 @@ body:not(.demo) [data-demo]{display:none!important}
 .side .grp~button[aria-current="page"]::after{left:-2px;top:4px;bottom:4px}
 .backlink{font:inherit;font-size:13px;color:var(--muted);background:none;border:none;padding:0;margin:0 0 6px;cursor:pointer}
 .backlink:hover{color:var(--ink)}
+.mdl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
+.mdl-kpi{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--bg);display:flex;flex-direction:column;gap:1px}
+.mdl-kpi.hot{border-color:var(--gold);background:var(--gold-soft)}
+.mdl-kpi span{font-size:12px;color:var(--muted)}.mdl-kpi b{font-family:var(--serif);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2}
+.mdl-kpi small{font-size:12px;color:var(--muted)}.mdl-kpi small.dn{color:var(--red);font-weight:700}.mdl-kpi small.up{color:var(--green);font-weight:700}
 .sf-n.ev-f,.sf-n.ev-c{border-style:solid;border-color:var(--brand-2)}
 table.pf td{text-align:center;vertical-align:top}table.pf td:first-child{text-align:left;white-space:nowrap}
 table.pf td b{font-size:15px}table.pf td small{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
@@ -2227,6 +2232,9 @@ function renderStocks(){const f=LIVE.feed,box=document.getElementById('secStocks
    <div class="stk-top"><b>${esc(s.name)}</b><span>${esc(s.code)}${s.issue?' · 自己添加':''}</span></div>
    ${q.last!=null?`<div class="stk-px"><span class="px">${q.last.toLocaleString('en-US')}<small>${esc(q.cur||'')}</small></span><span class="chg ${up?'up':'dn'}">${up?'+':''}${q.chg}%${big?' · 异动':''}</span></div>${spark(q.closes,q.closes[q.closes.length-1]>=q.closes[0])}`:'<div class="stk-meta">行情暂不可用</div>'}
    <div class="stk-meta">${q.date?`<span>${esc(q.date.slice(5))} 收盘</span>`:''}<span>近 7 天消息 ${news.length}</span>${r?pill('r','红 '+r,1):''}${y?pill('y','黄 '+y,1):''}</div>
+   ${(()=>{const md=Object.values(f.models||{}).find(x=>(x.stock||x.name)===s.name);if(!md)return'';
+     let best=null;openSims().forEach(it=>modelLinks(it).forEach(l=>{if(l.ticker===md.ticker&&(!best||Math.abs(l.target_price-l.base_target)>Math.abs(best.target_price-best.base_target)))best=l;}));
+     return `<div class="stk-imp">模型（${esc(md.model_version)}）中性目标价 <b>${md.scenarios.base.target_price}</b>${best&&best.target_price!==best.base_target?` → 事件加权 <b class="${best.target_price<best.base_target?'up':'dn'}" style="color:${best.target_price<best.base_target?'var(--red)':'var(--green)'}">${best.target_price}</b>`:''}</div>`;})()}
    ${m?`<div class="stk-imp">推演：<b class="${m.dir==='down'?'dn':'up'}">${arrow(m.dir)} 约 ${Math.min(100,m.prob)}%</b>${hit?'（已过门槛 '+(+s.min||30)+'%）':''} ← ${esc((m.it.ai&&m.it.ai.title_zh)||m.it.title)}</div>`:''}</button>`;}).join('')
   :'<p class="srcnote" style="margin:0">还没有自选股。在下面填入名称和行情代码添加。</p>';
  document.getElementById('secStockSub').textContent=`${wl.stocks.length} 只 · 行情 × 舆情 × 推演 · 点卡片看这只股票的全部消息`;
@@ -2380,7 +2388,35 @@ function simFlow(it){const m=it.sim,a=it.ai||{},sc=m.scenarios||[];if(!sc.length
   <div class="sf-head" style="--d:${depth}"><div>触发事件</div><div><span>情景与概率</span>${heads}<span>影响变量</span></div></div>
   <div class="sflow" style="--d:${depth}"><div class="sf-ev">${esc(a.title_zh||it.title)}</div><div class="sf-lanes">${lanes}</div></div>
   <div class="sf-sum"><span><span class="edge-key dash"></span>研究判断（待验证）</span>${sc.some(x=>(x.path_ev||[]).some(e=>e!=='j'))?'<span><span class="edge-key solid"></span>已发生或已披露</span>':''}<span class="vchip watch">你关注的变量</span><span class="vchip watch hit">已过门槛</span><span><b style="color:var(--red)">↑</b> 上行 <b style="color:var(--green)">↓</b> 下行</span>${structured?'':'<span>· 这条推演生成较早，变量由关键词推断、未判断方向；下次自动更新后会补上逐层传导</span>'}</div>
-  ${m.affected?`<div class="cver" style="margin-top:8px">影响对象：${esc(m.affected)}</div>`:''}</div>${profitTable(it)}`;}
+  ${m.affected?`<div class="cver" style="margin-top:8px">影响对象：${esc(m.affected)}</div>`:''}</div>${profitTable(it)}${modelBox(it)}`;}
+/* 模型联动：推演情景概率 → Agenta 财务模型三档 → 加权每股收益与目标价 */
+const TIERN={bull:'乐观',base:'中性',bear:'悲观'};
+function modelLinks(it){const m=it.sim;if(Array.isArray(m.models))return m.models;
+ const ms=(LIVE.feed&&LIVE.feed.models)||{},sc=m.scenarios||[],out=[];
+ Object.values(ms).forEach(md=>{if(md.checks&&md.checks.usable===false)return;const name=md.stock||md.name;
+  const named=sc.some(x=>(x.stocks||[]).some(s=>s.n===name));
+  const same=it.sector===md.sector&&(it.persona||[]).some(q=>(md.persona||[]).includes(q))&&sc.some(x=>x.profit);
+  if(!named&&!same)return;const w={bull:0,base:0,bear:0},map=[];
+  sc.forEach((x,i)=>{const hit=(x.stocks||[]).find(s=>s.n===name);let tier,why;
+   if(hit){tier=hit.dir==='up'?'bull':'bear';why='推演点名该公司';}
+   else if(same&&x.profit){const d=x.profit.net.dir;tier=d==='up'?'bull':d==='down'?'bear':'base';why='运价到利润的方向';}
+   else{tier='base';why='未涉及该公司';}
+   w[tier]+=(+x.prob||0);map.push({scenario:'ABC'[i],tier,why});});
+  const tot=w.bull+w.base+w.bear||1,mix=k=>Math.round(['bull','base','bear'].reduce((s,t)=>s+w[t]*md.scenarios[t][k],0)/tot*100)/100;
+  out.push({ticker:md.ticker,name,model_version:md.model_version,weights:w,map,eps:mix('eps'),target_price:mix('target_price'),base_target:md.scenarios.base.target_price,price:md.price,currency:md.currency});});
+ return out;}
+function modelBox(it){const ls=modelLinks(it);if(!ls.length)return'';const sc=it.sim.scenarios||[],ms=(LIVE.feed&&LIVE.feed.models)||{};
+ return ls.map(l=>{const md=ms[l.ticker]||{},s=md.scenarios||{},d=l.base_target?Math.round((l.target_price/l.base_target-1)*100):0,sp=l.price?Math.round((l.target_price/l.price-1)*100):null;
+  return `<div><h3>模型联动 · ${esc(l.name)} <small style="font-weight:400;color:var(--muted)">Agenta 财务模型 ${esc(l.model_version)} · 情景概率加权</small></h3>
+  <div class="mdl">
+   <div class="mdl-kpi"><span>事件前 · 中性目标价</span><b>${l.base_target}</b><small>${esc(l.currency||'')}</small></div>
+   <div class="mdl-kpi hot"><span>事件后 · 加权目标价</span><b>${l.target_price}</b><small class="${d<0?'dn':d>0?'up':''}">${d>0?'+':''}${d}%</small></div>
+   <div class="mdl-kpi"><span>加权每股收益</span><b>${l.eps}</b><small>${esc(md.valuation_year||'')}</small></div>
+   ${sp==null?'':`<div class="mdl-kpi"><span>相对模型现价 ${l.price}</span><b>${sp>0?'+':''}${sp}%</b><small>空间</small></div>`}
+  </div>
+  <div class="facttab-wrap"><table class="facttab"><tr><th>观澜情景</th><th>概率</th><th>对到模型</th><th>依据</th><th>该档目标价</th><th>该档每股收益</th></tr>
+  ${l.map.map(r=>{const x=sc['ABC'.indexOf(r.scenario)]||{},t=s[r.tier]||{};return `<tr><td>情景 ${esc(r.scenario)} · ${esc(x.name||'')}</td><td>${+x.prob||0}%</td><td><b>${TIERN[r.tier]}</b></td><td>${esc(r.why)}</td><td>${t.target_price??'—'}</td><td>${t.eps??'—'}</td></tr>`;}).join('')}</table></div>
+  <p class="sd-note" style="margin-top:6px">各档概率：乐观 ${l.weights.bull}%、中性 ${l.weights.base}%、悲观 ${l.weights.bear}%。情景对应是研究判断，未经分析师复核；目标价是模型输出，不是公司披露或市场一致预期，不构成投资建议。${md.invalidation?'模型失效条件：'+esc(md.invalidation)+'。':''}${md.memo_url?` <a href="${esc(safeUrl(md.memo_url))}" target="_blank" rel="noopener noreferrer">看完整报告 →</a>`:''}</p></div>`;}).join('');}
 /* 航运：运价到船公司利润的传导（利润是残差） */
 const PF_COL=[['vol','承运量'],['rate','实现运费'],['surcharge','附加费与每箱收入'],['varcost','燃油等变动成本'],['fixcost','折旧与租金'],['net','利润']];
 function profitTable(it){const sc=(it.sim.scenarios||[]).filter(x=>x.profit);if(!sc.length)return'';

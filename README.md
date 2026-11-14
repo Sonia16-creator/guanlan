@@ -59,3 +59,10 @@
 - 关注清单有两个来源：`pipeline/watch.json` 里的 `stocks` / `institutions`，以及 GitHub 上带「关注清单」标签的未关闭 Issue（标题「个股：名称 代码 检索词」或「机构：名称」，关闭即移除）。网站券商页的「添加自选股」「启用监控」会打开填好内容的新建 Issue 页面。
 - 每只自选股单独检索新闻并打上个股标签；推演时把清单交给 AI，只允许从清单里点名受影响的个股，过门槛的进风险提醒。
 - 行情用 Yahoo Finance 的免费延迟数据，仅供演示；正式版应换成有授权的行情源。
+
+## 模型联动（Agenta）
+
+- 模型摘要放在 `data/models/<代码>.json`，格式见 `data/models/ZIM.json`（三档情景的每股收益、目标市盈率、目标价等）。
+- 设置仓库 Secrets `AGENTA_TOKEN` 和变量 `AGENTA_URL` 后，采集时会从 `{AGENTA_URL}/api/models/{ticker}/summary` 读取最新摘要，读不到沿用本地文件。（需要在 workflow 的 env 里加上这两项。）
+- 对应规则：推演点名该公司时 up → 乐观、down → 悲观；否则同行业同画像按「运价到利润」里利润的方向；都没有 → 中性。各档概率相加后对三档结果加权。
+- 结果写在推演的 `sim.models` 里，带当时的 `model_version`，之后不再重算，保证对账可复现。
