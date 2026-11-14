@@ -37,6 +37,9 @@ PER_SOURCE = int(os.getenv("PER_SOURCE", "40"))      # 每个信源最多取几�
 MAX_AI = int(os.getenv("MAX_AI", "300"))             # 每次最多送多少条给 AI，控制成本
 AI_BATCH = 10
 MAX_SIM = int(os.getenv("MAX_SIM", "20"))         # 每次最多给多少条红色事件生成局势推演
+MAX_REVIEW = int(os.getenv("MAX_REVIEW", "10"))   # 每次最多对账多少条到期推演
+GH_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()   # GitHub Actions 自动提供，用来开「对账单」Issue
+GH_REPO = os.getenv("GITHUB_REPOSITORY", "")
 TIMEOUT = 25
 UA = "Mozilla/5.0 (compatible; GuanlanRadar/1.0; +https://sonia16-creator.github.io/guanlan/)"
 
@@ -109,9 +112,9 @@ def fetch_rss(url: str) -> list[dict]:
     return out
 
 
-def fetch_gnews(q: str, lang: str) -> list[dict]:
+def fetch_gnews(q: str, lang: str, lookback: str | None = None) -> list[dict]:
     hl, gl, ceid = GNEWS_LANG.get(lang, GNEWS_LANG["en"])
-    url = f"https://news.google.com/rss/search?q={quote_plus(q + ' when:' + LOOKBACK)}&hl={hl}&gl={gl}&ceid={ceid}"
+    url = f"https://news.google.com/rss/search?q={quote_plus(q + ' when:' + (lookback or LOOKBACK))}&hl={hl}&gl={gl}&ceid={ceid}"
     items = fetch_rss(url)
     for it in items:
         it["snippet"] = ""  # Google News 的摘要只是重复标题
@@ -394,7 +397,9 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
   {{"name": "情景名，10 字以内", "prob": 50, "trigger": "触发条件", "impact": "影响", "window": "时间窗口", "better": "好转信号", "worse": "恶化信号"}}
  ],
  "watch": [{{"what": "要跟踪的验证节点", "when": "时间或频率", "good": "好转信号", "bad": "恶化信号"}}],
- "review_by": "到期对账日 YYYY-MM-DD：到这一天应该能看出哪种情景成立，按最可能情景的时间窗口估计，不早于今天后 7 天、不晚于 1 年"
+ "review_by": "到期对账日 YYYY-MM-DD：到这一天应该能看出哪种情景成立，按最可能情景的时间窗口估计，不早于今天后 7 天、不晚于 1 年",
+ "track_query": "到期时用来检索后续进展的新闻关键词：用事件发生地的语言或英文，8 个词以内，可用 OR 和英文引号，必须包含事件主体名称",
+ "track_lang": "检索语言，只能是 en / en-PH / es / pt / zh / ko 之一"
 }}"""
 
 
@@ -457,6 +462,8 @@ def simulate_one(it: dict, ts: datetime) -> dict | None:
                    "good": _txt(w.get("good"), 80), "bad": _txt(w.get("bad"), 80)}
                   for w in (d.get("watch") or [])[:4] if isinstance(w, dict) and w.get("what")],
         "review_by": _review_by(d.get("review_by"), ts),
+        "track_query": _txt(d.get("track_query"), 120),
+        "track_lang": d.get("track_lang") if d.get("track_lang") in GNEWS_LANG else "en",
         "model": DEEPSEEK_MODEL, "at": iso(ts),
     }
 
@@ -516,6 +523,197 @@ def simulate(items: list[dict], ts: datetime) -> int:
     return done
 
 
+# ---------------- 推演到期对账：AI 初判 + 人工在 GitHub Issue 上确认 ----------------
+#
+# 流程：推演到了 review_by 那天 → 用 track_query 检索这段时间的新闻 → DeepSeek 判断哪种情景发生
+#   · 情景 A（概率最高）发生 = 成立 hit；B 或 C 发生 = 未成立 miss；证据不足 = 顺延 30 天，最多顺延 2 次，之后记为无法判定 unclear
+#   · 每条判断自动开一个「对账单」Issue。负责人给 Issue 加标签：
+#       确认 → 同意 AI 判断；改判-成立 / 改判-未成立 / 改判-无法判定 → 以人工为准
+#   · 下次运行读到标签后写回 sims.json（confirmed=true），并关闭 Issue
+# 档案只增不删、判断错了也留痕：这是观澜可被验证的命中率记录。
+
+REVIEW_PROMPT = """你是锋睿「观澜 Horizon」的推演对账员。输入是一条历史推演（三种情景）和推演之后的新闻证据。
+请只依据证据判断实际走向更接近哪种情景，不要用证据以外的信息。
+
+判定规则：
+- 证据清楚表明情景 A 的触发条件或好转/恶化信号已出现 → verdict = hit，scenario = A
+- 证据清楚表明实际走向是情景 B 或 C → verdict = miss，scenario = B 或 C
+- 证据不足、与事件无关、或局势仍未明朗 → verdict = unclear，scenario = none
+
+只输出 JSON：{"verdict": "hit/miss/unclear", "scenario": "A/B/C/none", "explain": "中文判断理由，120 字以内，点明依据的证据序号", "evidence": [证据序号, 最多 5 个]}"""
+
+GH_LABELS = {"对账": "1d4ed8", "确认": "15803d", "改判-成立": "15803d", "改判-未成立": "b91c1c", "改判-无法判定": "6b7280"}
+_labels_ready = False
+
+
+def gh(method: str, path: str, **kw):
+    r = session.request(method, f"https://api.github.com/repos/{GH_REPO}{path}", timeout=TIMEOUT,
+                        headers={"Authorization": f"Bearer {GH_TOKEN}", "Accept": "application/vnd.github+json"}, **kw)
+    if r.status_code >= 400 and not (method == "POST" and path == "/labels" and r.status_code == 422):
+        raise ValueError(f"GitHub {method} {path} → {r.status_code} {r.text[:120]}")
+    return r.json() if r.content else {}
+
+
+def gh_ready() -> bool:
+    global _labels_ready
+    if not (GH_TOKEN and GH_REPO):
+        return False
+    if not _labels_ready:
+        for name, color in GH_LABELS.items():
+            gh("POST", "/labels", json={"name": name, "color": color})
+        _labels_ready = True
+    return True
+
+
+VERDICT_ZH = {"hit": "成立", "miss": "未成立", "unclear": "无法判定"}
+
+
+def open_review_issue(rec: dict) -> int | None:
+    if not gh_ready():
+        return None
+    m, rv, a = rec["sim"], rec["review"], rec.get("ai", {})
+    scen = "\n".join(f"| {'ABC'[i]} · {x['name']} | {x['prob']}% | {x['trigger']} |" for i, x in enumerate(m.get("scenarios", [])))
+    ev = "\n".join(f"{k + 1}. [{e['title']}]({e['link']}) · {e.get('outlet') or ''} · {(e.get('published') or '')[:10]}"
+                   for k, e in enumerate(rv.get("evidence", []))) or "（没有检索到相关报道）"
+    body = f"""**推演 {rec.get('no')}** · {a.get('title_zh') or rec['title']}
+原文：{rec.get('link')}
+推演日期：{m.get('at', '')[:10]} · 对账日：{m.get('review_by')}
+
+**核心判断**：{m.get('conclusion')}
+
+| 情景 | 概率 | 触发条件 |
+| --- | --- | --- |
+{scen}
+
+### AI 对账初判：{VERDICT_ZH[rv['verdict']]}（实际更接近情景 {rv.get('scenario', 'none')}）
+{rv.get('explain', '')}
+
+**证据**（检索词：`{rv.get('query') or ''}`）
+{ev}
+
+---
+**请负责人确认**：给这个 Issue 加一个标签即可，下次自动采集时写回档案并关闭本单。
+- `确认`：同意 AI 初判
+- `改判-成立` / `改判-未成立` / `改判-无法判定`：以人工判断为准（可在评论里写理由）
+"""
+    title = f"[对账] {rec.get('no')} {a.get('title_zh') or rec['title'][:40]} · AI 初判：{VERDICT_ZH[rv['verdict']]}"
+    return gh("POST", "/issues", json={"title": title, "body": body, "labels": ["对账"]}).get("number")
+
+
+def sync_confirmations(arc: dict) -> int:
+    """读取对账单上的人工标签，写回档案。"""
+    if not gh_ready():
+        return 0
+    n = 0
+    for rec in arc["items"]:
+        num = (rec.get("review") or {}).get("issue")
+        if not num or rec.get("confirmed"):
+            continue
+        try:
+            iss = gh("GET", f"/issues/{num}")
+        except Exception as e:
+            print(f"  读取对账单 #{num} 失败：{e}", flush=True)
+            continue
+        labels = {l["name"] for l in iss.get("labels", [])}
+        new = None
+        for lab, st in (("改判-成立", "hit"), ("改判-未成立", "miss"), ("改判-无法判定", "unclear")):
+            if lab in labels:
+                new = st
+        if new is None and "确认" not in labels:
+            continue
+        if new and new != rec.get("status"):
+            rec["status"], rec["override"] = new, True
+        rec["confirmed"], rec["confirmed_at"] = True, iso(now_utc())
+        try:
+            gh("POST", f"/issues/{num}/comments", json={"body": f"已写回档案：{VERDICT_ZH.get(rec['status'], rec['status'])}（{'人工改判' if rec.get('override') else '同意 AI 初判'}）。"})
+            gh("PATCH", f"/issues/{num}", json={"state": "closed"})
+        except Exception as e:
+            print(f"  关闭对账单 #{num} 失败：{e}", flush=True)
+        n += 1
+    return n
+
+
+def collect_evidence(rec: dict, ts: datetime) -> tuple[str, list[dict]]:
+    m = rec["sim"]
+    # 没有跟踪检索词的旧推演，退回用原文标题（去掉「 - 媒体名」后缀）检索
+    q = m.get("track_query") or re.sub(r"\s+[-–|]\s+[^-–|]{2,60}$", "", rec["title"])[:80]
+    start = parse_iso(m.get("at")) or ts - timedelta(days=30)
+    days = max(7, min(365, (ts - start).days + 1))
+    try:
+        got = fetch_gnews(q, m.get("track_lang") or "en", lookback=f"{days}d")
+    except Exception as e:
+        print(f"  对账检索失败：{e}", flush=True)
+        return q, []
+    got = [g for g in got if (parse_iso(g.get("published")) or ts) >= start and g["link"] != rec.get("link")]
+    got.sort(key=lambda g: g.get("published") or "", reverse=True)
+    return q, got[:15]
+
+
+def judge(rec: dict, evidence: list[dict]) -> dict | None:
+    m = rec["sim"]
+    inp = {"event": rec.get("ai", {}).get("title_zh") or rec["title"], "simulated_at": m.get("at", "")[:10],
+           "conclusion": m.get("conclusion"),
+           "scenarios": [{"id": "ABC"[i], "name": x["name"], "prob": x["prob"], "trigger": x["trigger"],
+                          "better": x["better"], "worse": x["worse"]} for i, x in enumerate(m.get("scenarios", []))],
+           "evidence": [{"n": k + 1, "title": e["title"], "outlet": e.get("outlet"), "date": (e.get("published") or "")[:10]}
+                        for k, e in enumerate(evidence)]}
+    if not evidence:
+        return {"verdict": "unclear", "scenario": "none", "explain": "未检索到推演之后的相关报道。", "evidence": []}
+    payload = {"model": DEEPSEEK_MODEL, "temperature": 0.1, "response_format": {"type": "json_object"},
+               "messages": [{"role": "system", "content": REVIEW_PROMPT},
+                            {"role": "user", "content": json.dumps(inp, ensure_ascii=False)}]}
+    try:
+        r = session.post(DEEPSEEK_URL, json=payload, timeout=120, headers={"Authorization": f"Bearer {DEEPSEEK_KEY}"})
+        r.raise_for_status()
+        d = json.loads(r.json()["choices"][0]["message"]["content"])
+    except Exception as e:
+        print(f"  对账判断失败：{str(e)[:160]}", flush=True)
+        return None
+    v = d.get("verdict") if d.get("verdict") in VERDICT_ZH else "unclear"
+    sc = d.get("scenario") if d.get("scenario") in ("A", "B", "C") else "none"
+    if v == "hit" and sc != "A":
+        v = "miss" if sc in ("B", "C") else "unclear"
+    idx = [i for i in (d.get("evidence") or []) if isinstance(i, int) and 1 <= i <= len(evidence)][:5]
+    return {"verdict": v, "scenario": sc, "explain": _txt(d.get("explain"), 200), "evidence": idx}
+
+
+def review_due(ts: datetime) -> tuple[int, int]:
+    if not SIMS.exists():
+        return 0, 0
+    arc = json.loads(SIMS.read_text(encoding="utf-8"))
+    synced = sync_confirmations(arc)
+    today = ts.strftime("%Y-%m-%d")
+    todo = [r for r in arc["items"] if r.get("status", "open") == "open" and (r.get("sim") or {}).get("review_by", "9999") <= today]
+    done = 0
+    for rec in (todo[:MAX_REVIEW] if DEEPSEEK_KEY else []):
+        q, ev = collect_evidence(rec, ts)
+        res = judge(rec, ev)
+        if not res:
+            continue
+        rnd = (rec.get("review") or {}).get("round", 0) + 1
+        rec["review"] = {"verdict": res["verdict"], "scenario": res["scenario"], "explain": res["explain"], "round": rnd,
+                         "query": q, "at": iso(ts), "model": DEEPSEEK_MODEL,
+                         "evidence": [{k: ev[i - 1].get(k) for k in ("title", "link", "outlet", "published")} for i in res["evidence"]]
+                                     or [{k: e.get(k) for k in ("title", "link", "outlet", "published")} for e in ev[:3]]}
+        if res["verdict"] == "unclear" and rnd < 3:
+            new_by = (datetime.strptime(rec["sim"]["review_by"], "%Y-%m-%d") + timedelta(days=30)).strftime("%Y-%m-%d")
+            rec["review"]["note"] = f"证据不足，对账日由 {rec['sim']['review_by']} 顺延至 {new_by}"
+            rec["sim"]["review_by"] = new_by
+        else:
+            rec["status"], rec["confirmed"] = res["verdict"], False
+            try:
+                rec["review"]["issue"] = open_review_issue(rec)
+            except Exception as e:
+                print(f"  开对账单失败：{e}", flush=True)
+        done += 1
+        print(f"  对账 {rec.get('no')}：{VERDICT_ZH[res['verdict']]}（证据 {len(ev)} 条）", flush=True)
+    arc["updated_at"] = iso(ts)
+    tmp = SIMS.with_suffix(".tmp")
+    tmp.write_text(json.dumps(arc, ensure_ascii=False, indent=1), encoding="utf-8")
+    tmp.replace(SIMS)
+    return done, synced
+
+
 # ---------------- 主流程 ----------------
 
 def main() -> int:
@@ -536,6 +734,11 @@ def main() -> int:
     n_sim = simulate(items, ts)
     n_arc = archive_sims(items, ts)
     print(f"局势推演：本次生成 {n_sim} 条，新归档 {n_arc} 条")
+    try:
+        n_rev, n_conf = review_due(ts)
+        print(f"推演对账：本次 AI 对账 {n_rev} 条，写回人工确认 {n_conf} 条")
+    except Exception as e:  # 对账出错不影响采集结果
+        print(f"推演对账出错：{type(e).__name__}: {str(e)[:160]}")
 
     show_cut = ts - timedelta(days=SHOW_DAYS)
     shown = [it for it in items if (parse_iso(it.get("published")) or ts) >= show_cut

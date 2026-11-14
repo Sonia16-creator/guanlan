@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  issues: write     # 推演到期对账：自动开「对账单」Issue、读取人工确认标签
 
 concurrency:
   group: radar-collect
@@ -30,6 +31,7 @@ jobs:
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           DEEPSEEK_MODEL: ${{ vars.DEEPSEEK_MODEL || 'deepseek-chat' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python pipeline/run.py
       - name: 提交更新后的数据
         run: |

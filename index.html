@@ -322,6 +322,9 @@ table.ledger .st.hit{background:var(--green-bg);color:var(--green)}
 table.ledger .st.miss{background:var(--red-bg);color:var(--red)}
 table.ledger .st.watch{background:var(--tint);color:var(--brand-2)}
 table.ledger .mute{color:var(--muted);font-size:12.5px}
+table.ledger .st.unclear{background:var(--tint);color:var(--muted)}
+table.ledger .st.pending{outline:1.5px dashed currentColor;outline-offset:1px}
+.simdlg .mute{color:var(--muted);font-size:12px}
 /* ===== 子目录（四行业）===== */
 .sector-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .sector-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px;text-align:left;cursor:default}
@@ -1901,6 +1904,7 @@ document.getElementById('liveFilters').addEventListener('click',e=>{const b=e.ta
  LIVE[b.dataset.k]=b.dataset.v;if(b.dataset.k==='sector')LIVE.persona='all';LIVE.limit=40;renderLiveFilters();renderLiveList();});
 document.getElementById('liveQ').addEventListener('input',e=>{LIVE.q=e.target.value;LIVE.limit=40;renderLiveList();});
 /* ---- 红色事件局势推演：数据由采集管线预先生成（it.sim），点击后弹窗展示 ---- */
+const VZ={hit:'成立',miss:'未成立',unclear:'无法判定'};
 function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
  const li=xs=>xs&&xs.length?'<ul>'+xs.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':'<p class="sd-note">暂无</p>';
  const chain=(m.chain||[]).map((c,i)=>`<span class="cbox${i===0?' ev':i===m.chain.length-1?' px':''}">${esc(c)}</span>`).join('<span class="carr"></span>');
@@ -1918,10 +1922,14 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
   ${cp.case?`<div class="sd-box"><h3>历史可比</h3><b>${esc(cp.case)}</b><p style="margin:4px 0 0">${esc(cp.lesson)}</p></div>`:''}
   <div><h3>情景推演</h3><div class="scen-grid">${scen}</div></div>
   ${watch?`<div><h3>验证节点</h3>${watch}</div>`:''}
+  ${it.review?`<div class="sd-box"><h3>到期对账 · ${it.override?`人工改判：${esc(VZ[it.status]||'')}（AI 初判：${esc(VZ[it.review.verdict]||'')}）`:esc(VZ[it.review.verdict]||'')}${!it.override&&it.review.scenario&&it.review.scenario!=='none'?`（实际更接近情景 ${esc(it.review.scenario)}）`:''}</h3>
+   <p style="margin:0 0 6px">${esc(it.review.explain||'')}</p>${it.review.note?`<p class="sd-note">${esc(it.review.note)}</p>`:''}
+   ${(it.review.evidence||[]).length?'<ul>'+it.review.evidence.map(e=>`<li><a href="${esc(safeUrl(e.link))}" target="_blank" rel="noopener noreferrer">${esc(e.title)}</a> <span class="mute">${esc(e.outlet||'')} ${esc(String(e.published||'').slice(0,10))}</span></li>`).join('')+'</ul>':''}
+   <p class="sd-note">${it.confirmed?(it.override?'负责人已人工改判，以人工判断为准。':'负责人已确认 AI 初判。'):'AI 对账初判，待负责人确认。'}对账时间 ${esc(fmtTime(it.review.at))}（首尔时间）</p></div>`:''}
   <p class="sd-note">原文：<a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>（${esc(it.outlet||it.source)}）</p>
   <p class="sd-note">本推演由 AI（${esc(m.model||'')}）于 ${esc(fmtTime(m.at))}（首尔时间）根据公开报道自动生成，情景概率为示意值；风险等级为 AI 初判，未经人工复核，以原文为准，不构成投资建议。</p>
  </div>`;}
-function openSim(id){const it=(LIVE.feed&&LIVE.feed.items.find(x=>x.id===id&&x.sim))||ARC.items.find(x=>x.id===id);if(!it||!it.sim)return;
+function openSim(id){const it=ARC.items.find(x=>x.id===id)||(LIVE.feed&&LIVE.feed.items.find(x=>x.id===id&&x.sim));if(!it||!it.sim)return; /* 档案里的版本带对账结果，优先用 */
  let d=document.getElementById('simDlg');
  if(!d){d=document.createElement('dialog');d.id='simDlg';d.className='simdlg';document.body.appendChild(d);
   d.addEventListener('click',e=>{if(e.target===d||e.target.closest('.sd-x'))d.close();});}
@@ -1930,9 +1938,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('.simbtn');if(b)o
 document.getElementById('liveMore').addEventListener('click',()=>{LIVE.limit+=40;renderLiveList();});
 /* ---- 推演档案：读取 data/sims.json（只增不删），到对账日自动转为待对账 ---- */
 const ARC={items:[],sector:'all'};
-const ARC_ST={open:['open','进行中'],watch:['watch','待对账'],hit:['hit','已验证成立 ✓'],miss:['miss','已验证未成立 ✗']};
+const ARC_ST={open:['open','进行中'],watch:['watch','待对账'],hit:['hit','已验证成立 ✓'],miss:['miss','已验证未成立 ✗'],unclear:['unclear','无法判定']};
 const todaySeoul=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
-function arcStatus(x){if(x.status==='hit'||x.status==='miss')return x.status;const d=x.sim&&x.sim.review_by;return d&&d<=todaySeoul()?'watch':'open';}
+function arcStatus(x){if(x.status==='hit'||x.status==='miss'||x.status==='unclear')return x.status;const d=x.sim&&x.sim.review_by;return d&&d<=todaySeoul()?'watch':'open';}
 function renderArc(){const all=ARC.items,note=document.getElementById('simArcNote');
  const cnt=k=>all.filter(x=>x.sector===k).length;
  const btn=(v,label,n)=>`<button type="button" data-v="${v}" aria-pressed="${ARC.sector===v}">${label}<span class="cnt"> ${n}</span></button>`;
@@ -1944,7 +1952,7 @@ function renderArc(){const all=ARC.items,note=document.getElementById('simArcNot
    <td><b>${esc(a.title_zh||x.title)}</b><br><span class="mute">${esc(SECN[x.sector]||x.sector)}${x.country?' · '+esc(x.country):''}</span></td>
    <td>最可能：情景 A · ${esc(top.name||'')}（约 ${+top.prob||0}%）<br><span class="mute">${esc(m.conclusion)}</span></td>
    <td>${esc(w?w.what:(top.worse||''))}</td><td>${esc(m.review_by||'')}</td>
-   <td><span class="st ${st[0]}">${st[1]}</span>${x.outcome?`<br><span class="mute">${esc(x.outcome)}</span>`:''}</td>
+   <td><span class="st ${st[0]}${x.review&&x.status!=='open'&&!x.confirmed?' pending':''}">${st[1]}</span>${x.review&&x.status!=='open'?`<br><span class="mute">${x.confirmed?(x.override?'人工改判':'人工已确认'):'AI 初判 · 待人工确认'}</span>`:''}${x.review&&x.review.note?`<br><span class="mute">${esc(x.review.note)}</span>`:''}${x.outcome?`<br><span class="mute">${esc(x.outcome)}</span>`:''}</td>
    <td><button type="button" class="simbtn" data-sim="${esc(x.id)}" style="margin-top:0;white-space:nowrap">查看推演 →</button></td></tr>`;}).join('');
  note.textContent=all.length?`共 ${all.length} 条推演。状态为系统按对账日自动标注；「已验证成立 / 未成立」需对照实际结果回填。情景概率为 AI 示意值，不构成投资建议。`:'还没有推演档案：红色事件的第一批推演生成后，会自动收进这里。';
  recountLedger();}
@@ -2042,7 +2050,8 @@ function recountLedger(){const st=[...document.querySelectorAll('#ledger .st, #s
  document.getElementById('f-total').textContent=open;document.getElementById('f-watch').textContent=watch;
  document.getElementById('f-hit').textContent=hit;document.getElementById('f-miss').textContent=miss;
  const done=hit+miss;document.getElementById('f-rate').textContent=done?Math.round(hit/done*100)+'%':'—';
- document.querySelector('#f-rate+span').textContent=done?`历史命中率（${done} 条已到期）`:'历史命中率（暂无到期）';
+ const pend=st.filter(x=>x.classList.contains('pending')&&(x.classList.contains('hit')||x.classList.contains('miss'))).length;
+ document.querySelector('#f-rate+span').textContent=done?`历史命中率（${done} 条已到期${pend?`，含 ${pend} 条 AI 初判待确认`:''}）`:'历史命中率（暂无到期）';
  document.getElementById('nb-fore').textContent=open+watch;
  document.getElementById('ov-fore').textContent=st.length+' 条';
  document.getElementById('ov-fore-sub').textContent=`进行中 ${open} · 待对账 ${watch} · 已成立 ${hit} · 未成立 ${miss}`;}
