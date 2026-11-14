@@ -1200,13 +1200,13 @@ body.demo main{padding-bottom:96px}
 
 <!-- ===== 案例库 ===== -->
 <section data-view="cases" aria-labelledby="h-cases">
-  <h2 id="h-cases">案例库 <small>传导链清晰、有行情可验证的重大事件</small></h2>
+  <h2 id="h-cases">案例库 <small>传导链清晰、有行情可验证的重大事件 · 每个案例都可以打开情景传导图</small></h2>
   <div class="case-grid">
-    <div class="case-card"><span class="tag">推荐首个演示</span><h3>韩股崩盘</h3><p class="fact">11-06 KOSPI 盘中跌 8.8% 触发熔断；SK 海力士跌 10.44%；外资净卖 2.77 万亿韩元</p><p class="chain">美股芯片跌 → AI 资本开支疑虑 → HBM 订单 → 外资抛售 → A 股存储映射</p><p class="verify">验证节点：韩国两融政策效果；英伟达财报（11-17）</p></div>
-    <div class="case-card"><span class="tag">深度传导</span><h3>黄仁勋辞去英伟达 CEO</h3><p class="fact">11-12 辞职即时生效；FBI/国会/公司三方调查；股价收跌超 4%</p><p class="chain">治理丑闻 + 国家安全 + 出口管制叠加 → 算力链、HBM、国产替代、中东主权 AI</p><p class="verify">验证节点：财报（11-17）、正式 CEO 任命、国会听证</p></div>
-    <div class="case-card"><span class="tag">大宗商品</span><h3>伊朗战争与油价</h3><p class="fact">布伦特 73→100 美元；海湾出口 60–80%；OPEC+ 产量少约 500 万桶/日</p><p class="chain">油价 → 通胀利率 → 航空化工成本 → 中东主权基金节奏 → 霍尔木兹航运</p><p class="verify">验证节点：OPEC+ 2027 配额评估（11 月中旬）</p></div>
+    <div class="case-card"><span class="tag">推荐首个演示</span><h3>韩股崩盘</h3><p class="fact">11-06 KOSPI 盘中跌 8.8% 触发熔断；SK 海力士跌 10.44%；外资净卖 2.77 万亿韩元</p><p class="chain">美股芯片跌 → AI 资本开支疑虑 → HBM 订单 → 外资抛售 → A 股存储映射</p><p class="verify">验证节点：韩国两融政策效果；英伟达财报（11-17）</p><button type="button" class="simbtn" data-sim="case-kr">局势推演 →</button></div>
+    <div class="case-card"><span class="tag">深度传导</span><h3>黄仁勋辞去英伟达 CEO</h3><p class="fact">11-12 辞职即时生效；FBI/国会/公司三方调查；股价收跌超 4%</p><p class="chain">治理丑闻 + 国家安全 + 出口管制叠加 → 算力链、HBM、国产替代、中东主权 AI</p><p class="verify">验证节点：财报（11-17）、正式 CEO 任命、国会听证</p><button type="button" class="simbtn" data-sim="case-nvda">局势推演 →</button></div>
+    <div class="case-card"><span class="tag">大宗商品</span><h3>伊朗战争与油价</h3><p class="fact">布伦特 73→100 美元；海湾出口 60–80%；OPEC+ 产量少约 500 万桶/日</p><p class="chain">油价 → 通胀利率 → 航空化工成本 → 中东主权基金节奏 → 霍尔木兹航运</p><p class="verify">验证节点：OPEC+ 2027 配额评估（11 月中旬）</p><button type="button" class="simbtn" data-sim="case-oil">局势推演 →</button></div>
   </div>
-  <p class="srcnote" style="margin-top:12px">演示分工：黄仁勋讲"深度传导"，韩股讲"可对账"（熔断、资金流、政府应对三样已兑现）。四个事件都指向同一条主线——AI 资本开支能否持续。</p>
+  <p class="srcnote" style="margin-top:12px">三个案例的局势推演是人工整理的示范，不计入推演档案和命中率。演示分工：黄仁勋讲"深度传导"，韩股讲"可对账"（熔断、资金流、政府应对三样已兑现）。四个事件都指向同一条主线——AI 资本开支能否持续。</p>
 </section>
 
 
@@ -2020,6 +2020,57 @@ function scenVars(it,x){if(Array.isArray(x.vars))return x.vars.filter(v=>SIM_VAR
 function varProbs(it){const out={};(it.sim.scenarios||[]).forEach((x,i)=>scenVars(it,x).forEach(v=>{const key=v.k+'|'+v.dir;
   const e=out[key]||(out[key]={k:v.k,dir:v.dir,prob:0,scen:[],note:'',auto:!!v.auto});e.prob+=(+x.prob||0);e.scen.push('情景 '+'ABC'[i]+' '+(+x.prob||0)+'%');e.note=e.note||v.note||'';}));
  return Object.values(out);}
+/* ---- 案例库：三个案例的示范推演（人工整理，不进推演档案） ---- */
+const CASE_SIMS=[
+{id:'case-kr',demo:true,sector:'securities',country:'韩国',title:'韩股崩盘：KOSPI 熔断，SK 海力士跌 10.44%',sim:{
+ conclusion:'这次大跌的主变量不在韩国本身，而在 AI 资本开支预期。11-17 英伟达财报是分水岭：印证 HBM 需求则是流动性急跌，否则是盈利预期下修的开始。',
+ facts:['11-06 KOSPI 盘中跌 8.8%，触发熔断','SK 海力士当日跌 10.44%','外资当日净卖约 2.77 万亿韩元'],
+ unknowns:['英伟达财报（11-17）是否印证 HBM 需求','韩国两融政策的实际效果','外资抛售是一次性还是会延续'],
+ chain:['美股芯片指数大跌','AI 资本开支疑虑','HBM 订单预期下修','外资抛售韩股','A 股存储与设备映射'],
+ affected:'韩国半导体权重股、A 股存储与设备链、韩元',
+ comparable:{case:'2024-08-05 全球股市急跌，KOSPI 同样单日跌约 8.8% 并熔断',lesson:'流动性驱动的急跌，只要盈利预期没变，几周内能收复大半；要盯的是基本面有没有跟着变。'},
+ scenarios:[
+  {name:'财报稳住预期',prob:50,sev:'g',trigger:'英伟达指引印证 HBM 需求，外资转为净买',impact:'韩国半导体股收复大部分跌幅，A 股存储链情绪修复',window:'1–3 周',better:'外资连续净买入',worse:'财报后外资仍净卖',
+   path:['英伟达指引印证 HBM 需求','外资回补韩国半导体','A 股存储链情绪修复'],vars:[{k:"equity_asia",dir:"up",note:"半导体权重股反弹"},{k:"equity_cn",dir:"up",note:"存储链修复"},{k:"fx",dir:"up",note:"韩元企稳"}]},
+  {name:'高位震荡消化',prob:30,sev:'y',trigger:'财报中性，资本开支分歧延续',impact:'外资继续减仓，两融去杠杆，韩股估值中枢下移',window:'1–2 个月',better:'两融余额企稳',worse:'融资强平扩大',
+   path:['财报中性、开支分歧延续','外资减仓、两融去杠杆','韩股估值中枢下移'],vars:[{k:"equity_asia",dir:"down",note:"估值中枢下移"},{k:"fx",dir:"down",note:"韩元承压"}]},
+  {name:'AI 开支下修',prob:20,sev:'r',trigger:'云厂商下调资本开支指引，或 HBM 合约价松动',impact:'存储、设备、光模块盈利预期重估，全球科技股联动下跌',window:'1–2 个季度',better:'云厂商重申开支计划',worse:'HBM 订单被砍或延后',
+   path:['云厂商下调资本开支指引','HBM 订单与价格预期下修','存储、设备、光模块盈利重估','全球科技股与风险资产联动下跌'],vars:[{k:"equity_asia",dir:"down",note:"盈利预期下修"},{k:"equity_us",dir:"down",note:"科技股联动"},{k:"equity_cn",dir:"down",note:"存储与光模块"},{k:"fx",dir:"down",note:"韩元走弱"}]}],
+ watch:[{what:'英伟达财报与指引',when:'11-17',good:'数据中心指引上修',bad:'指引低于预期'},{what:'外资在韩股的净买卖',when:'每日',good:'转为净买',bad:'连续净卖'},{what:'韩国两融政策效果',when:'每周',good:'融资余额企稳',bad:'强平扩大'},{what:'HBM 合约价与订单',when:'每月',good:'价格持稳',bad:'价格或订单下修'}],
+ review_by:'2026-12-15'}},
+{id:'case-nvda',demo:true,sector:'securities',country:'美国',title:'黄仁勋辞去英伟达 CEO',sim:{
+ conclusion:'冲击沿「治理、国家安全、出口管制」三条线传导。只停在治理层面，影响短而浅；一旦走到出口管制，就从一家公司的事变成整条算力链的事。',
+ facts:['11-12 辞去 CEO，即时生效','FBI、国会、公司三方调查','股价收跌超 4%'],
+ unknowns:['正式 CEO 人选与任命时间','媒体报道的私人关系细节，未见官方证实','涉情报人员的说法未证实，中方已否认','调查是否牵连出口管制政策'],
+ chain:['治理丑闻','国家安全调查','出口管制收紧预期','算力链与国产替代重估'],
+ affected:'英伟达及其上游（HBM、光模块、代工）、下游（云厂商、中东主权 AI）、国产算力',
+ comparable:{case:'2023-11 OpenAI 首席执行官被董事会罢免',lesson:'关键人物风险来得急、去得也快，结局取决于接班安排是否迅速明确；这次多了国家安全这条线，不能只按治理事件看。'},
+ scenarios:[
+  {name:'平稳交接',prob:45,sev:'g',trigger:'迅速任命正式 CEO，财报如期且指引不变',impact:'治理折价收敛，算力链订单预期不变',window:'2–4 周',better:'正式 CEO 任命',worse:'任命拖延、高管连带离职',
+   path:['迅速任命正式 CEO、财报如期','治理折价收敛','算力链订单预期不变'],vars:[{k:"equity_us",dir:"up",note:"治理折价收敛"},{k:"equity_asia",dir:"up",note:"HBM 链企稳"}]},
+  {name:'调查拖延',prob:35,sev:'y',trigger:'调查范围扩大，国会举行听证',impact:'对华与中东销售审批放缓，上游订单节奏延后，国产算力预期升温',window:'1–3 个月',better:'调查限定在个人层面',worse:'听证指向公司销售行为',
+   path:['调查扩大、国会听证','对华与中东销售审批放缓','HBM、光模块订单节奏延后','国产算力替代预期升温'],vars:[{k:"equity_us",dir:"down",note:"调查压制估值"},{k:"equity_asia",dir:"down",note:"订单节奏延后"},{k:"supply",dir:"down",note:"审批放缓"},{k:"equity_cn",dir:"up",note:"国产算力"}]},
+  {name:'管制升级',prob:20,sev:'r',trigger:'国家安全结论坐实，出口管制清单收紧',impact:'对华供货受限，中东主权 AI 项目搁置，全球算力开支重排',window:'3–6 个月',better:'官方澄清不涉及管制调整',worse:'管制清单更新',
+   path:['国安结论坐实、管制收紧','对华供货受限、中东项目搁置','全球算力资本开支重排','A 股算力链分化：替代受益、依赖进口受损'],vars:[{k:"equity_us",dir:"down",note:"中国收入受限"},{k:"equity_asia",dir:"down",note:"HBM 需求下修"},{k:"supply",dir:"down",note:"对华供货受限"},{k:"equity_cn",dir:"up",note:"分化，替代受益"}]}],
+ watch:[{what:'英伟达财报',when:'11-17',good:'指引不变',bad:'下调指引或推迟发布'},{what:'正式 CEO 任命',when:'持续跟踪',good:'内部接班、迅速落定',bad:'空缺拖长'},{what:'国会听证',when:'排期公布时',good:'只问个人问题',bad:'追问对华销售'},{what:'出口管制清单',when:'持续跟踪',good:'无更新',bad:'新增限制'}],
+ review_by:'2027-01-15'}},
+{id:'case-oil',demo:true,sector:'commodity',country:'中东',title:'伊朗战争与油价：布伦特 73 → 100 美元',sim:{
+ conclusion:'油价已经计入海湾出口受损，下一步看霍尔木兹：维持半通是高位僵持，恢复则回吐溢价，实质封锁才会把冲击从能源价格推到全球利率和资金流。',
+ facts:['布伦特从约 73 美元升至 100 美元以上','海湾出口为正常水平的 60–80%','OPEC+ 产量少约 500 万桶/日'],
+ unknowns:['霍尔木兹通行何时恢复','OPEC+ 2027 配额评估结果（11 月中旬）','各国战略储备释放规模'],
+ chain:['海湾出口受阻','油价上行','通胀与利率预期','航空化工成本','油轮运价与油运标的'],
+ affected:'原油与 LNG 敞口、油运船东、航空与化工、中东主权基金的对外投资节奏',
+ comparable:{case:'2022 年俄乌冲突，布伦特一度逼近 130 美元',lesson:'供给冲击下油价先冲高，再随需求回落和贸易改道回吐；高位能维持数月，受益和受损板块的分化比油价本身持续更久。'},
+ scenarios:[
+  {name:'高位僵持',prob:50,sev:'y',trigger:'出口维持在 60–80%，没有停火也没有进一步升级',impact:'油价在高位震荡，通胀预期抬升，航空化工成本承压，油运受益',window:'1–3 个月',better:'出口比例回升',worse:'再有油轮或设施遇袭',
+   path:['出口维持 60–80%、油价高位','通胀预期抬升、降息推迟','航空化工承压、油运受益'],vars:[{k:"oil",dir:"up",note:"95–110 美元"},{k:"freight_tank",dir:"up",note:"绕行与等泊"},{k:"insurance",dir:"up",note:"战争险高位"},{k:"rate",dir:"up",note:"降息推迟"}]},
+  {name:'停火恢复',prob:30,sev:'g',trigger:'达成停火，霍尔木兹通行恢复',impact:'风险溢价回吐，运价与保费回落',window:'2–6 周',better:'通行量回到正常',worse:'停火破裂',
+   path:['停火、霍尔木兹通行恢复','风险溢价回吐、运价保费回落'],vars:[{k:"oil",dir:"down",note:"回吐风险溢价"},{k:"freight_tank",dir:"down",note:""},{k:"insurance",dir:"down",note:""}]},
+  {name:'封锁升级',prob:20,sev:'r',trigger:'霍尔木兹实质封锁，或主要出口设施受损',impact:'油价再上一个台阶，全球滞胀交易，中东主权基金放缓对外投资',window:'数周内',better:'多国护航恢复通行',worse:'封锁持续超过两周',
+   path:['霍尔木兹实质封锁','油价冲向 120 美元以上','全球滞胀交易、央行被迫偏紧','中东主权基金放缓对外投资'],vars:[{k:"oil",dir:"up",note:"120 美元以上"},{k:"lng",dir:"up",note:""},{k:"freight_tank",dir:"up",note:"运力错配"},{k:"gold",dir:"up",note:"避险"},{k:"rate",dir:"up",note:"滞胀压力"}]}],
+ watch:[{what:'霍尔木兹日通行量',when:'每日',good:'回升',bad:'继续下滑'},{what:'OPEC+ 2027 配额评估',when:'11 月中旬',good:'增产补缺口',bad:'维持现状'},{what:'战争险保费',when:'每周',good:'回落',bad:'继续加费'},{what:'布伦特月差',when:'每日',good:'近月升水收窄',bad:'升水扩大'}],
+ review_by:'2026-12-31'}}
+];
 function openSims(){const seen=new Set(),out=[];
  ARC.items.concat(LIVE.feed?LIVE.feed.items.filter(x=>x.sim):[]).forEach(x=>{if(seen.has(x.id))return;seen.add(x.id);if(['hit','miss','unclear'].includes(x.status))return;out.push(x);});return out;}
 function riskAlerts(){const hits=[];openSims().forEach(it=>varProbs(it).forEach(e=>{const min=WATCH[e.k];if(min&&e.prob>=min)hits.push(Object.assign({it,min},e));}));
@@ -2073,7 +2124,7 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
   <div class="scen-v"><b>验证节点</b><ul><li><span class="g">好转</span> ${esc(x.better)}</li><li><span class="b">恶化</span> ${esc(x.worse)}</li></ul></div></div></div>`).join('');
  const watch=(m.watch||[]).length?`<div class="facttab-wrap"><table class="facttab"><tr><th>观察什么</th><th>时间</th><th>好转信号</th><th>恶化信号</th></tr>${m.watch.map(w=>`<tr><td>${esc(w.what)}</td><td>${esc(w.when)}</td><td>${esc(w.good)}</td><td>${esc(w.bad)}</td></tr>`).join('')}</table></div>`:'';
  const cp=m.comparable||{};
- return `<div class="sd-head"><div><div class="eyebrow">局势推演 · ${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''} · 红色初判</div><h2>${esc(a.title_zh||it.title)}</h2></div><button type="button" class="sd-x" aria-label="关闭">×</button></div>
+ return `<div class="sd-head"><div><div class="eyebrow">局势推演 · ${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''} · ${it.demo?'案例库 · 示范推演':'红色初判'}</div><h2>${esc(a.title_zh||it.title)}</h2></div><button type="button" class="sd-x" aria-label="关闭">×</button></div>
  <div class="sd-body">
   <div class="sd-concl">${esc(m.conclusion)}</div>
   <div class="sd-two"><div class="sd-box"><h3>已知事实（来自原文）</h3>${li(m.facts)}</div><div class="sd-box"><h3>待补取核实</h3>${li(m.unknowns)}</div></div>
@@ -2086,10 +2137,10 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
    <p style="margin:0 0 6px">${esc(it.review.explain||'')}</p>${it.review.note?`<p class="sd-note">${esc(it.review.note)}</p>`:''}
    ${(it.review.evidence||[]).length?'<ul>'+it.review.evidence.map(e=>`<li><a href="${esc(safeUrl(e.link))}" target="_blank" rel="noopener noreferrer">${esc(e.title)}</a> <span class="mute">${esc(e.outlet||'')} ${esc(String(e.published||'').slice(0,10))}</span></li>`).join('')+'</ul>':''}
    <p class="sd-note">${it.confirmed?(it.override?'负责人已人工改判，以人工判断为准。':'负责人已确认 AI 初判。'):'AI 对账初判，待负责人确认。'}对账时间 ${esc(fmtTime(it.review.at))}（首尔时间）</p></div>`:''}
-  <p class="sd-note">原文：<a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>（${esc(it.outlet||it.source)}）</p>
-  <p class="sd-note">本推演由 AI（${esc(m.model||'')}）于 ${esc(fmtTime(m.at))}（首尔时间）根据公开报道自动生成，情景概率为示意值；风险等级为 AI 初判，未经人工复核，以原文为准，不构成投资建议。</p>
+  ${it.demo?`<p class="sd-note">这是案例库的示范推演：事实取自案例卡上的演示数据，情景、传导路径和概率为人工整理的示意值，不计入推演档案和命中率，不构成投资建议。建议对账日 ${esc(m.review_by||'')}。</p>`:`<p class="sd-note">原文：<a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>（${esc(it.outlet||it.source)}）</p>
+  <p class="sd-note">本推演由 AI（${esc(m.model||'')}）于 ${esc(fmtTime(m.at))}（首尔时间）根据公开报道自动生成，情景概率为示意值；风险等级为 AI 初判，未经人工复核，以原文为准，不构成投资建议。</p>`}
  </div>`;}
-function openSim(id){const it=ARC.items.find(x=>x.id===id)||(LIVE.feed&&LIVE.feed.items.find(x=>x.id===id&&x.sim));if(!it||!it.sim)return; /* 档案里的版本带对账结果，优先用 */
+function openSim(id){const it=CASE_SIMS.find(x=>x.id===id)||ARC.items.find(x=>x.id===id)||(LIVE.feed&&LIVE.feed.items.find(x=>x.id===id&&x.sim));if(!it||!it.sim)return; /* 档案里的版本带对账结果，优先用 */
  let d=document.getElementById('simDlg');
  if(!d){d=document.createElement('dialog');d.id='simDlg';d.className='simdlg';document.body.appendChild(d);
   d.addEventListener('click',e=>{if(e.target===d||e.target.closest('.sd-x'))d.close();});}
