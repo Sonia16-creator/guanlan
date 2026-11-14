@@ -376,6 +376,17 @@ SIM_FOCUS = {
     "commodity": "对原油、黄金、白银、铜、LNG 价格与供需的传导，以及持有这些敞口的企业",
 }
 
+# 影响变量：推演里每个情景会推动哪些变量。代码固定，客户按代码设置「关注变量 + 概率门槛」
+SIM_VARS = {
+    "freight_dry": "干散货运价", "freight_box": "集运运价", "freight_tank": "油轮运价",
+    "insurance": "战争险与保费", "shipowner": "船东股价", "supply": "供应链与交付",
+    "oil": "原油价格", "lng": "天然气与 LNG 价格", "gold": "黄金价格", "silver": "白银价格", "copper": "铜价",
+    "fx": "汇率", "rate": "利率与融资成本", "credit": "信用与评级",
+    "equity_cn": "A 股与港股", "equity_us": "美股", "equity_asia": "韩股与日股",
+    "tariff": "电价与监管费率", "concession": "特许权与牌照", "stake": "股权与控制权",
+}
+WATCH = ROOT / "pipeline" / "watch.json"
+
 SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分析员。输入是一条已被初判为红色的事件。
 今天是 {today}。请输出简体中文的局势推演，重点关注：{focus}。
 
@@ -385,6 +396,9 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
 - 推演、历史可比属于分析判断，可以用你的背景知识，但要写得克制、可验证。
 - 三种情景互斥，概率为整数且加起来等于 100，按概率从高到低排列。
 - 每个情景给出可观察的好转信号和恶化信号，便于业务人员跟踪。
+- 每个情景都要写自己的传导路径 path：局势往这个方向发展时，冲击一层一层落到哪里。三个情景的路径必须不同，体现发展方向不同带来的差异；局势缓和的情景可以只有两层。
+- 每个情景列出会被明显推动的影响变量 vars，变量代码只能从下表选，没有就给空数组：
+{vars}
 
 只输出 JSON，结构如下：
 {{
@@ -395,7 +409,10 @@ SIM_PROMPT = """你是锋睿「观澜 Horizon」舆情雷达的局势推演分�
  "affected": "最可能受影响的对象（资产、板块、标的或敞口），50 字以内",
  "comparable": {{"case": "最接近的历史可比事件，没有就写空字符串", "lesson": "可借鉴的规律，60 字以内"}},
  "scenarios": [
-  {{"name": "情景名，10 字以内", "prob": 50, "trigger": "触发条件", "impact": "影响", "window": "时间窗口", "better": "好转信号", "worse": "恶化信号"}}
+  {{"name": "情景名，10 字以内", "prob": 50, "sev": "该情景对关注对象的影响程度：r 重大 / y 中等 / g 轻微或局势收敛",
+    "trigger": "触发条件", "impact": "影响", "window": "时间窗口", "better": "好转信号", "worse": "恶化信号",
+    "path": ["一级传导：直接冲击到谁，16 字以内", "二级传导：行业或市场层面，16 字以内", "终局：落到哪类资产、标的或敞口，16 字以内"],
+    "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}]}}
  ],
  "watch": [{{"what": "要跟踪的验证节点", "when": "时间或频率", "good": "好转信号", "bad": "恶化信号"}}],
  "review_by": "到期对账日 YYYY-MM-DD：到这一天应该能看出哪种情景成立，按最可能情景的时间窗口估计，不早于今天后 7 天、不晚于 1 年",
@@ -417,7 +434,8 @@ def simulate_one(it: dict, ts: datetime) -> dict | None:
              "red_reason": a.get("reason_zh", "")}
     payload = {
         "model": DEEPSEEK_MODEL,
-        "messages": [{"role": "system", "content": SIM_PROMPT.format(today=ts.strftime("%Y-%m-%d"), focus=focus)},
+        "messages": [{"role": "system", "content": SIM_PROMPT.format(today=ts.strftime("%Y-%m-%d"), focus=focus,
+                                                                         vars="\n".join(f"  {k} = {v}" for k, v in SIM_VARS.items()))},
                      {"role": "user", "content": json.dumps(event, ensure_ascii=False)}],
         "response_format": {"type": "json_object"},
         "temperature": 0.3,
@@ -440,9 +458,11 @@ def simulate_one(it: dict, ts: datetime) -> dict | None:
             prob = max(0, min(100, int(round(float(x.get("prob", 0))))))
         except (TypeError, ValueError):
             prob = 0
-        scen.append({"name": _txt(x.get("name"), 30), "prob": prob, "trigger": _txt(x.get("trigger"), 160),
+        scen.append({"name": _txt(x.get("name"), 30), "prob": prob, "sev": x.get("sev") if x.get("sev") in ("r", "y", "g") else "",
+                     "trigger": _txt(x.get("trigger"), 160),
                      "impact": _txt(x.get("impact"), 160), "window": _txt(x.get("window"), 40),
-                     "better": _txt(x.get("better"), 100), "worse": _txt(x.get("worse"), 100)})
+                     "better": _txt(x.get("better"), 100), "worse": _txt(x.get("worse"), 100),
+                     "path": [_txt(s, 30) for s in (x.get("path") or [])[:4] if s], "vars": _norm_vars(x.get("vars"))})
     if not scen or not d.get("conclusion"):
         return None
     total = sum(x["prob"] for x in scen)
@@ -526,6 +546,112 @@ def simulate(items: list[dict], ts: datetime) -> int:
     return done
 
 
+ENRICH_PROMPT = """你是锋睿「观澜 Horizon」的局势推演分析员。输入是一条已经做好的局势推演（事件 + 三种情景）。
+不要改动情景的名称、概率和文字，只为每个情景补三项，按输入的情景顺序输出：
+- sev：该情景对关注对象的影响程度，r 重大 / y 中等 / g 轻微或局势收敛
+- path：该情景下冲击逐层落到哪里，2 到 3 层，每层 16 字以内（一级传导：直接冲击到谁；二级传导：行业或市场层面；终局：落到哪类资产、标的或敞口）。三个情景的路径必须不同
+- vars：该情景下会被明显推动的影响变量，最多 4 个，没有就给空数组。变量代码只能从下表选：
+{vars}
+
+只输出 JSON：{{"scenarios": [{{"sev": "y", "path": ["…", "…", "…"], "vars": [{{"k": "变量代码", "dir": "up 或 down", "note": "幅度或说明，16 字以内"}}]}}]}}"""
+
+
+def _norm_vars(raw) -> list[dict]:
+    vs, seen = [], set()
+    for v in raw or []:
+        if isinstance(v, dict) and v.get("k") in SIM_VARS and v["k"] not in seen:
+            seen.add(v["k"])
+            vs.append({"k": v["k"], "dir": "down" if v.get("dir") == "down" else "up", "note": _txt(v.get("note"), 30)})
+    return vs[:5]
+
+
+def enrich_sims(items: list[dict], ts: datetime) -> int:
+    """早期推演没有逐层传导和影响变量：只补这三项，不动原来的情景和概率。"""
+    if not DEEPSEEK_KEY:
+        return 0
+    todo = [it for it in items if it.get("sim") and not any("vars" in x for x in it["sim"].get("scenarios", []))][:MAX_SIM]
+    done = 0
+    for it in todo:
+        m = it["sim"]
+        src = {"event": it.get("ai", {}).get("title_zh") or it["title"], "sector": it["sector"], "conclusion": m.get("conclusion"),
+               "scenarios": [{k: x.get(k) for k in ("name", "prob", "trigger", "impact", "window")} for x in m["scenarios"]]}
+        payload = {"model": DEEPSEEK_MODEL, "response_format": {"type": "json_object"}, "temperature": 0.2,
+                   "messages": [{"role": "system", "content": ENRICH_PROMPT.format(vars="\n".join(f"  {k} = {v}" for k, v in SIM_VARS.items()))},
+                                {"role": "user", "content": json.dumps(src, ensure_ascii=False)}]}
+        try:
+            r = session.post(DEEPSEEK_URL, json=payload, timeout=120, headers={"Authorization": f"Bearer {DEEPSEEK_KEY}"})
+            r.raise_for_status()
+            out = json.loads(r.json()["choices"][0]["message"]["content"]).get("scenarios") or []
+        except Exception as e:
+            print(f"  补传导失败：{str(e)[:120]}", flush=True)
+            continue
+        if len(out) != len(m["scenarios"]):
+            continue
+        for x, o in zip(m["scenarios"], out):
+            x["sev"] = o.get("sev") if o.get("sev") in ("r", "y", "g") else ""
+            x["path"] = [_txt(s, 30) for s in (o.get("path") or [])[:4] if s]
+            x["vars"] = _norm_vars(o.get("vars"))
+        m["enriched_at"] = iso(ts)
+        done += 1
+    return done
+
+
+# ---------------- 风险提醒：推演触及客户关注的变量，且概率过门槛 ----------------
+#
+# pipeline/watch.json 写客户关注的变量和概率门槛，例如 {"k": "freight_tank", "min": 30}
+# 一条推演里，把「会推动该变量朝同一方向走」的各情景概率相加；达到门槛就算命中
+#   · 命中的写进 feed.json 的 alerts（网站上显示），并开一个「风险提醒」Issue（GitHub 会发邮件）
+
+def var_probs(sim: dict) -> dict:
+    """{(变量, 方向): {"prob": 合计概率, "scen": ["A 45%", ...], "note": 说明}}"""
+    out = {}
+    for i, x in enumerate(sim.get("scenarios", [])):
+        for v in x.get("vars") or []:
+            e = out.setdefault((v["k"], v["dir"]), {"prob": 0, "scen": [], "note": ""})
+            e["prob"] += x.get("prob", 0)
+            e["scen"].append(f"情景 {'ABC'[i]} {x.get('prob', 0)}%")
+            e["note"] = e["note"] or v.get("note", "")
+    return out
+
+
+def load_watch() -> list[dict]:
+    try:
+        rules = json.loads(WATCH.read_text(encoding="utf-8")).get("rules", [])
+    except (OSError, ValueError):
+        return []
+    return [r for r in rules if isinstance(r, dict) and r.get("k") in SIM_VARS and not r.get("off")]
+
+
+def find_alerts(items: list[dict]) -> list[dict]:
+    rules = {r["k"]: int(r.get("min", 30)) for r in load_watch()}
+    hits = []
+    for it in items:
+        for (k, d), e in var_probs(it.get("sim") or {}).items():
+            if k in rules and e["prob"] >= rules[k]:
+                hits.append({"id": it["id"], "title": it.get("ai", {}).get("title_zh") or it["title"], "link": it.get("link"),
+                             "k": k, "name": SIM_VARS[k], "dir": d, "prob": e["prob"], "min": rules[k],
+                             "scen": e["scen"], "note": e["note"], "review_by": it["sim"].get("review_by")})
+    return sorted(hits, key=lambda h: -h["prob"])
+
+
+def push_alerts(hits: list[dict], ts: datetime) -> int | None:
+    if not hits or not gh_ready():
+        return None
+    rows = "\n".join(f"| [{h['title']}]({h['link']}) | {h['name']} {'↑' if h['dir'] == 'up' else '↓'} {h['note']} | **{h['prob']}%**（门槛 {h['min']}%） | {'、'.join(h['scen'])} | {h['review_by']} |"
+                     for h in hits)
+    body = f"""本次采集新生成的局势推演里，有 **{len(hits)}** 条触及你关注的变量，且概率达到了你设的门槛。
+
+| 事件 | 受影响变量 | 合计概率 | 来自哪些情景 | 对账日 |
+| --- | --- | --- | --- | --- |
+{rows}
+
+概率是 AI 推演的示意值，把「会推动该变量朝同一方向走」的各情景概率相加得到；未经人工复核，不构成投资建议。
+完整推演和传导图见网站「局势推演」页。关注变量和门槛在仓库的 `pipeline/watch.json` 里改。看完后直接关闭本 Issue 即可。"""
+    r = gh("POST", "/issues", json={"title": f"风险提醒 {ts.strftime('%m-%d')}：{len(hits)} 条推演触及关注变量（最高 {hits[0]['prob']}%）",
+                                    "body": body, "labels": ["风险提醒"]})
+    return r.get("number")
+
+
 # ---------------- 推演到期对账：AI 初判 + 人工在 GitHub Issue 上确认 ----------------
 #
 # 流程：推演到了 review_by 那天 → 用 track_query 检索这段时间的新闻 → DeepSeek 判断哪种情景发生
@@ -545,7 +671,7 @@ REVIEW_PROMPT = """你是锋睿「观澜 Horizon」的推演对账员。输入�
 
 只输出 JSON：{"verdict": "hit/miss/unclear", "scenario": "A/B/C/none", "explain": "中文判断理由，120 字以内，点明依据的证据序号", "evidence": [证据序号, 最多 5 个]}"""
 
-GH_LABELS = {"对账": "1d4ed8", "确认": "15803d", "改判-成立": "15803d", "改判-未成立": "b91c1c", "改判-无法判定": "6b7280"}
+GH_LABELS = {"对账": "1d4ed8", "确认": "15803d", "改判-成立": "15803d", "改判-未成立": "b91c1c", "改判-无法判定": "6b7280", "风险提醒": "b45309"}
 _labels_ready = False
 
 
@@ -735,8 +861,16 @@ def main() -> int:
     items, added = merge(old.get("items", []), new_items, ts)
     n_ai = analyze(items, ts)
     n_sim = simulate(items, ts)
+    n_enr = enrich_sims(items, ts)
     n_arc = archive_sims(items, ts)
-    print(f"局势推演：本次生成 {n_sim} 条，新归档 {n_arc} 条")
+    print(f"局势推演：本次生成 {n_sim} 条，补逐层传导 {n_enr} 条，新归档 {n_arc} 条")
+    alerts = []
+    try:
+        alerts = find_alerts([it for it in items if iso(ts) in (it.get("sim", {}).get("at"), it.get("sim", {}).get("enriched_at"))])
+        no = push_alerts(alerts, ts)
+        print(f"风险提醒：本次命中 {len(alerts)} 条" + (f"，已开 Issue #{no}" if no else ""))
+    except Exception as e:  # 提醒出错不影响采集结果
+        print(f"风险提醒出错：{type(e).__name__}: {str(e)[:160]}")
     try:
         n_rev, n_conf = review_due(ts)
         print(f"推演对账：本次 AI 对账 {n_rev} 条，写回人工确认 {n_conf} 条")
@@ -757,6 +891,8 @@ def main() -> int:
             "red": lv("r"), "yellow": lv("y"), "green": lv("g"),
             "unclassified": sum(1 for it in shown if "ai" not in it),
         },
+        "sim_vars": SIM_VARS,
+        "alerts_this_run": alerts,
         "health": health,
         "chokepoints": chokepoints,
         "items": items,

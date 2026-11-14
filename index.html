@@ -598,6 +598,61 @@ body:not(.demo) [data-demo]{display:none!important}
 .side .grp~button[aria-current="page"]::after{left:-2px;top:4px;bottom:4px}
 .backlink{font:inherit;font-size:13px;color:var(--muted);background:none;border:none;padding:0;margin:0 0 6px;cursor:pointer}
 .backlink:hover{color:var(--ink)}
+/* ===== 情景传导图：事件 → 三种情景 → 各自的逐层传导 → 影响变量 ===== */
+.sflow{display:grid;grid-template-columns:150px minmax(0,1fr);align-items:stretch}
+.sf-head{display:grid;grid-template-columns:150px minmax(0,1fr);font-size:11.5px;color:var(--muted);letter-spacing:.06em;margin-bottom:6px}
+.sf-head>div:last-child,.sf-lane{display:grid;grid-template-columns:repeat(calc(var(--d,3) + 1),minmax(0,1fr)) minmax(0,1.35fr);column-gap:24px}
+.sf-head>div:last-child{padding-left:22px}
+.sf-ev{align-self:center;position:relative;border:1.5px solid var(--red);background:var(--red-bg);color:var(--red);font-weight:700;font-size:13px;line-height:1.45;border-radius:10px;padding:10px 12px;margin-right:16px}
+.sf-ev::after{content:"";position:absolute;left:100%;top:50%;width:16px;border-top:1.5px solid var(--brand-2)}
+.sf-lanes{display:flex;flex-direction:column}
+.sf-lane{position:relative;align-items:stretch;padding:7px 0 7px 22px}
+.sf-lane::before{content:"";position:absolute;left:0;top:50%;width:22px;border-top:1.5px dashed var(--muted)}
+.sf-lane::after{content:"";position:absolute;left:0;top:0;bottom:0;border-left:1.5px solid var(--brand-2)}
+.sf-lane:first-child::after{top:50%}.sf-lane:last-child::after{bottom:50%}.sf-lane:only-child::after{display:none}
+.sf-n{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:center;gap:2px;font-size:12.5px;line-height:1.45;color:var(--ink);background:var(--surface);border:1px dashed var(--muted);border-radius:9px;padding:8px 10px}
+.sf-n+.sf-n::before,.sf-vars::before{content:"";position:absolute;right:100%;top:50%;width:24px;border-top:1.5px dashed var(--muted)}
+.sf-n+.sf-n::after,.sf-vars::after{content:"";position:absolute;right:calc(100% + 1px);top:calc(50% - 4px);border:4px solid transparent;border-left:6px solid var(--muted);border-right:0}
+.sf-scen{border-style:solid;border-width:1.5px;font-weight:700}
+.sf-scen small{font-weight:600;font-size:12px}
+.sf-lane.sv-r .sf-scen{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+.sf-lane.sv-y .sf-scen{border-color:var(--yellow);background:var(--yellow-bg);color:var(--yellow)}
+.sf-lane.sv-g .sf-scen{border-color:var(--green);background:var(--green-bg);color:var(--green)}
+.sf-lane.sv-n .sf-scen{border-color:var(--brand-2);color:var(--brand-2)}
+.sf-vars{min-width:0;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:8px}
+.sf-vars .vchip{white-space:normal;flex-wrap:wrap;border-radius:9px;max-width:100%}
+.sf-vars em{font-style:normal;font-size:12px;color:var(--muted)}
+.vchip{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:1.5;border-radius:999px;padding:1px 9px;border:1px solid var(--line);background:var(--surface);color:var(--text);white-space:nowrap}
+.vchip b{font-weight:700}.vchip.up b{color:var(--red)}.vchip.down b{color:var(--green)}
+.vchip small{color:var(--muted);font-size:11px;white-space:normal}
+.vchip.watch{border-color:var(--gold);background:var(--gold-soft);color:var(--ink);font-weight:600}
+.vchip.hit{border-color:var(--red);box-shadow:0 0 0 2px var(--red-bg)}
+.sf-sum{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.sf-alert{background:var(--gold-soft);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;font-size:13.5px;color:var(--ink)}
+.sf-alert b{color:var(--red)}
+@media (max-width:820px){
+ .sf-head{display:none}.sflow{grid-template-columns:1fr}
+ .sf-ev{margin:0 0 10px}.sf-ev::after{display:none}
+ .sf-lane{display:flex;flex-direction:column;gap:6px;padding:8px 0 8px 14px}.sf-lane::before{width:14px;top:22px}
+ .sf-lane::after,.sf-lane:first-child::after,.sf-lane:last-child::after{top:0;bottom:0;display:block}
+ .sf-n+.sf-n::before,.sf-n+.sf-n::after,.sf-vars::before,.sf-vars::after{display:none}
+}
+/* ===== 关注变量与风险提醒 ===== */
+#ovAlertSec[data-empty="1"]{display:none}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.wrow{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:13.5px;background:var(--surface)}
+.wrow.on{border-color:var(--gold);background:var(--gold-soft)}
+.wrow label{display:flex;align-items:center;gap:7px;cursor:pointer;min-width:0;color:var(--ink)}
+.wrow select{font:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);padding:2px 4px}
+.wrow:not(.on) select{visibility:hidden}
+.ralert{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 4px;border-top:1px solid var(--line)}
+.ralert:first-child{border-top:none}
+.ralert .rp{font-family:var(--serif);font-size:22px;color:var(--red);font-variant-numeric:tabular-nums;min-width:58px;text-align:center;line-height:1.1}
+.ralert .rp small{display:block;font-family:inherit;font-size:11px;color:var(--muted)}
+.ralert .rt{font-size:13.5px;min-width:0}.ralert .rt b{color:var(--ink)}
+.ralert .rt span{display:block;color:var(--muted);font-size:12.5px}
+.ralert .simbtn{margin-top:0;white-space:nowrap}
+@media (max-width:820px){.ralert{grid-template-columns:auto minmax(0,1fr)}.ralert .simbtn{grid-column:2;justify-self:start}}
 .demobar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:40;width:min(880px,calc(100% - 24px));background:var(--brand);color:var(--on-brand);border:1px solid var(--gold-line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:10px 14px;display:flex;align-items:center;gap:12px}
 .demobar[hidden]{display:none}
 .demobar .db-step{font-size:12px;color:var(--gold);font-weight:700;white-space:nowrap;letter-spacing:.04em}
@@ -647,7 +702,7 @@ body.demo main{padding-bottom:96px}
   <button data-go="board"><span>榜单</span></button>
   <div class="grp">我的关注</div>
   <button data-go="projects"><span>项目档案</span></button>
-  <button data-go="exposure"><span>敞口监控</span></button>
+  <button data-go="exposure"><span>敞口监控</span><span class="nb r" id="nb-expo"></span></button>
   <button data-go="timeline"><span>事件线</span></button>
   <div class="grp">行业看板</div>
   <button data-go="sector-securities"><span>券商</span></button>
@@ -679,6 +734,13 @@ body.demo main{padding-bottom:96px}
   <div class="hero-act">
     <button type="button" class="btn-pri" data-jump="live">查看实时信源</button>
     <button type="button" class="btn-sec" data-jump="ask">问雷达</button>
+  </div>
+</section>
+
+<section data-view="overview" id="ovAlertSec" data-empty="1">
+  <div class="card">
+    <h2>潜在风险提醒 <small id="ovAlertSub">推演触及你关注的变量，且概率达到你设的门槛</small><button type="button" class="linkbtn" data-jump="exposure">设置关注变量 →</button></h2>
+    <div id="ovAlerts"></div>
   </div>
 </section>
 
@@ -800,7 +862,15 @@ body.demo main{padding-bottom:96px}
     </div>
   </div>
 
-  <h2 style="margin-top:8px">传导提醒 <small>事件生成传导图时，只要有一条边指向你的敞口，就提醒</small></h2>
+  <h2 style="margin-top:8px">我的关注变量 <small>勾选你关心的变量，自己定概率门槛；推演触及且过门槛就提醒</small></h2>
+  <div class="card" style="margin-bottom:16px">
+    <div class="wgrid" id="watchGrid"></div>
+    <p class="srcnote" style="margin-top:10px">算法：一条推演里，把会推动该变量朝同一方向走的各情景概率相加，达到门槛即提醒。设置保存在本浏览器。邮件推送用的是仓库里 <code>pipeline/watch.json</code> 的同一套规则。</p>
+  </div>
+  <h2>风险提醒 <small id="expoRiskSub">来自进行中的局势推演</small></h2>
+  <div class="card" style="margin-bottom:16px"><div id="expoRisk"></div></div>
+
+  <h2 style="margin-top:8px">传导提醒 <small>演示样例 · 事件生成传导图时，只要有一条边指向你的敞口，就提醒</small></h2>
   <div id="expoAlerts">
     <div class="alert-item">
       <div class="al-head"><span class="pill y"><span class="dot"></span>黄色初判</span><span class="badge-line dash">虚线 · 可能传导</span><span style="color:var(--muted);font-size:12.5px">美联储鹰派表态 · 尚未点名黄金</span></div>
@@ -1912,7 +1982,8 @@ function renderOverview(){const f=LIVE.feed;if(!f)return;
   :'<li><time>—</time><div>暂无待对账的推演<small>红色事件推演后会自动登记对账日</small></div></li>';
  const ev=y1.concat(lv(all,'y').filter(it=>!y1.includes(it))).sort(byTime).slice(0,6);
  document.getElementById('ovEvents').innerHTML=ev.length?ev.map(it=>`<li><a class="qitem" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer"><span class="qc">${esc(it.country||SECN[it.sector]||'')}</span><span class="qt">${esc((it.ai&&it.ai.title_zh)||it.title)}</span><span class="qk">${esc(ago(it.published))}</span></a></li>`).join('')
-  :'<li class="srcnote">近 7 天没有黄色事件。</li>';}
+  :'<li class="srcnote">近 7 天没有黄色事件。</li>';
+ renderWatch();}
 function renderShipLive(){const box=document.getElementById('shipLive');if(!LIVE.feed)return;
  const o={r:0,y:1,g:2};
  const list=liveItems().filter(it=>it.sector==='shipping'&&(!(it.persona||[]).length||it.persona.includes(shipP)))
@@ -1929,6 +2000,70 @@ document.getElementById('liveFilters').addEventListener('click',e=>{const b=e.ta
 document.getElementById('liveQ').addEventListener('input',e=>{LIVE.q=e.target.value;LIVE.limit=40;renderLiveList();});
 /* ---- 红色事件局势推演：数据由采集管线预先生成（it.sim），点击后弹窗展示 ---- */
 const VZ={hit:'成立',miss:'未成立',unclear:'无法判定'};
+/* ---- 影响变量、客户关注规则、风险提醒 ---- */
+const SIM_VARS={freight_dry:'干散货运价',freight_box:'集运运价',freight_tank:'油轮运价',insurance:'战争险与保费',shipowner:'船东股价',supply:'供应链与交付',
+ oil:'原油价格',lng:'天然气与 LNG 价格',gold:'黄金价格',silver:'白银价格',copper:'铜价',fx:'汇率',rate:'利率与融资成本',credit:'信用与评级',
+ equity_cn:'A 股与港股',equity_us:'美股',equity_asia:'韩股与日股',tariff:'电价与监管费率',concession:'特许权与牌照',stake:'股权与控制权'};
+/* 旧推演没有结构化变量，按情景「影响」里的关键词推断，界面上标「推断」 */
+const VAR_KW={freight_tank:/油轮.{0,6}运价|油轮运费|VLCC|油运/,freight_dry:/干散货.{0,6}运价|散货运价|BDI|海岬型/,freight_box:/集运.{0,6}运价|集装箱.{0,6}运价|SCFI|箱运/,
+ insurance:/战争险|保费|保险费/,shipowner:/船东股|航运股|船公司股价/,supply:/供应链|交付|延误|绕行|断供/,oil:/油价|原油|布伦特|WTI/,lng:/LNG|天然气/,gold:/黄金|金价/,silver:/白银|银价/,copper:/铜价|铜矿|铜供应/,
+ fx:/汇率|贬值|升值|美元指数/,rate:/利率|融资成本|加息|降息|收益率/,credit:/评级|信用利差|违约/,equity_cn:/A ?股|港股|沪深|恒生/,equity_us:/美股|纳指|标普|道指/,equity_asia:/韩股|日股|KOSPI|日经/,
+ tariff:/电价|费率/,concession:/特许权|牌照|特许经营/,stake:/股权|国有化|减持|控制权/};
+const WATCH_DEFAULT={freight_tank:30,freight_dry:30,freight_box:50,oil:50,concession:30,stake:30};
+let WATCH=(()=>{try{const w=JSON.parse(localStorage.getItem('guanlan-watch'));if(w&&typeof w==='object')return w;}catch(e){}return Object.assign({},WATCH_DEFAULT);})();
+const saveWatch=()=>{try{localStorage.setItem('guanlan-watch',JSON.stringify(WATCH))}catch(e){}};
+function scenVars(it,x){if(Array.isArray(x.vars))return x.vars.filter(v=>SIM_VARS[v.k]);
+ const t=x.impact||'',out=[];
+ for(const k in VAR_KW)if(VAR_KW[k].test(t))out.push({k,auto:true});
+ if(/运价|运费/.test(t)&&!out.some(v=>v.k.startsWith('freight_')))(it.persona||[]).forEach(p=>{const k={dry:'freight_dry',box:'freight_box',tank:'freight_tank'}[p];if(k)out.push({k,auto:true});});
+ return out.slice(0,5).map(v=>Object.assign(v,{dir:'',note:''}));} /* 推断只说「可能受影响」，不判断方向 */
+function varProbs(it){const out={};(it.sim.scenarios||[]).forEach((x,i)=>scenVars(it,x).forEach(v=>{const key=v.k+'|'+v.dir;
+  const e=out[key]||(out[key]={k:v.k,dir:v.dir,prob:0,scen:[],note:'',auto:!!v.auto});e.prob+=(+x.prob||0);e.scen.push('情景 '+'ABC'[i]+' '+(+x.prob||0)+'%');e.note=e.note||v.note||'';}));
+ return Object.values(out);}
+function openSims(){const seen=new Set(),out=[];
+ ARC.items.concat(LIVE.feed?LIVE.feed.items.filter(x=>x.sim):[]).forEach(x=>{if(seen.has(x.id))return;seen.add(x.id);if(['hit','miss','unclear'].includes(x.status))return;out.push(x);});return out;}
+function riskAlerts(){const hits=[];openSims().forEach(it=>varProbs(it).forEach(e=>{const min=WATCH[e.k];if(min&&e.prob>=min)hits.push(Object.assign({it,min},e));}));
+ return hits.sort((a,b)=>(a.auto-b.auto)||b.prob-a.prob||String(b.it.published).localeCompare(String(a.it.published)));}
+const arrow=d=>d==='down'?'↓':d==='up'?'↑':'';
+function alertRow(h){const t=(h.it.ai&&h.it.ai.title_zh)||h.it.title;
+ return `<div class="ralert"><div class="rp">${Math.min(100,h.prob)}%<small>门槛 ${h.min}%</small></div>
+  <div class="rt"><b>${esc(SIM_VARS[h.k])} ${arrow(h.dir)}</b>${h.note?' '+esc(h.note):''} ← ${esc(t)}<span>${esc(h.scen.join(' + '))}${h.auto?' · 关键词推断，方向待定':''} · 对账日 ${esc(reviewBy(h.it)||'—')}</span></div>
+  <button type="button" class="simbtn" data-sim="${esc(h.it.id)}">看传导图 →</button></div>`;}
+function renderWatch(){const g=document.getElementById('watchGrid');if(!g)return;
+ g.innerHTML=Object.keys(SIM_VARS).map(k=>{const on=!!WATCH[k],m=WATCH[k]||30;
+  return `<div class="wrow${on?' on':''}"><label><input type="checkbox" data-wk="${k}"${on?' checked':''}>${esc(SIM_VARS[k])}</label>
+   <select data-wm="${k}" aria-label="${esc(SIM_VARS[k])}的概率门槛">${[20,30,40,50,60,70,80].map(v=>`<option value="${v}"${v===m?' selected':''}>≥ ${v}%</option>`).join('')}</select></div>`;}).join('');
+ renderRisk();}
+function renderRisk(){const hits=riskAlerts(),n=hits.length,ev=new Set(hits.map(h=>h.it.id)).size;
+ const empty=Object.keys(WATCH).length?'进行中的推演里，暂时没有触及你关注变量且过门槛的情景。':'还没有勾选关注变量。';
+ const er=document.getElementById('expoRisk');if(er)er.innerHTML=n?hits.slice(0,30).map(alertRow).join(''):`<p class="srcnote" style="margin:0">${empty}</p>`;
+ const es=document.getElementById('expoRiskSub');if(es)es.textContent=n?`${ev} 个事件、${n} 条提醒 · 按概率排序`:'来自进行中的局势推演';
+ const sec=document.getElementById('ovAlertSec');if(sec){sec.dataset.empty=n?'':'1';
+  document.getElementById('ovAlerts').innerHTML=hits.slice(0,4).map(alertRow).join('')+(n>4?`<p class="srcnote" style="margin:8px 0 0">还有 ${n-4} 条，见「敞口监控」。</p>`:'');
+  document.getElementById('ovAlertSub').textContent=`${ev} 个事件触及你关注的变量，且概率达到你设的门槛`;}
+ const nb=document.getElementById('nb-expo');if(nb)nb.textContent=n||'';}
+document.addEventListener('change',e=>{const c=e.target.closest('[data-wk]'),s=e.target.closest('[data-wm]');
+ if(c){if(c.checked)WATCH[c.dataset.wk]=+document.querySelector(`[data-wm="${c.dataset.wk}"]`).value||30;else delete WATCH[c.dataset.wk];}
+ else if(s){if(WATCH[s.dataset.wm])WATCH[s.dataset.wm]=+s.value;}else return;
+ saveWatch();renderWatch();});
+/* 情景传导图：事件 → 情景 A/B/C → 各自逐层传导 → 影响变量（命中关注规则的高亮） */
+function simFlow(it){const m=it.sim,a=it.ai||{},sc=m.scenarios||[];if(!sc.length)return'';
+ const probs={};varProbs(it).forEach(e=>probs[e.k+'|'+e.dir]=e.prob);
+ const structured=sc.some(x=>Array.isArray(x.path)&&x.path.length);
+ const depth=structured?Math.max(...sc.map(x=>(x.path||[]).length)):3;
+ const lanes=sc.map((x,i)=>{const path=Array.isArray(x.path)&&x.path.length?x.path:null,vs=scenVars(it,x);
+  const nodes=path?path.map((s,j)=>`<div class="sf-n"${j===path.length-1&&path.length<depth?` style="grid-column:span ${depth-path.length+1}"`:''}>${esc(s)}</div>`).join(''):`<div class="sf-n" style="grid-column:span ${depth}">${esc(x.impact)}</div>`;
+  const chips=vs.length?vs.map(v=>{const w=WATCH[v.k],hit=w&&probs[v.k+'|'+v.dir]>=w;
+   return `<span class="vchip ${v.dir}${w?' watch':''}${hit?' hit':''}" title="${w?'你关注的变量'+(hit?'，已过门槛':''):''}">${esc(SIM_VARS[v.k])} <b>${arrow(v.dir)}</b>${v.note?`<small>${esc(v.note)}</small>`:''}</span>`;}).join(''):'<em>无明显变动</em>';
+  return `<div class="sf-lane sv-${x.sev||'n'}"><div class="sf-n sf-scen">情景 ${'ABC'[i]} · ${esc(x.name)}<small>约 ${+x.prob||0}%${x.window?' · '+esc(x.window):''}</small></div>${nodes}<div class="sf-vars">${chips}</div></div>`;}).join('');
+ const heads=structured?['一级传导','二级传导','终局','更远一层'].slice(0,depth).map(t=>`<span>${t}</span>`).join(''):'<span style="grid-column:span 3">影响</span>';
+ const hits=varProbs(it).filter(e=>WATCH[e.k]&&e.prob>=WATCH[e.k]).sort((x,y)=>y.prob-x.prob);
+ return `<div><h3>情景传导图 <small style="font-weight:400;color:var(--muted)">局势往不同方向发展，冲击落到不同的层面</small></h3>
+  ${hits.length?`<div class="sf-alert" style="margin-bottom:10px">触及你关注的变量：${hits.map(e=>`${esc(SIM_VARS[e.k])} ${arrow(e.dir)} 合计约 <b>${Math.min(100,e.prob)}%</b>（${esc(e.scen.join(' + '))}，门槛 ${WATCH[e.k]}%）`).join('；')}</div>`:''}
+  <div class="sf-head" style="--d:${depth}"><div>触发事件</div><div><span>情景与概率</span>${heads}<span>影响变量</span></div></div>
+  <div class="sflow" style="--d:${depth}"><div class="sf-ev">${esc(a.title_zh||it.title)}</div><div class="sf-lanes">${lanes}</div></div>
+  <div class="sf-sum"><span><span class="edge-key dash"></span>推演路径（待验证）</span><span class="vchip watch">你关注的变量</span><span class="vchip watch hit">已过门槛</span><span><b style="color:var(--red)">↑</b> 上行 <b style="color:var(--green)">↓</b> 下行</span>${structured?'':'<span>· 这条推演生成较早，变量由关键词推断、未判断方向；下次自动更新后会补上逐层传导</span>'}</div>
+  ${m.affected?`<div class="cver" style="margin-top:8px">影响对象：${esc(m.affected)}</div>`:''}</div>`;}
 function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
  const li=xs=>xs&&xs.length?'<ul>'+xs.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':'<p class="sd-note">暂无</p>';
  const chain=(m.chain||[]).map((c,i)=>`<span class="cbox${i===0?' ev':i===m.chain.length-1?' px':''}">${esc(c)}</span>`).join('<span class="carr"></span>');
@@ -1942,9 +2077,10 @@ function simHTML(it){const a=it.ai||{},m=it.sim,pc=['g','y','r'];
  <div class="sd-body">
   <div class="sd-concl">${esc(m.conclusion)}</div>
   <div class="sd-two"><div class="sd-box"><h3>已知事实（来自原文）</h3>${li(m.facts)}</div><div class="sd-box"><h3>待补取核实</h3>${li(m.unknowns)}</div></div>
-  ${chain?`<div><h3>传导链</h3><div class="cflow">${chain}</div>${m.affected?`<div class="cver">影响对象：${esc(m.affected)}</div>`:''}</div>`:''}
+  ${simFlow(it)}
+  ${chain?`<div><h3>主传导链</h3><div class="cflow">${chain}</div></div>`:''}
   ${cp.case?`<div class="sd-box"><h3>历史可比</h3><b>${esc(cp.case)}</b><p style="margin:4px 0 0">${esc(cp.lesson)}</p></div>`:''}
-  <div><h3>情景推演</h3><div class="scen-grid">${scen}</div></div>
+  <div><h3>情景详情</h3><div class="scen-grid">${scen}</div></div>
   ${watch?`<div><h3>验证节点</h3>${watch}</div>`:''}
   ${it.review?`<div class="sd-box"><h3>到期对账 · ${it.override?`人工改判：${esc(VZ[it.status]||'')}（AI 初判：${esc(VZ[it.review.verdict]||'')}）`:esc(VZ[it.review.verdict]||'')}${!it.override&&it.review.scenario&&it.review.scenario!=='none'?`（实际更接近情景 ${esc(it.review.scenario)}）`:''}</h3>
    <p style="margin:0 0 6px">${esc(it.review.explain||'')}</p>${it.review.note?`<p class="sd-note">${esc(it.review.note)}</p>`:''}
