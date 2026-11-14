@@ -1760,7 +1760,8 @@ renderShip();
 
 /* ---- 实时信源：读取 GitHub Actions 每天生成的 data/feed.json ---- */
 const LIVE={feed:null,sector:'all',level:'all',persona:'all',q:'',limit:40};
-const SECN={energy:'海外能源',shipping:'航运'};
+const SECN={energy:'海外能源',shipping:'航运',securities:'券商',commodity:'大宗商品'};
+const ASSETN={oil:'原油',gold:'黄金',silver:'白银',copper:'铜',lng:'LNG'};
 const PERN={dry:'干散货',box:'集运',tank:'油轮'};
 const safeUrl=u=>/^https?:\/\//i.test(u||'')?u:'#';
 function fmtTime(s){if(!s)return'';const d=new Date(s);if(isNaN(d))return'';
@@ -1774,7 +1775,7 @@ function liveCard(it){const a=it.ai||{};const lv=a.level;
  tags.push(lv?pill(lv,RN[lv]+'色初判',1):'<span class="pill w">未分级</span>');
  tags.push(it.official?pill('v','官方原文'):pill('w','媒体'));
  if(a.unverified)tags.push('<span class="pill r" style="background:transparent;border:1px dashed var(--red)">未证实</span>');
- tags.push(`<span>${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''}${(it.persona||[]).length?' · '+it.persona.map(p=>esc(PERN[p]||p)).join('/'):''}${a.type?' · '+esc(a.type):''}</span>`);
+ tags.push(`<span>${esc(SECN[it.sector]||it.sector)}${it.country?' · '+esc(it.country):''}${(it.persona||[]).length?' · '+it.persona.map(p=>esc(PERN[p]||p)).join('/'):''}${(it.asset||[]).length?' · '+it.asset.map(x=>esc(ASSETN[x]||x)).join('/'):''}${a.type?' · '+esc(a.type):''}</span>`);
  const also=(it.also||[]).length?`<span class="also">另见 ${it.also.length} 个信源</span>`:'';
  return `<article class="litem lv-${lv||'n'}"><div class="meta">${tags.join('')}</div>
   <a class="lt" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(title)}</a>
@@ -1785,7 +1786,7 @@ function liveCard(it){const a=it.ai||{};const lv=a.level;
 function renderLiveFilters(){const all=liveItems();
  const btn=(k,v,label,n)=>`<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${LIVE[k]===v}">${label}<span class="cnt"> ${n}</span></button>`;
  const cs=(k,v)=>all.filter(it=>k==='sector'?it.sector===v:k==='level'?(v==='n'?!it.ai:it.ai&&it.ai.level===v):(it.persona||[]).includes(v)).length;
- let h=btn('sector','all','全部',all.length)+btn('sector','energy','海外能源',cs('sector','energy'))+btn('sector','shipping','航运',cs('sector','shipping'));
+ let h=btn('sector','all','全部',all.length)+Object.keys(SECN).filter(k=>cs('sector',k)).map(k=>btn('sector',k,SECN[k],cs('sector',k))).join('');
  h+='<span class="sep"></span>'+btn('level','all','全部级别',all.length)+['r','y','g'].map(l=>btn('level',l,RN[l]+'色',cs('level',l))).join('')+(all.some(it=>!it.ai)?btn('level','n','未分级',cs('level','n')):'');
  if(LIVE.sector==='shipping')h+='<span class="sep"></span>'+btn('persona','all','全部画像',cs('sector','shipping'))+Object.keys(PERN).map(p=>btn('persona',p,PERN[p],cs('persona',p))).join('');
  document.getElementById('liveFilters').innerHTML=h;}

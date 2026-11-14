@@ -33,7 +33,7 @@ KEEP_DAYS = int(os.getenv("KEEP_DAYS", "14"))        # 库里保留多少天
 SHOW_DAYS = int(os.getenv("SHOW_DAYS", "7"))         # 网页展示多少天
 LOOKBACK = os.getenv("LOOKBACK", "2d")               # 每次向搜索类信源要多久的新闻
 PER_SOURCE = int(os.getenv("PER_SOURCE", "40"))      # 每个信源最多取几条
-MAX_AI = int(os.getenv("MAX_AI", "160"))             # 每次最多送多少条给 AI，控制成本
+MAX_AI = int(os.getenv("MAX_AI", "300"))             # 每次最多送多少条给 AI，控制成本
 AI_BATCH = 10
 TIMEOUT = 25
 UA = "Mozilla/5.0 (compatible; GuanlanRadar/1.0; +https://sonia16-creator.github.io/guanlan/)"
@@ -128,6 +128,10 @@ def fetch_gdelt(q: str) -> list[dict]:
     url = ("https://api.gdeltproject.org/api/v2/doc/doc?mode=artlist&format=json&sort=datedesc"
            f"&maxrecords={PER_SOURCE}&timespan={LOOKBACK}&query={quote_plus(q)}")
     r = session.get(url, timeout=TIMEOUT)
+    if r.status_code == 429:  # 被限速时等一会儿再试一次
+        time.sleep(15)
+        _last_gdelt = time.time()
+        r = session.get(url, timeout=TIMEOUT)
     r.raise_for_status()
     try:
         data = r.json()
@@ -154,9 +158,16 @@ def fetch_portwatch() -> list[dict]:
     feats = r.json().get("features", [])
     if not feats:
         raise ValueError("PortWatch 没有返回数据")
+    def day(v):  # 接口的日期字段曾是毫秒时间戳，现在是 "YYYY-MM-DD" 字符串，两种都兼容
+        if isinstance(v, (int, float)):
+            return datetime.fromtimestamp(v / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+        return str(v)[:10]
+
     rows: dict[str, list[dict]] = {}
     for f in feats:
         a = f.get("attributes", {})
+        if a.get("date") is not None:
+            a["date"] = day(a["date"])
         if a.get("portname") and a.get("date") is not None:
             rows.setdefault(a["portname"], []).append(a)
     out = []
@@ -169,7 +180,7 @@ def fetch_portwatch() -> list[dict]:
         a7, a28 = avg(last7, "n_total"), avg(prev, "n_total")
         out.append({
             "name": name,
-            "latest": datetime.fromtimestamp(rs[0]["date"] / 1000, tz=timezone.utc).strftime("%Y-%m-%d"),
+            "latest": rs[0]["date"],
             "avg7": round(a7, 1), "avg_prev28": round(a28, 1),
             "change": round((a7 - a28) / a28 * 100, 1) if a28 else None,
             "tanker7": round(avg(last7, "n_tanker"), 1), "container7": round(avg(last7, "n_container"), 1),
@@ -206,7 +217,8 @@ def collect(sources: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
                         continue
                     g.update(source_id=s["id"], source=s["name"], sector=s["sector"],
                              country=s.get("country"), persona=[s["persona"]] if s.get("persona") else [],
-                             layer=s.get("layer"), official=bool(s.get("official")))
+                             layer=s.get("layer"), official=bool(s.get("official")),
+                             asset=[s["asset"]] if s.get("asset") else [])
                     items.append(g)
                 rec.update(ok=True, count=len(got))
         except Exception as e:  # 单个信源失败不影响整体
@@ -249,15 +261,22 @@ SYSTEM_PROMPT = f"""你是锋睿「观澜 Horizon」舆情雷达的分析员。�
 
 字段：
 - i：原样返回条目序号
-- relevant：与所属子目录是否相关（energy=智利 CGE、巴西 CPFL、菲律宾 NGCP 及三国电力监管与政策；shipping=航运、港口、要道、船舶、运价、船舶融资、造船、制裁船舶）。无关为 false
+- relevant：与所属子目录是否相关，无关为 false
+  · energy=智利 CGE、巴西 CPFL、菲律宾 NGCP 及三国电力监管与政策
+  · shipping=航运、港口、要道、船舶、运价、船舶融资、造船、制裁船舶
+  · securities=对 A 股、港股、美股、韩股、日股有影响的宏观政策、央行与金融监管、重要公司与行业事件
+  · commodity=影响原油、黄金、白银、铜、LNG 价格或供需的事件
 - title_zh：中文标题，25 字以内
 - summary_zh：一句话中文摘要，60 字以内，写清谁、做了什么、影响什么
 - type：从 {EVENT_TYPES} 里选一个
 - level：r / y / g，AI 初判
   · energy：r=可能影响股权、特许权或重大财务结果，或直接点名中资股东；y=影响经营或收益但有时间应对；g=一般动态
   · shipping：r=要道封锁或袭船导致航线中断、新制裁或港口费等重大政策即时生效、重大违约；y=运价大幅波动、政策草案、地缘升级、重要融资或买卖船交易；g=一般动态
+  · securities：r=超预期的利率或货币政策决定、重大监管处罚或市场规则突变、可能引发市场剧烈波动的事件；y=政策信号或表态、重要数据发布、行业政策草案；g=一般动态
+  · commodity：r=供给突然中断（产油国减产超预期、要道封锁、主要矿山停产）或价格单日剧烈波动；y=库存与产量数据显著变化、央行购金、政策预期变化；g=一般动态
 - persona：仅 shipping 填，数组，可多选 dry（干散货·海岬型）/ box（集运与货代）/ tank（油轮），都不相关则空数组
-- country：energy 填 智利 / 巴西 / 菲律宾 / 其他；shipping 留空字符串
+- asset：仅 commodity 填，数组，可多选 oil / gold / silver / copper / lng，都不相关则空数组
+- country：energy 填 智利 / 巴西 / 菲律宾 / 其他；其余子目录留空字符串
 - reason_zh：分级理由，30 字以内
 - unverified：如果标题本身是传闻、未经证实或单一匿名消息，为 true
 
@@ -318,7 +337,10 @@ def analyze(items: list[dict], ts: datetime) -> int:
             if it["sector"] == "shipping":
                 ps = [p for p in (r.get("persona") or []) if p in ("dry", "box", "tank")]
                 it["persona"] = sorted(set(ps) | set(it.get("persona") or []))
-            elif r.get("country") and not it.get("country"):
+            elif it["sector"] == "commodity":
+                xs = [x for x in (r.get("asset") or []) if x in ("oil", "gold", "silver", "copper", "lng")]
+                it["asset"] = sorted(set(xs) | set(it.get("asset") or []))
+            elif it["sector"] == "energy" and r.get("country") and not it.get("country"):
                 it["country"] = r["country"]
             done += 1
         print(f"  AI 已处理 {min(k + AI_BATCH, len(todo))}/{len(todo)}", flush=True)
